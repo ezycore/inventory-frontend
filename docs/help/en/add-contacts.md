@@ -16,6 +16,14 @@ features:
 ui_labels:
   - customers:page.title
   - customers:page.subtitle
+  - customers:filters.owesMoney
+  - customers:columns.receive
+  - dashboard:summary.receivable
+  - dashboard:summary.payable
+  - suppliers:page.totals.payable
+  - suppliers:filters.owed
+  - suppliers:columns.due
+  - suppliers:columns.pay
 ---
 
 # Add suppliers and customers
@@ -30,6 +38,15 @@ on purchase orders you send out.
 
 Each supplier keeps a running balance of what you owe them, built up from purchases you have not yet
 paid for in full.
+
+### Pay what you owe suppliers
+
+With Cash & Bank on, the supplier list shows a **Due** column and, above it, what you owe in total.
+Press the **Total payable** card — here or the Payable card on the dashboard — and the list opens
+filtered to **You owe them (largest first)**.
+
+A supplier you owe has a **Pay** button next to the amount. It opens their ledger, where each unpaid
+purchase order has its own Pay button. You need a role that can edit purchases.
 
 ## Customers
 
@@ -47,6 +64,17 @@ Add a proper customer record when you want to:
 Every customer has a ledger — a running record of what they bought, what they paid, and what is
 outstanding. It is the answer to "how much does this person owe me", and it updates itself as you
 record sales and payments.
+
+### Collect what customers owe
+
+There is no separate dues screen — the customer list is it. Press the **Receivable** card on the
+dashboard, or the total at the top of Customers, and the list opens filtered to **Owes money
+(largest first)**: everyone with an unpaid balance, the biggest first.
+
+Each of those customers has a **Receive** button next to the amount they owe. It opens their ledger
+straight on the payment form, already filled in with the full amount: change it to what they paid
+and it settles their oldest invoices first. You need Cash & Bank
+turned on, and a role that can edit sales.
 
 If you only sell online — no counter, no Cash & Bank — there is no ledger button. Press a customer's
 phone number instead: it opens Online Orders searched by that number, so you see every order they

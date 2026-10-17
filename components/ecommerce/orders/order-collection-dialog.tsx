@@ -59,7 +59,11 @@ export function OrderCollectionDialog({
   const [open, setOpen] = useState(false);
   const record = useRecordCollection();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
 
   // What the COURIER was asked to bring back — the order total net of any
   // advance. The prepayment's shipping leg is already banked and its goods leg
@@ -73,7 +77,10 @@ export function OrderCollectionDialog({
   // Until the merchant types a figure, "collected" follows the items: the order less what came
   // back — or the courier's own figure when it sent one.
   const [typedCollected, setTypedCollected] = useState<number | null>(null);
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
   const [discount, setDiscount] = useState<number>(0);
   const [discountNote, setDiscountNote] = useState("");
   const [stillOwed, setStillOwed] = useState<number>(0);

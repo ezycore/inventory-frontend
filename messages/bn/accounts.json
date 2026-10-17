@@ -100,6 +100,8 @@
       "utilities": "ইউটিলিটি",
       "shipping": "শিপিং",
       "delivery": "ডেলিভারি",
+      "marketing": "বিজ্ঞাপন ও মার্কেটিং",
+      "packaging": "প্যাকেজিং",
       "adjustment": "সমন্বয়",
       "other": "অন্যান্য",
       "capital_in": "মালিকের বিনিয়োগ",
@@ -154,6 +156,7 @@
       "amountPlaceholder": "পরিমাণ লিখুন",
       "category": "ক্যাটাগরি",
       "categoryPlaceholder": "ক্যাটাগরি নির্বাচন করুন",
+      "date": "তারিখ",
       "reference": "রেফারেন্স (ঐচ্ছিক)",
       "referencePlaceholder": "ইনভয়েস/রিসিট নম্বর",
       "transferReferencePlaceholder": "ট্রান্সফার রেফারেন্স",
@@ -167,6 +170,7 @@
         "selectAccount": "একটি হিসাব নির্বাচন করুন",
         "amountPositive": "পরিমাণ অবশ্যই ধনাত্মক হতে হবে",
         "selectCategory": "একটি ক্যাটাগরি নির্বাচন করুন",
+        "futureDate": "ভবিষ্যতের তারিখ দেওয়া যাবে না",
         "selectSourceAccount": "উৎস হিসাব নির্বাচন করুন",
         "selectDestinationAccount": "গন্তব্য হিসাব নির্বাচন করুন"
       }

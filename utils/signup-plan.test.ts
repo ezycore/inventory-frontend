@@ -1,6 +1,11 @@
 // coding-standard: maintained
 import { describe, it, expect, afterEach } from "vitest";
-import { getSignupPlanFromUrl, prettyPlanName } from "@/utils/signup-plan";
+import {
+  getSignupKeyFromUrl,
+  getSignupPlanFromUrl,
+  initialSignupPlanSlug,
+  prettyPlanName,
+} from "@/utils/signup-plan";
 
 const setUrl = (search: string) => {
   window.history.replaceState({}, "", `/signup${search}`);
@@ -58,5 +63,29 @@ describe("getSignupPlanFromUrl", () => {
   it("sends nothing when no plan was chosen", () => {
     setUrl("");
     expect(getSignupPlanFromUrl()).toEqual({});
+  });
+});
+
+describe("signup key and starting plan", () => {
+  it("reads the team's key from ?key=", () => {
+    setUrl("?key=team-123&plan=growth-monthly-v2");
+    expect(getSignupKeyFromUrl()).toBe("team-123");
+    setUrl("");
+    expect(getSignupKeyFromUrl()).toBeUndefined();
+  });
+
+  const groups = [
+    { variants: [{ slug: "start-monthly-v2" }, { slug: "start-yearly-v2" }] },
+    { variants: [{ slug: "growth-monthly-v2" }, { slug: "growth-yearly-v2" }] },
+  ];
+
+  it("opens on the plan the link named when it is on sale", () => {
+    expect(initialSignupPlanSlug(groups, "growth-yearly-v2")).toBe("growth-yearly-v2");
+  });
+
+  it("opens on the entry plan for no plan or a plan not on sale", () => {
+    expect(initialSignupPlanSlug(groups)).toBe("start-monthly-v2");
+    expect(initialSignupPlanSlug(groups, "growh-monthly")).toBe("start-monthly-v2");
+    expect(initialSignupPlanSlug([], "x")).toBeUndefined();
   });
 });

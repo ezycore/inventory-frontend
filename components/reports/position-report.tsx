@@ -119,6 +119,16 @@ export function PositionReport() {
                   value={data.liabilities.customerCredit}
                   format={format}
                 />
+                {/* The courier's charges come off its payout, so "With courier" less this
+                    line is what the courier will actually pay — Courier Payouts' figure
+                    (S25). Dropped when zero, like "With courier". */}
+                {(data.liabilities.courierCharges ?? 0) !== 0 && (
+                  <Row
+                    label={t('courierCharges')}
+                    value={data.liabilities.courierCharges}
+                    format={format}
+                  />
+                )}
                 <div className="flex items-center justify-between border-t-2 pt-3 font-semibold">
                   <span>{t('totalLiabilities')}</span>
                   <span className="tabular-nums">{format(data.liabilities.total)}</span>

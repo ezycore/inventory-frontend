@@ -1,11 +1,14 @@
 // coding-standard: maintained
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
+import { HandCoins } from "lucide-react";
 import type { Customer } from "@/types";
 import type { Translator } from "@/i18n/config";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { MoneyCell } from "@/ui/components/dataTable/cells/money-cell";
 import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
+import { DiscountCell } from "@/components/ecommerce/discount-cell";
 
 /** Which of the merchant's switches decide a column (business-modes R1: OFF means hidden). */
 export interface CustomerColumnModes {
@@ -17,6 +20,11 @@ export interface CustomerColumnModes {
   counter: boolean;
   /** The phone opens this buyer's online orders — storefront on and `storefront.orders.view` held. */
   phoneOpensOrders?: boolean;
+  /**
+   * Take a payment from a customer who owes — renders a Receive button beside the Due amount.
+   * Omit it when the user cannot (no `accounts`, or no `sales.edit`) and the amount stands alone.
+   */
+  onReceivePayment?: (customer: Customer) => void;
 }
 
 const ALL_MODES: CustomerColumnModes = {
@@ -110,11 +118,12 @@ export function getCustomerColumns(
         const discount = row.original.defaultDiscount;
         if (!discount) return <span className="text-muted-foreground">{t("columns.none")}</span>;
 
-        const { value, type } = discount;
-        const displayValue =
-          type === "percentage" ? `${value}%` : `$${value.toFixed(2)}`;
-
-        return <span className="font-medium">{displayValue}</span>;
+        // The shop's currency, not a hard-coded "$".
+        return (
+          <span className="font-medium">
+            <DiscountCell type={discount.type} value={discount.value} />
+          </span>
+        );
       },
     },
     {
@@ -132,9 +141,27 @@ export function getCustomerColumns(
     modes.tracksMoney && {
       accessorKey: "totalDue",
       header: t("columns.due"),
-      cell: ({ row }) => (
-        <MoneyCell value={row.original.totalDue ?? 0} accentClass="text-red-600" />
-      ),
+      // The payment action sits beside the amount it settles, not in the actions column: only
+      // some rows owe, and a button there on those rows alone knocked every row's icons out of line.
+      cell: ({ row }) => {
+        const due = row.original.totalDue ?? 0;
+        const amount = <MoneyCell value={due} accentClass="text-red-600" />;
+        if (!(due > 0) || !modes.onReceivePayment) return amount;
+        return (
+          <div className="flex items-center gap-2">
+            {amount}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => modes.onReceivePayment?.(row.original)}
+            >
+              <HandCoins className="h-3.5 w-3.5" />
+              {t("columns.receive")}
+            </Button>
+          </div>
+        );
+      },
     },
     modes.tracksMoney && {
       accessorKey: "creditBalance",
@@ -150,11 +177,6 @@ export function getCustomerColumns(
       accessorKey: "createdAt",
       header: t("columns.createdDate"),
       cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-    },
-    {
-      accessorKey: "updatedAt",
-      header: t("columns.updatedDate"),
-      cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
     },
   ];
   return columns.filter((column): column is ColumnDef<Customer> => column !== false);

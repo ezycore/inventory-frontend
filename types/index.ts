@@ -954,6 +954,8 @@ export interface AvailablePlan {
   /** Billing period = `intervalCount × interval` (e.g. month × 6). Missing = 1. */
   intervalCount?: number;
   amount: number;
+  /** ISO currency code, e.g. "BDT". */
+  currency?: string;
   /** Struck-through anchor price — MC only sends it when > `amount`. */
   compareAtAmount?: number;
   /** Limited-time-offer end date (ISO). Display-only. */
@@ -1483,6 +1485,8 @@ export interface Supplier extends BaseEntity {
   defaultDiscount?: Discount;
   /** Credit accumulated from purchase-return overpayments. Spendable on future POs. */
   creditBalance?: number;
+  /** What the shop still owes this supplier at the active location (list rows only). */
+  totalDue?: number;
 }
 
 export interface CreateSupplierDto {

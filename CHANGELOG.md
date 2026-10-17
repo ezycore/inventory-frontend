@@ -9,6 +9,74 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-10-18
+
+### Deploy notes
+- **Needs inventory-backend ≥ 1.11.0, deployed first.** Against 1.10.1: the signup page shows the
+  old open form (no `GET /api/public/signup-options`), the supplier Due column reads ৳0 with no
+  totals (no supplier dues on `GET /api/suppliers`), and the S24–S31 additions (gross-profit split,
+  courier charges line, Rejected) simply do not show.
+
+### Added
+- **Supplier dues on the Suppliers page**: with Cash & Bank on, a **Due** column, totals above the
+  list (payable, suppliers owed, supplier credit) and a **You owe them (largest first)** filter. The
+  totals and the dashboard Payable card open that filtered list, and an owed row has **Pay** beside
+  the amount, opening the supplier's ledger. The Updated Date column is gone, as on Customers.
+- **Collect dues from the dashboard in three clicks**: the Receivable card and the Customers page's
+  receivable and debtor totals open the customer list filtered to who owes money, biggest first, and
+  each of those rows has a **Receive** button beside the amount owed that opens the payment form
+  directly. Before, the figures linked nowhere and paying meant finding the filter and a small
+  ledger icon.
+- **Choose the plan on the signup form**: one card per package with price and limits and the same
+  monthly/yearly switch as Billing. A `?plan=` link preselects its plan; with none the entry plan
+  is selected. It used to come only from the URL, so opening `/signup` directly could not pick one.
+- **While self-signup is closed** (backend `SIGNUP_ACCESS_KEY`), `/signup` shows "We set up your
+  store with you" with a link to the contact page, and the login screens say "New to EzyCore? Talk
+  to us". The team opens `/signup?key=<key>` to create a merchant's workspace.
+- Record Expense / Record Income: a **Date** field, today on the shop's calendar by default, no
+  future dates; and the categories **Ads & marketing** and **Packaging** (S26).
+- Business Position: **Courier charges to come off the payout** under liabilities, so the courier
+  money nets to what Courier Payouts says is owed; the asset reads **With courier (COD collected)**
+  (S25).
+- Dashboard and Orders Report gross profit show **Goods ৳X · delivery ৳Y** under the figure; the
+  P&L's gross profit says it is goods only (S24).
+- Online Orders, **Closed** tab: chips **All · Cancelled · Rejected · Returned** with their counts
+  filter the tab to one status (11 closed = 3 cancelled + 7 rejected + 1 returned). Shown on the
+  Closed tab only; the other tabs are unchanged.
+
+### Changed
+- **Every payment form starts on the default account** (Cash & Bank → default): customer and
+  supplier payments, Receive Payment, sales and purchase history payments, return refunds, courier
+  payouts and the online-order dialogs. An online order starts on the account its payment method is
+  mapped to in Store Settings → Payments, else the default.
+- **Paying a supplier no longer asks for a Payment Method**: the account you pay from decides it
+  (Cash → cash, bank → bank, bKash/Nagad → mobile money, custom → other), so the two can no
+  longer contradict each other. The Payment Account select is full width on the supplier and
+  customer payment forms.
+
+### Removed
+- The **Updated Date** column on Customers — the last-edit time of the record told a merchant nothing.
+
+### Fixed
+- Customers and Suppliers: a fixed default discount shows in the shop's currency, not "$".
+- Supplier ledger: no more "<div> cannot be a descendant of <p>" warning while it loads.
+- **Receive Payment opened with an empty amount** the first time it was opened for a customer (the
+  form read the dues before they had loaded); it now starts at the full amount owed.
+- Notification settings: the new template variables (Total paid, Stock status, Online orders)
+  have labels in English and Bangla instead of showing their raw names.
+- Online order page, returned order: the banner no longer says "the refund was processed" when
+  nothing was refunded (a COD parcel refused at the door). It names a refund only when the order
+  was paid; otherwise it reads "the sale reversed. Nothing was refunded."
+- Online order page, custom (manual) courier: the "sale is still recorded — use Return whole order"
+  warning no longer shows once the order has been returned.
+- Dashboard Low Stock Alerts lists sold-out products with a "Sold out" badge instead of "All stock
+  healthy" beside a "Low Stock · 4" button (S23).
+- Dashboard Fulfillment shows **Rejected** apart from **Cancelled** (S31).
+- Bangla: Orders Report, Tags, Notifications, Support Access and Meta Ad Reporting have menu labels,
+  and the header search reads "খুঁজুন...". A test now fails on any menu item without a label in
+  either language (S28).
+- Record Expense / Record Income no longer offer a courier's COD account to pay from (S26).
+
 ## [1.9.3] - 2026-10-14
 
 ### Deploy notes

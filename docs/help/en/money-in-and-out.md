@@ -24,6 +24,9 @@ ui_labels:
   - accounts:transactions.stats.ownerCapital
   - accounts:transactions.stats.netChange
   - accounts:transactions.reverse.action
+  - accounts:transactions.categories.marketing
+  - accounts:transactions.categories.packaging
+  - accounts:transactions.dialogs.date
 ---
 
 # Track your cash and bank
@@ -66,8 +69,14 @@ increases the balance and is logged separately, so your own money never gets mis
 The Transactions screen *Track every taka moving in and out* — every movement, newest first.
 
 Entries appear automatically from sales, purchases, payments and refunds. You add the rest yourself:
-Salary, Rent, Utilities, and anything else under Other. Recording those is what turns "money in the
-drawer" into a real profit figure.
+Salary, Rent, Utilities, Ads & marketing, Packaging, and anything else under Other. Each category is
+its own line on Profit & Loss. Recording those is what turns "money in the drawer" into a real
+profit figure.
+
+The **Date** is the day the money actually moved, on your shop's calendar. It starts on today; pick
+an earlier day for a bill you are recording late, so it lands in the right month. A future date is
+not allowed. A courier's cash-on-delivery account is not offered here — courier money is recorded
+on Courier Payouts.
 
 Two columns say what a row is, and they answer different questions:
 

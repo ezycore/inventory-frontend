@@ -63,6 +63,8 @@ import type {
   SupplierLedgerInboundCredit,
 } from "@/types";
 import { cn } from "@/ui/lib/utils";
+import { paymentMethodForAccount } from "@/utils/payment-method";
+import { defaultAccountId } from "@/utils/default-account";
 
 interface SupplierLedgerSheetProps {
   open: boolean;
@@ -112,8 +114,7 @@ export function SupplierLedgerSheet({
     null,
   );
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentAccountId, setPaymentAccountId] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [pickedPaymentAccountId, setPaymentAccountId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
   const [useSupplierCredit, setUseSupplierCredit] = useState(false);
 
@@ -171,6 +172,8 @@ export function SupplierLedgerSheet({
   const ledgerCreditBalance =
     ledger?.creditBalance ?? supplier?.creditBalance ?? 0;
   const accounts = accountsData ?? [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const paymentAccountId = pickedPaymentAccountId || defaultAccountId(accounts);
 
   // Calculate summary from ledger data
   const totalPaid = purchaseOrders.reduce((sum, po) => sum + po.paidAmount, 0);
@@ -185,7 +188,6 @@ export function SupplierLedgerSheet({
     setPaymentPO(po);
     setPaymentAmount(po.dueAmount.toFixed(2));
     setPaymentAccountId("");
-    setPaymentMethod("cash");
     setPaymentNotes("");
     setUseSupplierCredit(false);
   };
@@ -194,7 +196,6 @@ export function SupplierLedgerSheet({
     setPaymentPO(null);
     setPaymentAmount("");
     setPaymentAccountId("");
-    setPaymentMethod("cash");
     setPaymentNotes("");
     setUseSupplierCredit(false);
   };
@@ -208,9 +209,12 @@ export function SupplierLedgerSheet({
       await addPaymentMutation.mutateAsync({
         id: paymentPO._id,
         data: {
+          // The account's type is the method; there is no separate method field.
           paymentMethod: useSupplierCredit
             ? undefined
-            : (paymentMethod as "cash" | "card" | "bank" | "mfs" | "other"),
+            : paymentMethodForAccount(
+                accounts.find((account) => account._id === paymentAccountId)?.type,
+              ),
           accountId: useSupplierCredit ? undefined : paymentAccountId,
           amount,
           notes: paymentNotes || undefined,
@@ -293,17 +297,17 @@ export function SupplierLedgerSheet({
                 <>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t("statTotalPaid")}</p>
-                    <p className="text-lg font-semibold text-green-600">
+                    <div className="text-lg font-semibold text-green-600">
                       {isLoading ? (
                         <Skeleton className="h-6 w-20" />
                       ) : (
                         formatCurrency(totalPaid)
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t("statTotalDue")}</p>
-                    <p
+                    <div
                       className={cn(
                         "text-lg font-semibold",
                         totalDue > 0 ? "text-red-600" : "text-green-600",
@@ -314,11 +318,11 @@ export function SupplierLedgerSheet({
                       ) : (
                         formatCurrency(totalDue)
                       )}
-                    </p>
+                    </div>
                   </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">{t("statRefunded")}</p>
-                      <p
+                      <div
                         className={cn(
                           "text-lg font-semibold",
                           totalRefunded > 0 ? "text-red-600" : "text-muted-foreground",
@@ -329,7 +333,7 @@ export function SupplierLedgerSheet({
                         ) : (
                           formatCurrency(totalRefunded)
                         )}
-                      </p>
+                      </div>
                       {totalRefundCredit > 0 && (
                         <p className="text-[11px] text-muted-foreground">
                           {t("creditSuffix", { amount: formatCurrency(totalRefundCredit) })}
@@ -458,7 +462,7 @@ export function SupplierLedgerSheet({
                         value={paymentAccountId}
                         onValueChange={setPaymentAccountId}
                       >
-                        <SelectTrigger id="sup-pay-account">
+                        <SelectTrigger id="sup-pay-account" className="w-full">
                           <SelectValue placeholder={tPayments("selectAccount")} />
                         </SelectTrigger>
                         <SelectContent>
@@ -468,27 +472,6 @@ export function SupplierLedgerSheet({
                               {account.type ? ` (${account.type})` : ""}
                             </SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {!useSupplierCredit && (
-                    <div className="space-y-2">
-                      <Label htmlFor="sup-pay-method">{tPayForm("paymentMethod")}</Label>
-                      <Select
-                        value={paymentMethod}
-                        onValueChange={setPaymentMethod}
-                      >
-                        <SelectTrigger id="sup-pay-method">
-                          <SelectValue placeholder={tPayForm("selectMethod")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cash">{tPayForm("methodCash")}</SelectItem>
-                          <SelectItem value="card">{tPayForm("methodCard")}</SelectItem>
-                          <SelectItem value="bank">{tPayForm("methodBank")}</SelectItem>
-                          <SelectItem value="mfs">{tPayForm("methodMfs")}</SelectItem>
-                          <SelectItem value="other">{tPayForm("methodOther")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

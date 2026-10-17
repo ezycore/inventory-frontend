@@ -51,7 +51,11 @@ export function OrderCancelDialog({
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const cancel = useCancelOrder();
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
 
   // Uncontrolled unless the caller passes `open` — a dropdown menu item cannot
   // host the trigger, because selecting it unmounts the item and the dialog with it.
@@ -63,7 +67,10 @@ export function OrderCancelDialog({
   // What "Other" meant. Required with it — 56 of 78 rejections at one shop said "Other" and
   // nothing else, so the report could not say what to fix (G10).
   const [note, setNote] = useState("");
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
   const needsNote = reject && reason === "other" && !note.trim();
 
   const setOpen = (next: boolean) => {

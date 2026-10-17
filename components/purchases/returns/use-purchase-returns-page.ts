@@ -39,6 +39,7 @@ import {
   calculateMaxRefund,
 } from "./helpers";
 import { getReturnsColumns } from "./columns";
+import { defaultAccountId } from "@/utils/default-account";
 
 // =====================
 // Schema
@@ -71,7 +72,7 @@ export function usePurchaseReturnsPage() {
   const [deductionAmount, setDeductionAmount] = useState(0);
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [pickedSelectedAccountId, setSelectedAccountId] = useState<string>("");
   const [supplierCreditAmount, setSupplierCreditAmount] = useState(0);
 
   // ── Details sheet ─────────────────────────────────────────────
@@ -159,6 +160,8 @@ export function usePurchaseReturnsPage() {
     | undefined;
   const returns: PurchaseReturn[] = returnsResponse?.items ?? [];
   const accounts = accountsData ?? [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const selectedAccountId = pickedSelectedAccountId || defaultAccountId(accounts);
   const summary = summaryData?.data;
 
   const paginationInfo = useMemo(() => {

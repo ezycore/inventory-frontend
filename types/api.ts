@@ -318,6 +318,7 @@ export type RoleUsage = Schemas["RoleUsage"];
 export type RoleDelete = Schemas["RoleDelete"];
 export type Login = Schemas["Login"];
 export type Signup = Schemas["Signup"];
+export type SignupOptions = Schemas["SignupOptions"];
 export type ApiMessage = Schemas["Message"];
 export type TwoFactorStatus = Schemas["TwoFactorStatus"];
 export type TwoFactorSetup = Schemas["TwoFactorSetup"];

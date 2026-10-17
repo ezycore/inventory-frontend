@@ -6,7 +6,6 @@ import {
   getRootDomain,
   isWorkspaceHost,
   shouldShowOrganizationSlugField,
-  signupUrl,
   withOrganizationSlug,
 } from "@/lib/organization-utils";
 import { Button } from "@ui/components/button";
@@ -26,6 +25,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { LoginNotices } from "./login-notices";
+import { SignupPrompt } from "./signup-prompt";
 import { WorkspaceChooser } from "./workspace-chooser";
 import { useHydrated } from "@/hooks";
 
@@ -265,13 +265,7 @@ export function LoginForm({
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              {t("noAccount")}{" "}
-              <Link
-                href={signupUrl()}
-                className="underline underline-offset-4"
-              >
-                {t("signUp")}
-              </Link>
+              <SignupPrompt />
             </div>
             <div className="mt-2 text-center text-sm">
               <Link

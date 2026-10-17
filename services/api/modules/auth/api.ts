@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
-import type { ApiMessage, Me, Login, Signup } from "@/types/api";
+import type { ApiMessage, Me, Login, Signup, SignupOptions } from "@/types/api";
 
 export type SignupPayload = FormData | Record<string, any>;
 
@@ -23,6 +23,13 @@ export const authApi = {
   // Used in: useSignupAPi → signup/page.tsx
   signup: (data: SignupPayload): Promise<ApiResponse<Signup>> =>
     apiClient.post("/auth/signup", data),
+
+  // GET /api/public/signup-options - May this visitor sign up, and on which plans
+  // Used in: useSignupOptions → signup/page.tsx, SignupPrompt (login screens)
+  signupOptions: (key?: string): Promise<ApiResponse<SignupOptions>> =>
+    apiClient.get(
+      `/public/signup-options${key ? `?key=${encodeURIComponent(key)}` : ""}`,
+    ),
 
   // POST /api/auth/login - Login user
   // Used in: useLogin → login-form.tsx

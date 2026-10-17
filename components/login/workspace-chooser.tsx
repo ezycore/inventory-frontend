@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import {
   getRootDomain,
   isValidOrganizationSlug,
-  signupUrl,
   workspaceUrl,
 } from "@/lib/organization-utils";
 import {
@@ -14,6 +13,7 @@ import {
   type FoundWorkspace,
 } from "@/lib/workspace-status-client";
 import { LoginNotices } from "./login-notices";
+import { SignupPrompt } from "./signup-prompt";
 import { Alert, AlertDescription } from "@ui/components/alert";
 import { Button } from "@ui/components/button";
 import {
@@ -27,7 +27,6 @@ import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 
 /**
@@ -268,10 +267,7 @@ export function WorkspaceChooser({
             </div>
 
             <div className="mt-2 text-center text-sm">
-              {t("noAccount")}{" "}
-              <Link href={signupUrl()} className="underline underline-offset-4">
-                {t("signUp")}
-              </Link>
+              <SignupPrompt />
             </div>
           </form>
         </CardContent>

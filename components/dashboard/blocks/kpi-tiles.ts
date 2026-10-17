@@ -314,6 +314,25 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
      */
     const grossProfit = overview.grossProfit ?? 0
     const margin = known > 0 ? Math.round((grossProfit / known) * 100) : 0
+    const marginLine =
+      unknown > 0
+        ? t('marginOfKnown', {
+            margin,
+            known: formatCurrency(known),
+            unknown: formatCurrency(unknown),
+          })
+        : t('marginOfSales', { margin })
+    // This figure includes the delivery margin; the P&L's gross profit is goods only.
+    // Naming both halves lets the two be matched (S24). A shop with no delivery money
+    // (or an older API) gets the margin line alone.
+    const delivery = overview.deliveryMargin ?? 0
+    const splitLine =
+      delivery !== 0 && overview.goodsProfit !== undefined
+        ? t('profitSplit', {
+            goods: formatCurrency(overview.goodsProfit),
+            delivery: formatCurrency(delivery),
+          })
+        : null
     return {
       label: t('grossProfit'),
       value: formatCurrency(grossProfit),
@@ -321,14 +340,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       href: '/reports/orders',
       icon: TrendingUp,
       variant: grossProfit >= 0 ? 'success' : 'warning',
-      description:
-        unknown > 0
-          ? t('marginOfKnown', {
-              margin,
-              known: formatCurrency(known),
-              unknown: formatCurrency(unknown),
-            })
-          : t('marginOfSales', { margin }),
+      description: splitLine ? `${splitLine} · ${marginLine}` : marginLine,
     }
   },
 

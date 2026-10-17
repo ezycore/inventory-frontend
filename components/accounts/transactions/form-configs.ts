@@ -1,5 +1,7 @@
 // coding-standard: maintained
 import { selectOptions } from "@/services/api/select-options";
+import { accountPaymentOptionItemsCallback } from "@/components/sales/helpers";
+import { parse } from "date-fns";
 import { z } from "zod";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
@@ -14,15 +16,28 @@ import {
  * a `transactions.dialogs.validation`-bound translator; the default keeps
  * English for module-level use before a translator exists.
  */
-export const makeIncomeSchema = (msg?: {
-  selectAccount: string;
-  amountPositive: string;
-  selectCategory: string;
-}) =>
+export const makeIncomeSchema = (
+  msg?: {
+    selectAccount: string;
+    amountPositive: string;
+    selectCategory: string;
+    futureDate?: string;
+  },
+  /** Today on the ORGANIZATION's calendar (`yyyy-MM-dd`) — the latest date allowed. */
+  today?: string,
+) =>
   z.object({
     accountId: z.string().min(1, msg?.selectAccount ?? "Select an account"),
     amount: z.number().positive(msg?.amountPositive ?? "Amount must be positive"),
     category: z.string().min(1, msg?.selectCategory ?? "Select a category"),
+    // The day the money moved, on the org's calendar; the API refuses a future one too (S26).
+    // `yyyy-MM-dd` strings compare correctly as text.
+    date: z
+      .string()
+      .optional()
+      .refine((value) => !value || !today || value <= today, {
+        message: msg?.futureDate ?? "The date cannot be in the future",
+      }),
     description: z.string().optional(),
     reference: z.string().optional(),
   });
@@ -46,6 +61,13 @@ export type IncomeFormData = z.infer<ReturnType<typeof makeIncomeSchema>>;
 export type ExpenseFormData = z.infer<ReturnType<typeof makeExpenseSchema>>;
 export type TransferFormData = z.infer<ReturnType<typeof makeTransferSchema>>;
 
+/**
+ * The accounts a person may post to by hand. `payment-options` leaves out system accounts — the
+ * courier's COD clearing account most of all, which Record Expense used to offer as a place to pay
+ * from (S26). The API refuses it as well.
+ */
+const POSTABLE_ACCOUNTS = selectOptions("accountPaymentOptions");
+
 /** `tCategories` is bound to `transactions.categories`. */
 const getCategories = (
   tCategories: Translator,
@@ -62,6 +84,7 @@ const buildMoneyFormConfig = (
   t: Translator,
   tCategories: Translator,
   categoryKeys: readonly string[],
+  today?: string,
 ): DynamicFormConfig => ({
   fields: [
     {
@@ -71,7 +94,9 @@ const buildMoneyFormConfig = (
       placeholder: t("accountPlaceholder"),
       required: true,
       columnSpan: 12,
-      optionsApi: selectOptions("accounts"),
+      optionsApi: POSTABLE_ACCOUNTS,
+      // A flat array, not the paginated list shape — without this the select reads no options.
+      itemsCreateCallback: accountPaymentOptionItemsCallback,
     },
     {
       name: "amount",
@@ -90,6 +115,15 @@ const buildMoneyFormConfig = (
       required: true,
       columnSpan: 6,
       options: getCategories(tCategories, categoryKeys),
+    },
+    {
+      name: "date",
+      type: "date",
+      zodType: "string",
+      label: t("date"),
+      outputFormat: "yyyy-MM-dd",
+      columnSpan: 6,
+      ...(today ? { toDate: parse(today, "yyyy-MM-dd", new Date()) } : {}),
     },
     {
       name: "reference",
@@ -123,22 +157,26 @@ export const getIncomeFormConfig = (
   t: Translator,
   tCategories: Translator,
   canPostCapital = true,
+  today?: string,
 ) =>
   buildMoneyFormConfig(
     t,
     tCategories,
     visibleCategories(INCOME_CATEGORIES, canPostCapital),
+    today,
   );
 
 export const getExpenseFormConfig = (
   t: Translator,
   tCategories: Translator,
   canPostCapital = true,
+  today?: string,
 ) =>
   buildMoneyFormConfig(
     t,
     tCategories,
     visibleCategories(EXPENSE_CATEGORIES, canPostCapital),
+    today,
   );
 
 export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
@@ -150,7 +188,9 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
       placeholder: t("fromAccountPlaceholder"),
       required: true,
       columnSpan: 6,
-      optionsApi: selectOptions("accounts"),
+      optionsApi: POSTABLE_ACCOUNTS,
+      // A flat array, not the paginated list shape — without this the select reads no options.
+      itemsCreateCallback: accountPaymentOptionItemsCallback,
     },
     {
       name: "toAccountId",
@@ -159,7 +199,9 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
       placeholder: t("toAccountPlaceholder"),
       required: true,
       columnSpan: 6,
-      optionsApi: selectOptions("accounts"),
+      optionsApi: POSTABLE_ACCOUNTS,
+      // A flat array, not the paginated list shape — without this the select reads no options.
+      itemsCreateCallback: accountPaymentOptionItemsCallback,
     },
     {
       name: "amount",
