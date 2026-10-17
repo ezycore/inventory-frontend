@@ -333,7 +333,7 @@ export interface paths {
         };
         /**
          * GET /api/public/orgs/by-host/status
-         * @description Defined in `src/routes/public.routes.ts:17`.
+         * @description Defined in `src/routes/public.routes.ts:18`.
          */
         get: operations["get_api_public_orgs_by_host_status"];
         put?: never;
@@ -353,7 +353,7 @@ export interface paths {
         };
         /**
          * GET /api/public/store-by-host
-         * @description Defined in `src/routes/public.routes.ts:19`.
+         * @description Defined in `src/routes/public.routes.ts:20`.
          */
         get: operations["get_api_public_store_by_host"];
         put?: never;
@@ -373,7 +373,7 @@ export interface paths {
         };
         /**
          * GET /api/public/orgs/:slug/status
-         * @description Defined in `src/routes/public.routes.ts:21`.
+         * @description Defined in `src/routes/public.routes.ts:22`.
          */
         get: operations["get_api_public_orgs_slug_status"];
         put?: never;
@@ -393,9 +393,29 @@ export interface paths {
         };
         /**
          * GET /api/public/version
-         * @description Defined in `src/routes/public.routes.ts:23`.
+         * @description Defined in `src/routes/public.routes.ts:24`.
          */
         get: operations["get_api_public_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/signup-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/public/signup-options
+         * @description Defined in `src/routes/public.routes.ts:28`. Rate limited to 30 requests / 15 minutes per IP (`signupOptionsLimiter`).
+         */
+        get: operations["get_api_public_signup_options"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13834,6 +13854,34 @@ export interface components {
             status: "active" | "disabled";
             url: string;
         } | null;
+        SignupOptions: {
+            selfSignup: boolean;
+            allowed: boolean;
+            plans: ({
+                id: string;
+                name: string;
+                slug: string;
+                description?: string;
+                /** @enum {string} */
+                interval: "month" | "year" | "one_time";
+                intervalCount?: number;
+                amount: number;
+                compareAtAmount?: number;
+                /** Format: date-time */
+                offerEndsAt?: string;
+                currency?: string;
+                trialDays?: number;
+                modules: string[];
+                features: string[];
+                limits: {
+                    [key: string]: number;
+                };
+                popular?: boolean;
+                sortOrder?: number;
+            } & {
+                [key: string]: unknown;
+            })[];
+        };
         StoreHost: {
             exists: boolean;
             slug?: string;
@@ -19551,6 +19599,7 @@ export interface operations {
                     /** @enum {string} */
                     locale?: "en" | "bn";
                     referralCode?: string;
+                    signupKey?: string;
                 };
             };
         };
@@ -20267,6 +20316,37 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["AppVersion"];
                     };
+                };
+            };
+        };
+    };
+    get_api_public_signup_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SignupOptions"];
+                    };
+                };
+            };
+            /** @description Rate limit exceeded (30 requests / 15 minutes per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

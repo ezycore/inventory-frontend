@@ -9,6 +9,18 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Deploy notes
+- Needs **inventory-backend** with `GET /api/public/signup-options` (the `SIGNUP_ACCESS_KEY`
+  change) deployed first. Against an older backend the signup page shows the old open form.
+
+### Added
+- **Choose the plan on the signup form**: one card per package with price and limits and the same
+  monthly/yearly switch as Billing. A `?plan=` link preselects its plan; with none the entry plan
+  is selected. It used to come only from the URL, so opening `/signup` directly could not pick one.
+- **While self-signup is closed** (backend `SIGNUP_ACCESS_KEY`), `/signup` shows "We set up your
+  store with you" with a link to the contact page, and the login screens say "New to EzyCore? Talk
+  to us". The team opens `/signup?key=<key>` to create a merchant's workspace.
+
 ### Fixed
 - Notification settings: the new template variables (Total paid, Stock status, Online orders)
   have labels in English and Bangla instead of showing their raw names.

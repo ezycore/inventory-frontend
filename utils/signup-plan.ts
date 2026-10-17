@@ -71,3 +71,30 @@ export function getSignupPlanFromUrl(): SignupPlanFromUrl {
     ...(slug && { planSlug: slug }),
   };
 }
+
+/**
+ * The team's signup key from `/signup?key=…`, while self-signup is closed
+ * (backend `SIGNUP_ACCESS_KEY`). The backend decides whether it is right; this
+ * only carries it. Reads `window.location`, so gate callers on `useHydrated()`.
+ */
+export function getSignupKeyFromUrl(): string | undefined {
+  return new URLSearchParams(window.location.search).get("key")?.trim() || undefined;
+}
+
+/**
+ * Which plan the signup picker opens on: the plan the link named when it is on
+ * sale, else the entry plan — the first package's shortest cycle, the same plan
+ * Mission Control gives a signup that names none. `undefined` with no plans.
+ *
+ * A named slug that is NOT on sale is not honoured silently: the picker opens on
+ * the entry plan where the person can see it, instead of the backend refusing a
+ * form that had no plan control on it.
+ */
+export function initialSignupPlanSlug<P extends { slug: string }>(
+  groups: Array<{ variants: P[] }>,
+  requestedSlug?: string,
+): string | undefined {
+  const all = groups.flatMap((g) => g.variants);
+  if (requestedSlug && all.some((p) => p.slug === requestedSlug)) return requestedSlug;
+  return groups[0]?.variants[0]?.slug;
+}

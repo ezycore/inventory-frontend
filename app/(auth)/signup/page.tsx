@@ -14,13 +14,15 @@ import {
   SignupBrandPanel,
   SignupHighlightStrip,
 } from "@/components/setup/owner/signup-brand-panel";
+import { SignupClosed } from "@/components/setup/owner/signup-closed";
 import { SignupPlanNote } from "@/components/setup/owner/signup-plan-note";
+import { SignupPlanPicker } from "@/components/setup/owner/signup-plan-picker";
+import { useSignupAccess } from "@/components/setup/owner/use-signup-access";
 import { BRAND, LEGAL_URLS } from "@/constants/brand";
 import { getCountryDefaults } from "@/constants/organization-options";
 import { useHydrated, useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { detectCountryCode } from "@/utils/detect-country";
-import { getSignupPlanFromUrl } from "@/utils/signup-plan";
 import { getSignupReferralFromUrl } from "@/utils/signup-referral";
 import { slugify } from "@/utils/slugify";
 import { Button } from "@/ui/components/button";
@@ -30,6 +32,8 @@ export default function Signup() {
   const t = useTranslations("auth.signup");
   const locale = useLocale();
   const createOwnerMutation = useSignupAPi();
+  // Self-signup may be closed to the team's `?key=`; the plan is picked here.
+  const access = useSignupAccess();
 
   // The sticky-bar submit below is this form's default button — it lives outside
   // the <form> and reaches it by id, so Enter in any field fires it. A disabled
@@ -135,7 +139,8 @@ export default function Signup() {
       // owner and sends the verification email in it — a merchant who signs up
       // in Bangla should not get their first email from us in English.
       locale,
-      ...getSignupPlanFromUrl(),
+      ...access.planPayload(),
+      ...(access.key && { signupKey: access.key }),
       ...getSignupReferralFromUrl(),
     });
   };
@@ -171,33 +176,54 @@ export default function Signup() {
             </div>
 
             {/* Kept left-aligned in one column: the (auth) layout floats the
-                language + theme toggles in the top-right corner. */}
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">
-                {t("title")}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {t("subtitle")} {t("haveAccount")}{" "}
-                <Link
-                  href="/login"
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  {t("signIn")}
-                </Link>
-              </p>
-            </div>
+                language + theme toggles in the top-right corner. Hidden while
+                signup is closed — `SignupClosed` says what to do instead. */}
+            {access.status !== "closed" && (
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {t("title")}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {t("subtitle")} {t("haveAccount")}{" "}
+                  <Link
+                    href="/login"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {t("signIn")}
+                  </Link>
+                </p>
+              </div>
+            )}
 
-            <SignupPlanNote />
+            {access.status === "closed" && <SignupClosed />}
 
-            <SignupHighlightStrip />
+            {access.status === "loading" && (
+              <div className="flex items-center gap-2 py-16 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t("loadingOptions")}
+              </div>
+            )}
 
-            {!createOwnerMutation.isPending && (
+            {access.status === "open" &&
+              (access.plans.length > 0 ? (
+                <SignupPlanPicker
+                  plans={access.plans}
+                  value={access.planSlug}
+                  onChange={access.setPlanSlug}
+                />
+              ) : (
+                <SignupPlanNote />
+              ))}
+
+            {access.status === "open" && <SignupHighlightStrip />}
+
+            {access.status === "open" && !createOwnerMutation.isPending && (
               <SetupProgress control={form.control} />
             )}
 
             {/* The filled form returns intact if the request fails, so this
                 swap must not unmount it for any reason other than pending. */}
-            {createOwnerMutation.isPending ? (
+            {access.status !== "open" ? null : createOwnerMutation.isPending ? (
               <div className="flex flex-col items-center justify-center gap-4 rounded-xl border bg-card px-6 py-16 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Loader2 className="h-7 w-7 animate-spin text-primary" />
@@ -243,7 +269,7 @@ export default function Signup() {
           </div>
         </div>
 
-        {!createOwnerMutation.isPending && (
+        {access.status === "open" && !createOwnerMutation.isPending && (
           <div className="sticky bottom-0 border-t bg-background/95 px-5 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-8 lg:px-10">
             <div className="mx-auto flex w-full max-w-2xl flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
               {/* Passive consent, deliberately not a checkbox — the links must
