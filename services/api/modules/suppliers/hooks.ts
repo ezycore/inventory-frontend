@@ -19,6 +19,22 @@ export const useCreateSupplier = supplierHooks.useCreate;
 export const useUpdateSupplier = supplierHooks.useUpdate;
 export const useDeleteSupplier = supplierHooks.useDelete;
 
+/**
+ * What the shop owes suppliers, for the header above the supplier list — read off the list
+ * response, summed from the same `SupplierDue` rows as each row's Due, so they cannot disagree.
+ */
+export const useSupplierTotals = () => {
+  return useQuery({
+    queryKey: queryKeys.suppliers.totals(),
+    queryFn: () => suppliersApi.getAll({ limit: 1 }),
+    select: (res) =>
+      (res?.data as unknown as {
+        totals?: { payable: number; creditorCount: number; creditBalance: number };
+      })?.totals,
+    staleTime: 60 * 1000,
+  });
+};
+
 // Get supplier ledger
 export const useSupplierLedger = (
   supplierId: string | null,

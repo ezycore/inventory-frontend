@@ -7,7 +7,15 @@
     "editTooltip": "সরবরাহকারী সম্পাদনা",
     "deleteTooltip": "সরবরাহকারী মুছুন",
     "viewTooltip": "সরবরাহকারীর বিস্তারিত দেখুন",
-    "viewLedgerTooltip": "লেজার দেখুন"
+    "viewLedgerTooltip": "লেজার দেখুন",
+    "totals": {
+      "payable": "মোট দেনা",
+      "payableHint": "এই মুহূর্তে সরবরাহকারীদের আপনার দেনা",
+      "creditors": "যাঁদের কাছে দেনা",
+      "creditorsHint": "অপরিশোধিত ব্যালেন্সসহ",
+      "credit": "সরবরাহকারীর ক্রেডিট",
+      "creditHint": "সরবরাহকারীদের কাছে আপনার পাওনা"
+    }
   },
   "filters": {
     "searchSupplier": "সরবরাহকারী খুঁজুন",
@@ -22,7 +30,10 @@
     "selectDateRange": "তারিখের সীমা নির্বাচন করুন",
     "updatedDate": "আপডেটের তারিখ",
     "selectDate": "তারিখ নির্বাচন করুন",
-    "globalSearchPlaceholder": "নাম, ইমেইল, ফোন বা স্ট্যাটাস দিয়ে সরবরাহকারী খুঁজুন..."
+    "globalSearchPlaceholder": "নাম, ইমেইল, ফোন বা স্ট্যাটাস দিয়ে সরবরাহকারী খুঁজুন...",
+    "dues": "বকেয়া",
+    "allSuppliers": "সব সরবরাহকারী",
+    "owed": "দেনা আছে (বেশি আগে)"
   },
   "form": {
     "name": "সরবরাহকারীর নাম",
@@ -46,7 +57,8 @@
     "none": "নেই",
     "creditBalance": "ক্রেডিট ব্যালেন্স",
     "createdDate": "তৈরির তারিখ",
-    "updatedDate": "আপডেটের তারিখ"
+    "due": "বকেয়া",
+    "pay": "পরিশোধ"
   },
   "ledger": {
     "title": "সরবরাহকারী লেজার - {name}",
@@ -98,13 +110,6 @@
     "due": "বাকি",
     "useSupplierCredit": "সরবরাহকারীর ক্রেডিট ব্যবহার করুন",
     "available": "আছে: {amount}",
-    "paymentMethod": "পেমেন্ট পদ্ধতি",
-    "selectMethod": "পদ্ধতি নির্বাচন করুন",
-    "methodCash": "নগদ",
-    "methodCard": "কার্ড",
-    "methodBank": "ব্যাংক ট্রান্সফার",
-    "methodMfs": "মোবাইল ব্যাংকিং",
-    "methodOther": "অন্যান্য",
     "notesOptional": "নোট (ঐচ্ছিক)",
     "notesPlaceholder": "নোট যোগ করুন..."
   }

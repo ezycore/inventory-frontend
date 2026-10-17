@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState, useMemo } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
@@ -35,6 +35,8 @@ import StatsCard from "@/ui/components/StatsCard";
 import { formatCurrency } from "@/lib/currency";
 import { isFeatureEnabled } from "@/lib/feature-utils";
 import { HandCoins, Users, Wallet } from "lucide-react";
+import { CUSTOMERS_WITH_DUES_URL } from "@/components/customers/dues-link";
+import type { LedgerSheetMode } from "@/components/customers/customer-ledger-sheet";
 
 const CUSTOMER_TABS = ["all", "accounts", "subscribers"] as const;
 type CustomerTab = (typeof CUSTOMER_TABS)[number];
@@ -93,6 +95,12 @@ export default function CustomersPage() {
   const showLedger = isAccountsEnabled || sellsAtCounter;
   const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [ledgerMode, setLedgerMode] = useState<LedgerSheetMode>("ledger");
+  // Bumped per open: the sheet remounts, so it starts in `ledgerMode` with a fresh form.
+  const [ledgerSession, setLedgerSession] = useState(0);
+  // Same gate as the route behind it (`POST /sales/customers/:id/payments`).
+  const canReceivePayment =
+    isAccountsEnabled && (user?.permissions?.includes("sales.edit") ?? false);
 
   const tabs: readonly PageTab<CustomerTab>[] = useMemo(
     () =>
@@ -125,6 +133,7 @@ export default function CustomersPage() {
         icon: HandCoins,
         variant: "danger" as const,
         description: t("page.totals.receivableHint"),
+        href: CUSTOMERS_WITH_DUES_URL,
       },
       {
         label: t("page.totals.debtors"),
@@ -132,6 +141,7 @@ export default function CustomersPage() {
         icon: Users,
         variant: "primary" as const,
         description: t("page.totals.debtorsHint"),
+        href: CUSTOMERS_WITH_DUES_URL,
       },
       {
         label: t("page.totals.credit"),
@@ -144,18 +154,22 @@ export default function CustomersPage() {
     [totals, currency, t],
   );
 
+  const openLedger = useCallback((row: Customer, mode: LedgerSheetMode) => {
+    setSelectedCustomer(row);
+    setLedgerMode(mode);
+    setLedgerSession((n) => n + 1);
+    setLedgerSheetOpen(true);
+  }, []);
+
   const customActions: CustomAction[] = useMemo(() => showLedger ? [
     {
       type: "ledger",
       placement: "cell",
       icon: <FileText className="h-4 w-4" />,
       tooltip: t("page.viewLedgerTooltip"),
-      onClick: (row: Customer) => {
-        setSelectedCustomer(row);
-        setLedgerSheetOpen(true);
-      },
+      onClick: (row: Customer) => openLedger(row, "ledger"),
     },
-  ] : [], [showLedger, t]);
+  ] : [], [showLedger, openLedger, t]);
 
   // Hoisted out of the JSX: the table now sits in a ternary branch, and an
   // object literal inside an unrendered branch never evaluates — which would
@@ -197,6 +211,10 @@ export default function CustomersPage() {
           online: isOnline,
           counter: sellsAtCounter,
           phoneOpensOrders: user?.permissions?.includes("storefront.orders.view") ?? false,
+          // Receive sits in the Due cell and opens the ledger straight on the payment form.
+          onReceivePayment: canReceivePayment
+            ? (row) => openLedger(row, "bulk")
+            : undefined,
         })}
         selectable={true}
         enableSorting={true}
@@ -228,6 +246,8 @@ export default function CustomersPage() {
       )}
 
       <CustomerLedgerSheet
+        key={ledgerSession}
+        initialMode={ledgerMode}
         open={ledgerSheetOpen}
         onOpenChange={setLedgerSheetOpen}
         customer={selectedCustomer}

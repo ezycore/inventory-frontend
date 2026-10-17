@@ -10,4 +10,11 @@ export const handlers = [
   http.get("*/api/health", () =>
     HttpResponse.json({ success: true, data: { ok: true } }),
   ),
+  // Both login screens ask whether self-signup is open (`SignupPrompt`).
+  http.get("*/api/public/signup-options", () =>
+    HttpResponse.json({
+      success: true,
+      data: { selfSignup: true, allowed: true, plans: [] },
+    }),
+  ),
 ];

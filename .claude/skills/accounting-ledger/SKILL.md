@@ -87,6 +87,15 @@ The screens that reconcile it live under `/ecommerce/payouts`, not here: they ar
   (money precision is 2; use `NumberField` with `precision={2}` for money inputs).
 - A due is `total − paid`; a negative due is a **credit** the customer/supplier holds. Show the
   server-computed value — the FE must not re-total a ledger.
+- **Every account picker starts on the default account.** Keep the merchant's own pick in state and
+  read `picked || defaultAccountId(accounts)` (`utils/default-account.ts`: the `isDefault` account,
+  else the only one). Not an effect copying it into state — the list arrives after the form opens.
+  Online-order dialogs read `useOrderAccountOptions(order.paymentMethod).defaultAccountId` instead:
+  the account the store maps that payment method to (Store Settings → Payments), else the org
+  default, and empty when the mapping can't be read so the server still applies it.
+- **Don't ask for a payment method beside the account.** The account's type is the method
+  (`utils/payment-method.ts`, mirrored by the backend Payment hook that fills it in when a form
+  sends none). A second select only asked again and could contradict the account.
 
 ---
 

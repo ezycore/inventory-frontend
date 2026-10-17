@@ -3,6 +3,7 @@
 
 import { useTranslations } from "next-intl";
 import { useFeatureLabel } from "@/hooks/use-feature-label";
+import { usePlanIntervalSuffix } from "@/hooks/use-plan-interval-suffix";
 import { formatCurrency } from "@/lib/currency";
 import {
   Card,
@@ -73,7 +74,7 @@ export function PlanCard({
   previousTier?: { name: string; features: string[] };
 }) {
   const tPlans = useTranslations("settings.billing.plans");
-  const tInterval = useTranslations("settings.billing.interval");
+  const intervalSuffix = usePlanIntervalSuffix();
   const featureLabel = useFeatureLabel();
 
   // What this tier adds over the one below. `plan.features` already arrives
@@ -82,16 +83,6 @@ export function PlanCard({
   const addedFeatures = previousTier
     ? plan.features.filter((f) => !previousTier.features.includes(f))
     : plan.features;
-
-  // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
-  const intervalSuffix = () => {
-    const n = plan.intervalCount ?? 1;
-    if (plan.interval === "month")
-      return n > 1 ? tInterval("everyNMonthsSuffix", { n }) : tInterval("monthSuffix");
-    if (plan.interval === "year")
-      return n > 1 ? tInterval("everyNYearsSuffix", { n }) : tInterval("yearSuffix");
-    return "";
-  };
 
   // Whole-number % off vs the anchor price; MC only sends compareAtAmount when
   // it is a real discount, but never trust a struck price ≤ the real one.
@@ -118,7 +109,7 @@ export function PlanCard({
             </span>
           )}
           <span className="text-2xl font-bold">{formatCurrency(plan.amount, currency)}</span>
-          <span className="text-sm text-muted-foreground">{intervalSuffix()}</span>
+          <span className="text-sm text-muted-foreground">{intervalSuffix(plan)}</span>
           {discountPct !== null && (
             <Badge variant="secondary" className="ml-2 align-middle">
               {tPlans("offBadge", { pct: discountPct })}

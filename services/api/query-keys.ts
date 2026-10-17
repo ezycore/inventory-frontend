@@ -87,6 +87,13 @@ export const queryKeys = {
     twoFactorStatus: () => ["profile", "2fa-status"] as const,
   },
 
+  // Signed-out: may this visitor sign up, and on which plans. Keyed by the
+  // team's signup key, because the answer depends on it.
+  signup: {
+    all: () => ["signup"] as const,
+    options: (key?: string) => ["signup", "options", key ?? ""] as const,
+  },
+
   // ── Catalog ─────────────────────────────────────────────────────────────────
   products: {
     ...resourceKeys("products"),
@@ -220,6 +227,8 @@ export const queryKeys = {
       ["suppliers", "ledger", supplierId, params ?? {}] as const,
     statement: (supplierId: string, params?: Params) =>
       ["suppliers", "statement", supplierId, params ?? {}] as const,
+    /** Org-wide payable / credit totals, served on the supplier list response. */
+    totals: () => ["suppliers", "totals"] as const,
   },
 
   // ── Money ───────────────────────────────────────────────────────────────────

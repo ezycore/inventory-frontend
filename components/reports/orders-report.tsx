@@ -140,6 +140,17 @@ export function OrdersReport() {
                   <p className="text-xs text-muted-foreground">
                     {t('profit.afterCarriage')}
                   </p>
+                  {/* Goods + delivery: the goods figure is what the P&L calls gross
+                      profit, so the two pages can be matched (S24). Absent from an
+                      older API, so guarded. */}
+                  {data.profit.goodsProfit !== undefined && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('profit.split', {
+                        goods: formatCurrency(data.profit.goodsProfit),
+                        delivery: formatCurrency(data.profit.deliveryMargin ?? 0),
+                      })}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <div className="text-lg font-semibold">

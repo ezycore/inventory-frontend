@@ -70,6 +70,24 @@ describe('gross profit tile', () => {
     expect(tile?.description).toBe('marginOfSales:{"margin":40}')
   })
 
+  it('names the goods and delivery halves, so it can be matched with the P&L (S24)', () => {
+    const tile = profitTile({
+      netRevenue: 46078,
+      grossProfit: 20126.51,
+      goodsProfit: 20004.8,
+      deliveryMargin: 121.71,
+      costCoverage: {
+        knownRevenue: 51578,
+        unknownRevenue: 0,
+        unknownLines: 0,
+        uncommittedOrders: 0,
+      },
+    } as never)
+
+    expect(tile?.value).toBe('৳20126.51')
+    expect(tile?.description).toContain('profitSplit:{"goods":"৳20004.8","delivery":"৳121.71"}')
+  })
+
   it('prints no margin at all when nothing is costed', () => {
     // A 100% margin is a worse answer than an absent one — the merchant who
     // skipped the cost field would read it as a shop that pays nothing.

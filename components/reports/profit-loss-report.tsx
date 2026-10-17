@@ -177,6 +177,9 @@ export function ProfitLossReport() {
                   row={{ label: t('grossProfit'), value: data.summary.grossProfit, emphasis: true }}
                   format={format}
                 />
+                {/* The Dashboard and Orders Report gross profit includes the delivery margin;
+                    this one does not. Saying so is what lets the two be matched (S24). */}
+                <p className="-mt-1 pb-1 text-xs text-muted-foreground">{t('grossProfitGoodsOnly')}</p>
                 {data.summary.otherIncome > 0 && (
                   <StatementLine
                     row={{ label: t('otherIncome'), value: data.summary.otherIncome }}

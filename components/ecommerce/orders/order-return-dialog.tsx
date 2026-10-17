@@ -54,7 +54,11 @@ export function OrderReturnDialog({
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const returnOrder = useReturnOrder();
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
 
   const [open, setOpen] = useState(false);
   const [returnCharge, setReturnCharge] = useState<number | null>(null);
@@ -63,9 +67,13 @@ export function OrderReturnDialog({
   const [collectedAmount, setCollectedAmount] = useState<number | null>(
     order.courier?.paidReturn ? (order.courier.collectedAmount ?? null) : null,
   );
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
   const [refundMode, setRefundMode] = useState<RefundMode>("account");
-  const [refundAccountId, setRefundAccountId] = useState("");
+  const [pickedRefundAccountId, setRefundAccountId] = useState("");
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
+  const refundAccountId = pickedRefundAccountId || defaultOrderAccountId;
 
   // Fetched only while the dialog is open — the preview reads the Sale, and an
   // order list has no business fetching one per row.

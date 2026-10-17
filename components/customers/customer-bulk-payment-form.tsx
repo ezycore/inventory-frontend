@@ -19,6 +19,7 @@ import {
   type AccountOption,
 } from "./payment-source-fields";
 import { useBulkPaymentAllocation } from "./use-bulk-payment-allocation";
+import { defaultAccountId } from "@/utils/default-account";
 
 interface CustomerBulkPaymentFormProps {
   sales: CustomerOutstandingSale[];
@@ -55,7 +56,9 @@ export function CustomerBulkPaymentForm({
   const tActions = useTranslations("common.actions");
 
   const [amount, setAmount] = useState(totalDue > 0 ? totalDue.toFixed(2) : "");
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const accountId = pickedAccountId || defaultAccountId(accounts);
   const [notes, setNotes] = useState("");
   const [useCreditBalance, setUseCreditBalance] = useState(false);
 

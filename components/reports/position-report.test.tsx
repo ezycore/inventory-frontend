@@ -21,7 +21,7 @@ vi.mock("@/lib/currency", () => ({
   useCurrency: () => ({ format: (n: number) => `BDT ${n}` }),
 }));
 
-const position = (withCourier: number) => ({
+const position = (withCourier: number, courierCharges = 0) => ({
   assets: {
     cash: 10000,
     accountCount: 2,
@@ -35,9 +35,10 @@ const position = (withCourier: number) => ({
     payables: 1000,
     payableCount: 1,
     customerCredit: 0,
-    total: 1000,
+    courierCharges,
+    total: 1000 + courierCharges,
   },
-  netPosition: 51000 + withCourier,
+  netPosition: 51000 + withCourier - courierCharges,
   basis: { stockTracked: true, cashTracked: true },
 });
 
@@ -61,5 +62,18 @@ describe("PositionReport", () => {
     mockReport.current = position(0);
     render(<PositionReport />);
     expect(screen.queryByText("withCourier")).not.toBeInTheDocument();
+  });
+
+  it("owes the courier's charges, so with-courier less them is what the courier pays (S25)", () => {
+    mockReport.current = position(16233.5, 2006.74);
+    render(<PositionReport />);
+    expect(screen.getByText("courierCharges")).toBeInTheDocument();
+    expect(screen.getByText("BDT 2006.74")).toBeInTheDocument();
+  });
+
+  it("drops the charges row when nothing is owed", () => {
+    mockReport.current = position(6000);
+    render(<PositionReport />);
+    expect(screen.queryByText("courierCharges")).not.toBeInTheDocument();
   });
 });

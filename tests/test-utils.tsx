@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
 
 import commonMessages from "@/messages/en/common.json";
+import customersMessages from "@/messages/en/customers.json";
 import authMessages from "@/messages/en/auth.json";
 import dashboardMessages from "@/messages/en/dashboard.json";
 import onboardingMessages from "@/messages/en/onboarding.json";
@@ -36,6 +37,7 @@ export function TestProviders({ children, client }: WrapperProps) {
       messages={{
         common: commonMessages,
         auth: authMessages,
+        customers: customersMessages,
         dashboard: dashboardMessages,
         onboarding: onboardingMessages,
         products: productsMessages,

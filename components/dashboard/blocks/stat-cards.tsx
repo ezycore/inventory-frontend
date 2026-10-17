@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Card } from '@ui/components/card'
 import { cn } from '@ui/lib/utils'
@@ -11,6 +12,9 @@ import {
   Warehouse,
   type LucideIcon,
 } from 'lucide-react'
+import { CUSTOMERS_WITH_DUES_URL } from '@/components/customers/dues-link'
+import { SUPPLIERS_OWED_URL } from '@/components/suppliers/dues-link'
+import { useHasPermission } from '@/hooks/use-has-permission'
 import type { DashboardBlockContext } from './context'
 
 /**
@@ -33,11 +37,13 @@ interface StatCardShellProps {
   label: string
   value: string
   hint: string
+  /** Makes the whole card a link to where the figure can be acted on. */
+  href?: string
 }
 
-function StatCardShell({ icon: Icon, tone, label, value, hint }: StatCardShellProps) {
-  return (
-    <Card className="p-4">
+function StatCardShell({ icon: Icon, tone, label, value, hint, href }: StatCardShellProps) {
+  const card = (
+    <Card className={cn('p-4', href && 'h-full transition-colors hover:border-primary/40')}>
       <div className="flex items-center gap-3">
         <div className={cn('rounded-lg p-2.5', tone)}>
           <Icon className="h-5 w-5" />
@@ -50,10 +56,21 @@ function StatCardShell({ icon: Icon, tone, label, value, hint }: StatCardShellPr
       </div>
     </Card>
   )
+  return href ? (
+    <Link
+      href={href}
+      className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {card}
+    </Link>
+  ) : (
+    card
+  )
 }
 
 export function ReceivablesCard({ overview, formatCurrency }: DashboardBlockContext) {
   const t = useTranslations('dashboard.summary')
+  const canOpenCustomers = useHasPermission('customers.view')
   if (!overview) return null
   /**
    * Customers only. The server counts dues on counter sales alone and admits
@@ -68,12 +85,15 @@ export function ReceivablesCard({ overview, formatCurrency }: DashboardBlockCont
       label={t('receivable')}
       value={formatCurrency(overview.outstanding?.receivable ?? 0)}
       hint={t('owedByCustomers')}
+      // Opens who owes it, biggest first — there is no separate dues page.
+      href={canOpenCustomers ? CUSTOMERS_WITH_DUES_URL : undefined}
     />
   )
 }
 
 export function PayablesCard({ overview, formatCurrency }: DashboardBlockContext) {
   const t = useTranslations('dashboard.summary')
+  const canOpenSuppliers = useHasPermission('suppliers.view')
   if (!overview) return null
   return (
     <StatCardShell
@@ -82,6 +102,8 @@ export function PayablesCard({ overview, formatCurrency }: DashboardBlockContext
       label={t('payable')}
       value={formatCurrency(overview.outstanding?.payable ?? 0)}
       hint={t('owedToSuppliers')}
+      // Opens who the shop owes, biggest first.
+      href={canOpenSuppliers ? SUPPLIERS_OWED_URL : undefined}
     />
   )
 }
