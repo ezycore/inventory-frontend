@@ -7,7 +7,15 @@
     "editTooltip": "Edit Supplier",
     "deleteTooltip": "Delete Supplier",
     "viewTooltip": "View Supplier Details",
-    "viewLedgerTooltip": "View Ledger"
+    "viewLedgerTooltip": "View Ledger",
+    "totals": {
+      "payable": "Total payable",
+      "payableHint": "You owe suppliers right now",
+      "creditors": "Suppliers you owe",
+      "creditorsHint": "With an unpaid balance",
+      "credit": "Supplier credit",
+      "creditHint": "Suppliers owe you"
+    }
   },
   "filters": {
     "searchSupplier": "Search supplier",
@@ -22,7 +30,10 @@
     "selectDateRange": "Select date range",
     "updatedDate": "Updated Date",
     "selectDate": "Select date",
-    "globalSearchPlaceholder": "Search suppliers by name, email, phone, or status..."
+    "globalSearchPlaceholder": "Search suppliers by name, email, phone, or status...",
+    "dues": "Dues",
+    "allSuppliers": "All suppliers",
+    "owed": "You owe them (largest first)"
   },
   "form": {
     "name": "Supplier Name",
@@ -46,7 +57,8 @@
     "none": "None",
     "creditBalance": "Credit Balance",
     "createdDate": "Created Date",
-    "updatedDate": "Updated Date"
+    "due": "Due",
+    "pay": "Pay"
   },
   "ledger": {
     "title": "Supplier Ledger - {name}",
@@ -98,13 +110,6 @@
     "due": "Due",
     "useSupplierCredit": "Use supplier credit",
     "available": "Available: {amount}",
-    "paymentMethod": "Payment Method",
-    "selectMethod": "Select method",
-    "methodCash": "Cash",
-    "methodCard": "Card",
-    "methodBank": "Bank Transfer",
-    "methodMfs": "Mobile Banking",
-    "methodOther": "Other",
     "notesOptional": "Notes (optional)",
     "notesPlaceholder": "Add notes..."
   }

@@ -2,7 +2,8 @@ import { authApi, type SignupPayload } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { workspaceUrl } from "@/lib/organization-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/services/api/query-keys";
 import { useRouter } from "next/navigation";
 import { handleMutationSuccess } from "../query-helpers";
 
@@ -218,3 +219,18 @@ export function useMe() {
     },
   });
 }
+
+/**
+ * May this visitor sign up, and on which plans (`GET /public/signup-options`).
+ * Self-signup can be closed to the team's key (backend `SIGNUP_ACCESS_KEY`);
+ * the signup page passes the `?key=` it was opened with, the login screens
+ * pass none and only read `selfSignup`. `undefined` key and `enabled: false`
+ * until the caller has read the URL, so the first request carries the key.
+ */
+export const useSignupOptions = (key: string | undefined, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.signup.options(key),
+    queryFn: async () => (await authApi.signupOptions(key)).data,
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });

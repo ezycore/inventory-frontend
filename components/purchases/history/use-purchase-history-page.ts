@@ -33,6 +33,7 @@ import { buildHistoryFilterConfig, historyFilterFields } from "./filters";
 import { useListUrlState } from "@/hooks/use-list-url-state";
 import type { ListFilters } from "@/lib/list-url-state";
 import { ALL_ORDER_STATUSES } from "../orders/filters";
+import { defaultAccountId } from "@/utils/default-account";
 
 export function usePurchaseHistoryPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export function usePurchaseHistoryPage() {
 
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentAccountId, setPaymentAccountId] = useState("");
+  const [pickedPaymentAccountId, setPaymentAccountId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
   const [useSupplierCredit, setUseSupplierCredit] = useState(false);
 
@@ -110,6 +111,8 @@ export function usePurchaseHistoryPage() {
       : (((returnsData as { data?: { returns?: PurchaseReturn[] } } | undefined)
           ?.data?.returns as PurchaseReturn[]) || []);
   const accounts = accountsData || [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const paymentAccountId = pickedPaymentAccountId || defaultAccountId(accounts);
 
   const paginationInfo = useMemo(() => {
     if (!purchaseData?.data) return null;

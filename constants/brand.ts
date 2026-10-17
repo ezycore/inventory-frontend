@@ -38,3 +38,11 @@ export const LEGAL_URLS = {
   terms: `${MARKETING_URL}/en/terms/`,
   privacy: `${MARKETING_URL}/en/privacy/`,
 } as const;
+
+/**
+ * The marketing site's contact page, in the visitor's language — where a
+ * would-be merchant goes while self-signup is closed (the page carries the
+ * WhatsApp button and the callback form).
+ */
+export const contactUrl = (locale: string): string =>
+  `${MARKETING_URL}/${locale === "bn" ? "bn" : "en"}/contact/`;

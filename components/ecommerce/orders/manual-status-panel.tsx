@@ -29,7 +29,9 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
   const [note, setNote] = useState("");
 
   const history = order.courier?.history ?? [];
-  const isReturned = current === "returned";
+  // Only while the order itself is not yet returned: once it is, the sale has been
+  // reversed and the warning below would be stale (S21).
+  const needsReturn = current === "returned" && order.status !== "returned";
   const unchanged = status === current && !note.trim();
 
   return (
@@ -72,7 +74,7 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
       {/* Marking the parcel returned does NOT reverse the sale — that needs the
           return charge, refund routing and an account. Say so, or the merchant
           will assume the money moved. */}
-      {isReturned ? (
+      {needsReturn ? (
         <p className="flex items-start gap-2 rounded-md bg-amber-50 p-2.5 text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
           <AlertTriangle className="mt-px size-3.5 shrink-0" />
           <span>

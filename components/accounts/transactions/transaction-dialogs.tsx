@@ -25,6 +25,8 @@ import {
   useCreateTransfer,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
+import { orgDateKey } from "@/lib/org-calendar";
 import {
   getExpenseFormConfig,
   makeExpenseSchema,
@@ -54,14 +56,21 @@ export function IncomeDialog() {
   const [open, setOpen] = useState(false);
   const canPostCapital = useCanPostCapital();
   const createIncome = useCreateIncome();
+  // Today on the shop's calendar — the date's default and its latest allowed value (S26).
+  const { timezone } = useOrgCalendar();
+  const today = orgDateKey(timezone);
   const incomeSchema = useMemo(
     () =>
-      makeIncomeSchema({
-        selectAccount: t("validation.selectAccount"),
-        amountPositive: t("validation.amountPositive"),
-        selectCategory: t("validation.selectCategory"),
-      }),
-    [t],
+      makeIncomeSchema(
+        {
+          selectAccount: t("validation.selectAccount"),
+          amountPositive: t("validation.amountPositive"),
+          selectCategory: t("validation.selectCategory"),
+          futureDate: t("validation.futureDate"),
+        },
+        today,
+      ),
+    [t, today],
   );
 
   const form = useForm<IncomeFormData>({
@@ -73,6 +82,7 @@ export function IncomeDialog() {
       // the API rejects and this form never offered — so submitting without touching the select
       // 400'd on a value the user never chose.
       category: "",
+      date: today,
       description: "",
       reference: "",
     },
@@ -102,7 +112,7 @@ export function IncomeDialog() {
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={getIncomeFormConfig(t, tCategories, canPostCapital)}
+          config={getIncomeFormConfig(t, tCategories, canPostCapital, today)}
           mutationHook={createIncome}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
@@ -120,14 +130,21 @@ export function ExpenseDialog() {
   const [open, setOpen] = useState(false);
   const canPostCapital = useCanPostCapital();
   const createExpense = useCreateExpense();
+  // Today on the shop's calendar — the date's default and its latest allowed value (S26).
+  const { timezone } = useOrgCalendar();
+  const today = orgDateKey(timezone);
   const expenseSchema = useMemo(
     () =>
-      makeExpenseSchema({
-        selectAccount: t("validation.selectAccount"),
-        amountPositive: t("validation.amountPositive"),
-        selectCategory: t("validation.selectCategory"),
-      }),
-    [t],
+      makeExpenseSchema(
+        {
+          selectAccount: t("validation.selectAccount"),
+          amountPositive: t("validation.amountPositive"),
+          selectCategory: t("validation.selectCategory"),
+          futureDate: t("validation.futureDate"),
+        },
+        today,
+      ),
+    [t, today],
   );
 
   const form = useForm<ExpenseFormData>({
@@ -137,6 +154,7 @@ export function ExpenseDialog() {
       amount: 0,
       // See IncomeDialog — `"purchase"` was the same unpostable default on this side.
       category: "",
+      date: today,
       description: "",
       reference: "",
     },
@@ -166,7 +184,7 @@ export function ExpenseDialog() {
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={getExpenseFormConfig(t, tCategories, canPostCapital)}
+          config={getExpenseFormConfig(t, tCategories, canPostCapital, today)}
           mutationHook={createExpense}
           onSuccess={handleSuccess}
           onCancel={handleCancel}

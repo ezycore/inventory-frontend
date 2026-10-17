@@ -42,8 +42,14 @@ import { CustomerBulkPaymentForm } from "./customer-bulk-payment-form";
 import { CustomerLedgerSummary } from "./customer-ledger-summary";
 import { CustomerPaymentForm } from "./customer-payment-form";
 import { groupLedgerPayments } from "./group-ledger-payments";
+import { defaultAccountId } from "@/utils/default-account";
+
+/** Where the sheet opens: the history, or straight on the customer-level payment form. */
+export type LedgerSheetMode = "ledger" | "bulk";
 
 interface CustomerLedgerSheetProps {
+  /** Read once on mount — remount (a new `key`) to open in another mode. */
+  initialMode?: LedgerSheetMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer: Customer | null;
@@ -52,6 +58,7 @@ interface CustomerLedgerSheetProps {
 }
 
 export function CustomerLedgerSheet({
+  initialMode = "ledger",
   open,
   onOpenChange,
   customer,
@@ -70,10 +77,10 @@ export function CustomerLedgerSheet({
 
   // "ledger" is the history; "invoice" pays one bill; "bulk" is a customer-level
   // receipt settling several invoices at once.
-  const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">("ledger");
+  const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">(initialMode);
   const [paymentSale, setPaymentSale] = useState<CustomerLedgerSale | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentAccountId, setPaymentAccountId] = useState("");
+  const [pickedPaymentAccountId, setPaymentAccountId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
   const [useCreditBalance, setUseCreditBalance] = useState(false);
 
@@ -136,6 +143,8 @@ export function CustomerLedgerSheet({
   const inboundCredits = ledger?.inboundCredits || [];
   const creditBalance = ledger?.creditBalance ?? customer?.creditBalance ?? 0;
   const accounts = accountsData ?? [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const paymentAccountId = pickedPaymentAccountId || defaultAccountId(accounts);
 
   const totalPaid = sales.reduce((sum, sale) => sum + sale.paidAmount, 0);
   // Online sales are COD the courier collects — never this customer's debt.
@@ -299,6 +308,9 @@ export function CustomerLedgerSheet({
 
           {mode === "bulk" ? (
             <CustomerBulkPaymentForm
+              // The form seeds its amount with the full due once, on mount. Mounted before the
+              // dues arrive, it seeded an empty box; remount when they land.
+              key={outstanding ? "loaded" : "loading"}
               sales={outstanding?.sales ?? []}
               totalDue={outstanding?.totalDue ?? 0}
               creditBalance={outstanding?.creditBalance ?? creditBalance}

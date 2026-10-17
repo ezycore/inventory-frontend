@@ -32,8 +32,15 @@ import { awaitsCourierReport, codToCollect, collectionLabels } from "./order-det
  */
 export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   const markPaid = useMarkOrderPaid();
-  const [accountId, setAccountId] = useState("");
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const [pickedAccountId, setAccountId] = useState("");
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
   const isPaid = order.paymentStatus === "paid";

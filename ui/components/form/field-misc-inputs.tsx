@@ -22,6 +22,7 @@ export function renderDate(ctx: FieldRenderContext): ReactNode {
           }}
           placeholder={field.placeholder || "Pick a date"}
           outputFormat={field.outputFormat}
+          toDate={field.toDate}
           disabled={effectiveDisabled}
         />
       )}

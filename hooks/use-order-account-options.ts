@@ -1,6 +1,10 @@
 // coding-standard: maintained
-import { useAccountPaymentOptions } from "@/services/api";
+import {
+  useAccountPaymentOptions,
+  useGetStorefrontSettings,
+} from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { defaultAccountId } from "@/utils/default-account";
 
 /**
  * The org's accounts as `{label,value}` options for the order money dialogs
@@ -16,16 +20,37 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
  * comes back but not what permission is required to ask for it — a role
  * with only `storefront.orders.manage` got an empty/erroring picker here for
  * exactly the reason a sell-only role did on the sales side.
+ *
+ * `defaultAccountId` is the account a dialog starts on. For an order (pass its
+ * `paymentMethod`) that is the account the store maps that method to
+ * (Store Settings → Payments) — the same one the server would use when no
+ * account is sent — else the org's default account. If the mapping cannot be
+ * read (the settings need `storefront.view`), it stays empty, so the server
+ * still applies the mapping rather than the org default overriding it.
  */
-export function useOrderAccountOptions() {
+export function useOrderAccountOptions(paymentMethod?: string) {
   const accountsEnabled = useAuthStore(
     (s) => s.user?.organization?.features?.accounts,
   );
 
   const { data } = useAccountPaymentOptions(!!accountsEnabled);
+  const settings = useGetStorefrontSettings(
+    !!accountsEnabled && !!paymentMethod,
+  );
+  const mapped = paymentMethod
+    ? (
+        settings.data?.paymentAccountMap as Record<string, string> | undefined
+      )?.[paymentMethod]
+    : undefined;
+  const mappingUnknown = !!paymentMethod && !settings.isSuccess;
 
   return {
     accountsEnabled: !!accountsEnabled,
     options: (data ?? []).map((a) => ({ label: a.name, value: a._id })),
+    defaultAccountId: mapped
+      ? String(mapped)
+      : mappingUnknown
+      ? ""
+      : defaultAccountId(data),
   };
 }

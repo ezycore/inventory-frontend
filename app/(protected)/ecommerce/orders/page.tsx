@@ -23,6 +23,7 @@ import { useListUrlState } from "@/hooks/use-list-url-state";
 import { ALL_TIME, PeriodSelect } from "@/components/shared/period-filter";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
+import { ClosedStatusChips } from "@/components/ecommerce/orders/closed-status-chips";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
 import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
 import { LandingPageFilter } from "@/components/ecommerce/orders/landing-page-filter";
@@ -566,6 +567,11 @@ function OrdersList() {
           );
         })}
       </div>
+
+      {/* Inside Closed only: how many of each it folds — the other tabs look as they did. */}
+      {isTabActive("closed", status) && (
+        <ClosedStatusChips status={status} counts={counts} onChange={changeStatus} />
+      )}
 
       {/* Bulk bar */}
       {selected.size > 0 && (

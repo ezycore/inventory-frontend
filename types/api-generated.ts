@@ -333,7 +333,7 @@ export interface paths {
         };
         /**
          * GET /api/public/orgs/by-host/status
-         * @description Defined in `src/routes/public.routes.ts:17`.
+         * @description Defined in `src/routes/public.routes.ts:18`.
          */
         get: operations["get_api_public_orgs_by_host_status"];
         put?: never;
@@ -353,7 +353,7 @@ export interface paths {
         };
         /**
          * GET /api/public/store-by-host
-         * @description Defined in `src/routes/public.routes.ts:19`.
+         * @description Defined in `src/routes/public.routes.ts:20`.
          */
         get: operations["get_api_public_store_by_host"];
         put?: never;
@@ -373,7 +373,7 @@ export interface paths {
         };
         /**
          * GET /api/public/orgs/:slug/status
-         * @description Defined in `src/routes/public.routes.ts:21`.
+         * @description Defined in `src/routes/public.routes.ts:22`.
          */
         get: operations["get_api_public_orgs_slug_status"];
         put?: never;
@@ -393,9 +393,29 @@ export interface paths {
         };
         /**
          * GET /api/public/version
-         * @description Defined in `src/routes/public.routes.ts:23`.
+         * @description Defined in `src/routes/public.routes.ts:24`.
          */
         get: operations["get_api_public_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/signup-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/public/signup-options
+         * @description Defined in `src/routes/public.routes.ts:28`. Rate limited to 30 requests / 15 minutes per IP (`signupOptionsLimiter`).
+         */
+        get: operations["get_api_public_signup_options"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3897,13 +3917,13 @@ export interface paths {
         };
         /**
          * GET /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:29`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:31`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers"];
         put?: never;
         /**
          * POST /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:61`. Requires permission `suppliers.create`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:63`. Requires permission `suppliers.create`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers"];
         delete?: never;
@@ -3921,7 +3941,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/active
-         * @description Defined in `src/routes/suppliers.routes.ts:37`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:39`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_active"];
         put?: never;
@@ -3941,7 +3961,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/slug/:slug
-         * @description Defined in `src/routes/suppliers.routes.ts:45`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:47`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_slug_slug"];
         put?: never;
@@ -3961,18 +3981,18 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:53`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:55`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_id"];
         /**
          * PUT /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:69`. Requires permission `suppliers.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:71`. Requires permission `suppliers.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         put: operations["put_api_suppliers_id"];
         post?: never;
         /**
          * DELETE /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:77`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:79`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         delete: operations["delete_api_suppliers_id"];
         options?: never;
@@ -3991,7 +4011,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/suppliers/bulk-delete
-         * @description Defined in `src/routes/suppliers.routes.ts:85`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:87`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers_bulk_delete"];
         delete?: never;
@@ -4009,7 +4029,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/ledger
-         * @description Defined in `src/routes/suppliers.routes.ts:93`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:95`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_ledger"];
         put?: never;
@@ -4029,7 +4049,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/statement
-         * @description Defined in `src/routes/suppliers.routes.ts:100`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:102`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_statement"];
         put?: never;
@@ -9161,6 +9181,7 @@ export interface components {
                 /** @enum {string} */
                 type: "percentage" | "fixed";
             };
+            totalDue?: number;
         };
         Inventory: {
             _id: string;
@@ -13834,6 +13855,34 @@ export interface components {
             status: "active" | "disabled";
             url: string;
         } | null;
+        SignupOptions: {
+            selfSignup: boolean;
+            allowed: boolean;
+            plans: ({
+                id: string;
+                name: string;
+                slug: string;
+                description?: string;
+                /** @enum {string} */
+                interval: "month" | "year" | "one_time";
+                intervalCount?: number;
+                amount: number;
+                compareAtAmount?: number;
+                /** Format: date-time */
+                offerEndsAt?: string;
+                currency?: string;
+                trialDays?: number;
+                modules: string[];
+                features: string[];
+                limits: {
+                    [key: string]: number;
+                };
+                popular?: boolean;
+                sortOrder?: number;
+            } & {
+                [key: string]: unknown;
+            })[];
+        };
         StoreHost: {
             exists: boolean;
             slug?: string;
@@ -16442,6 +16491,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -16486,6 +16536,8 @@ export interface components {
                 totalItems: number;
             };
             grossProfit?: number;
+            goodsProfit?: number;
+            deliveryMargin?: number;
             costCoverage?: {
                 knownRevenue: number;
                 unknownRevenue: number;
@@ -16724,6 +16776,8 @@ export interface components {
             };
             profit?: {
                 grossProfit: number;
+                goodsProfit: number;
+                deliveryMargin: number;
                 totalCOGS: number;
                 costCoverage: {
                     knownRevenue: number;
@@ -16811,6 +16865,7 @@ export interface components {
                 payables: number;
                 payableCount: number;
                 customerCredit: number;
+                courierCharges: number;
                 total: number;
             };
             netPosition: number;
@@ -16921,6 +16976,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -17046,6 +17102,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -18917,7 +18974,7 @@ export interface components {
             /** @enum {string} */
             type: "income" | "expense" | "transfer" | "opening_balance";
             /** @enum {string} */
-            category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+            category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
             /** @enum {string} */
             kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
             /** Format: date-time */
@@ -18999,7 +19056,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
@@ -19043,7 +19100,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
@@ -19543,6 +19600,7 @@ export interface operations {
                     /** @enum {string} */
                     locale?: "en" | "bn";
                     referralCode?: string;
+                    signupKey?: string;
                 };
             };
         };
@@ -20259,6 +20317,37 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["AppVersion"];
                     };
+                };
+            };
+        };
+    };
+    get_api_public_signup_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SignupOptions"];
+                    };
+                };
+            };
+            /** @description Rate limit exceeded (30 requests / 15 minutes per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -31824,6 +31913,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
+                hasDues?: boolean;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -38694,7 +38784,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 type?: "income" | "expense" | "transfer" | "opening_balance";
-                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 accountId?: string;
                 startDate?: string;
                 endDate?: string;
@@ -38868,7 +38958,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 type?: "income" | "expense" | "transfer" | "opening_balance";
-                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 accountId?: string;
                 startDate?: string;
                 endDate?: string;
@@ -39024,7 +39114,6 @@ export interface operations {
                     description?: string;
                     reference?: string;
                     customerId?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };
@@ -39085,12 +39174,11 @@ export interface operations {
                 "application/json": {
                     accountId: string;
                     /** @enum {string} */
-                    category: "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_out";
+                    category: "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_out";
                     amount: number;
                     description?: string;
                     reference?: string;
                     supplierId?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };
@@ -39223,7 +39311,6 @@ export interface operations {
                     amount: number;
                     description?: string;
                     reference?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };

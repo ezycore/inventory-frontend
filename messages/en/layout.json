@@ -83,7 +83,12 @@
       "profit-loss": "Profit & Loss",
       "business-position": "Business Position",
       "customize-workspace": "Customize workspace",
-      "pos": "POS"
+      "pos": "POS",
+      "orders-report": "Orders Report",
+      "tags": "Tags",
+      "notifications": "Notifications",
+      "support-access": "Support Access",
+      "meta-ad-reporting": "Meta Ad Reporting"
     }
   },
   "brand": {

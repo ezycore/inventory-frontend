@@ -23,7 +23,7 @@ Mirror of the backend purchase-flow skill, focused on FE wiring. Money flow is i
 | `app/(protected)/purchases/orders/[id]/edit/page.tsx` | Edit pending PO |
 | `app/(protected)/purchases/history/page.tsx` | Received PO list + `SummaryCards` (StatsCard) + payment drawer trigger |
 | `app/(protected)/purchases/returns/page.tsx` | Purchase return list + `SummaryCards` (StatsCard) + return details |
-| `app/(protected)/suppliers/page.tsx` | Suppliers list + `SupplierLedgerSheet` |
+| `app/(protected)/suppliers/page.tsx` | Suppliers list + `SupplierLedgerSheet`. With `accounts` on: header totals (`useSupplierTotals` — payable / suppliers owed / supplier credit, read off the list response) linking to `SUPPLIERS_OWED_URL` (`components/suppliers/dues-link.ts`, `?hasDues=true`, biggest first). There is no dues page — this filtered list is it, and the dashboard Payable card links here too. |
 
 ### Components
 | Path | Purpose |
@@ -40,7 +40,7 @@ Mirror of the backend purchase-flow skill, focused on FE wiring. Money flow is i
 | `components/purchases/returns/summary-cards.tsx` | `SummaryCards` — StatsCard wrapper (Total / Refund / Pending) |
 | `components/purchases/returns/*` | Create return, allocation form (adjustPurchaseDue / adjustOtherDues / accountRefund / supplierCredit) |
 | `components/suppliers/SupplierLedgerSheet.tsx` | Right-sheet ledger view per supplier; 3-card summary (Total Paid / Total Due / Supplier Credit — uses `ledger.creditBalance` snapshot); inline payment form with supplier-credit toggle. Renders `inboundCredits` rows (blue `Undo2` icon, "Credit Applied") with optional `onOpenPurchaseOrder` prop for cross-PO deep-link. |
-| `components/suppliers/columns.tsx` | Suppliers list — includes `creditBalance` column (blue when > 0). |
+| `components/suppliers/columns.tsx` | Suppliers list — includes `creditBalance` column (blue when > 0). **Due** column (`totalDue`, accounts on only) carries a **Pay** button when the row is owed and the page passes `onPay` (`purchases.edit`); Pay opens the ledger, since suppliers are paid per PO. Deliberately not a row action — an action on only some rows knocks every row's icons out of line. No Updated column. |
 
 ### API modules
 | Path | Endpoints |

@@ -99,7 +99,7 @@ export function PaymentSourceFields({
           <div className="space-y-2">
             <Label htmlFor={`${idPrefix}-account`}>{tPayments("paymentAccount")}</Label>
             <Select value={accountId} onValueChange={setAccountId}>
-              <SelectTrigger id={`${idPrefix}-account`}>
+              <SelectTrigger id={`${idPrefix}-account`} className="w-full">
                 <SelectValue placeholder={tPayments("selectAccount")} />
               </SelectTrigger>
               <SelectContent>

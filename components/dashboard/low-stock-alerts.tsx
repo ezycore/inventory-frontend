@@ -59,7 +59,11 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
               </div>
             ))}
           </div>
-        ) : (lowStock?.items || []).length > 0 ? (
+        ) : (lowStock?.items || []).length > 0 ||
+          (lowStock?.count ?? 0) + (lowStock?.outOfStockCount ?? 0) > 0 ? (
+          // The rows now include sold-out products, sold-out first. The empty state is
+          // decided by the COUNTS, never by the rows alone: "All stock healthy" beside a
+          // "Low Stock · 4" button whose four were sold out was shadow test S23.
           <div className="space-y-3">
             {lowStock!.items.map((item) => {
               const percentage = item.alertThreshold > 0
@@ -78,7 +82,9 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
                       variant={item.currentStock <= 0 ? 'destructive' : 'secondary'}
                       className="text-[10px] px-1.5 py-0 shrink-0 ml-2"
                     >
-                      {item.currentStock} / {item.alertThreshold}
+                      {item.currentStock <= 0
+                        ? t('soldOut')
+                        : `${item.currentStock} / ${item.alertThreshold}`}
                     </Badge>
                   </div>
                   <Progress

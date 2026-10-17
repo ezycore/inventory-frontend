@@ -15,6 +15,7 @@
     "purchaseCost": "Purchase Cost",
     "grossProfit": "Gross Profit",
     "marginOfSales": "{margin}% margin on sales",
+    "profitSplit": "Goods {goods} · delivery {delivery}",
     "transactions": "Transactions",
     "vsPrevious": "vs previous",
     "salesPurchaseCount": "{sales} sales · {purchases} purchases",
@@ -87,7 +88,8 @@
     "viewAll": "View All",
     "viewAllCount": "View All {count} Items",
     "emptyTitle": "All stock healthy",
-    "emptyDescription": "No items below threshold levels"
+    "emptyDescription": "No items below threshold levels",
+    "soldOut": "Sold out"
   },
   "activity": {
     "title": "Recent Activity",
@@ -143,7 +145,8 @@
     "delivered": "Delivered",
     "returned": "Returned",
     "cancelled": "Cancelled",
-    "arrivalRate": "Arrived at the door",
+    "rejected": "Rejected",
+    "arrivalRate": "Delivery success rate",
     "byCourier": "By courier",
     "confirmed": "Confirmed",
     "shipped": "Shipped",

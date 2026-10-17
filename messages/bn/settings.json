@@ -1521,12 +1521,15 @@
         "store_name": "স্টোরের নাম",
         "total_amount": "অর্ডারের মোট",
         "paid_amount": "পরিশোধিত টাকা",
+        "paid_total": "মোট পরিশোধিত",
         "total_due": "বাকি টাকা",
         "cod_amount": "ক্যাশ অন ডেলিভারির টাকা",
         "status": "অর্ডারের অবস্থা",
         "tracking_id": "ট্র্যাকিং কোড",
         "courier_name": "কুরিয়ার",
-        "store_phone": "স্টোরের ফোন"
+        "store_phone": "স্টোরের ফোন",
+        "stock_status": "স্টকের অবস্থা",
+        "orders_count": "অনলাইন অর্ডার"
       },
       "errors": {
         "SMS_TEMPLATE_NON_GSM": "\"{char}\" পাঠানো যায় না। নিজের এসএমএসে শুধু ইংরেজি অক্ষর চলে — বাংলা লিখতে পারেন ইংরেজি অক্ষরে (Banglish)।",

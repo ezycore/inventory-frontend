@@ -35,8 +35,10 @@ export function OrderFulfillment({ overview, isLoading }: DashboardBlockContext)
 
   const { confirmed, shipped, delivered, returned, cancelled, byCourier } =
     overview.ordersFulfillment
+  // Absent from an API older than the S31 split, where `cancelled` still includes it.
+  const rejected = overview.ordersFulfillment.rejected ?? 0
   const settled = delivered + returned
-  const moved = confirmed + shipped + settled + cancelled
+  const moved = confirmed + shipped + settled + cancelled + rejected
   // Of the parcels that reached a door. An order still in the queue has not had
   // its chance to be refused, so counting it as a success reports a rate that
   // only improves while a shop is busy.
@@ -66,6 +68,12 @@ export function OrderFulfillment({ overview, isLoading }: DashboardBlockContext)
             <Outcome
               label={t('cancelled')}
               value={cancelled}
+              tone="text-muted-foreground"
+            />
+            {/* Apart from cancelled, as the Orders Report shows them (S31). */}
+            <Outcome
+              label={t('rejected')}
+              value={rejected}
               tone="text-muted-foreground"
             />
           </div>
