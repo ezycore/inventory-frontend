@@ -146,7 +146,7 @@
     "returned": "Returned",
     "cancelled": "Cancelled",
     "rejected": "Rejected",
-    "arrivalRate": "Arrived at the door",
+    "arrivalRate": "Delivery success rate",
     "byCourier": "By courier",
     "confirmed": "Confirmed",
     "shipped": "Shipped",

@@ -146,7 +146,7 @@
     "returned": "ফেরত এসেছে",
     "cancelled": "বাতিল",
     "rejected": "প্রত্যাখ্যাত",
-    "arrivalRate": "দরজায় পৌঁছেছে",
+    "arrivalRate": "ডেলিভারি সফলতার হার",
     "byCourier": "কুরিয়ার অনুযায়ী",
     "confirmed": "কনফার্মড",
     "shipped": "পাঠানো হয়েছে",
