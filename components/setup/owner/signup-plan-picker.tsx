@@ -44,13 +44,18 @@ export function SignupPlanPicker({
   const groups = useMemo(() => groupPlans(plans), [plans]);
   const cadences = useMemo(() => planCadences(groups), [groups]);
   const selected = plans.find((p) => p.slug === value);
-  // Opens on the selected plan's own cycle, so a yearly link shows Yearly.
-  const [months, setMonths] = useState<number | null>(
-    () => (selected ? monthsOf(selected) : null) ?? cadences[0]?.months ?? null,
-  );
+  // Follows the selected plan's own cycle until the switch is used, so a yearly
+  // link shows Yearly. Derived, not seeded once: the page picks the plan after
+  // the list arrives, which is after this mounts.
+  const [pickedMonths, setPickedMonths] = useState<number | null>(null);
+  const months =
+    pickedMonths ??
+    (selected ? monthsOf(selected) : null) ??
+    cadences[0]?.months ??
+    null;
 
   const changeCycle = (next: number) => {
-    setMonths(next);
+    setPickedMonths(next);
     // Keep the package, move to its variant on the new cycle.
     const group = groups.find((g) => g.variants.some((v) => v.slug === value));
     if (group) onChange(variantFor(group, next).slug);

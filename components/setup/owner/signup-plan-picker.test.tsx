@@ -36,7 +36,13 @@ const PLANS = [
   plan("business", 3, "year", 9990, 0),
 ];
 
-function Harness({ initial, onChange }: { initial: string; onChange: (s: string) => void }) {
+function Harness({
+  initial,
+  onChange,
+}: {
+  initial: string;
+  onChange: (s: string) => void;
+}) {
   const [value, setValue] = useState(initial);
   return (
     <SignupPlanPicker
@@ -52,25 +58,63 @@ function Harness({ initial, onChange }: { initial: string; onChange: (s: string)
 
 describe("SignupPlanPicker", () => {
   it("shows one card per package with its price and limits, the picked one checked", () => {
-    renderWithProviders(<Harness initial="growth-monthly-v2" onChange={() => {}} />);
+    renderWithProviders(
+      <Harness initial="growth-monthly-v2" onChange={() => {}} />,
+    );
     const radios = screen.getAllByRole("radio");
-    expect(radios.map((r) => r.textContent?.split("৳")[0])).toEqual(["Start", "Growth", "Business"]);
-    expect(screen.getByRole("radio", { name: /Growth/ })).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByRole("radio", { name: /Business/ }).textContent).toContain("Unlimited");
+    expect(radios.map((r) => r.textContent?.split("৳")[0])).toEqual([
+      "Start",
+      "Growth",
+      "Business",
+    ]);
+    expect(screen.getByRole("radio", { name: /Growth/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(
+      screen.getByRole("radio", { name: /Business/ }).textContent,
+    ).toContain("Unlimited");
   });
 
   it("picks another package on click", async () => {
     const onChange = vi.fn();
-    renderWithProviders(<Harness initial="start-monthly-v2" onChange={onChange} />);
+    renderWithProviders(
+      <Harness initial="start-monthly-v2" onChange={onChange} />,
+    );
     await userEvent.click(screen.getByRole("radio", { name: /Business/ }));
     expect(onChange).toHaveBeenLastCalledWith("business-monthly-v2");
   });
 
+  it("shows a yearly plan's cycle when the plan is picked after the picker mounts", () => {
+    // The page picks the starting plan once the list arrives, a render after this mounts.
+    const { rerender } = renderWithProviders(
+      <SignupPlanPicker plans={PLANS} value={undefined} onChange={() => {}} />,
+    );
+    rerender(
+      <SignupPlanPicker
+        plans={PLANS}
+        value="growth-yearly-v2"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole("tab", { name: /Yearly/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("radio", { name: /Growth/ }).textContent).toContain(
+      "5,990",
+    );
+  });
+
   it("switching to yearly keeps the package and moves to its yearly plan", async () => {
     const onChange = vi.fn();
-    renderWithProviders(<Harness initial="growth-monthly-v2" onChange={onChange} />);
+    renderWithProviders(
+      <Harness initial="growth-monthly-v2" onChange={onChange} />,
+    );
     await userEvent.click(screen.getByRole("tab", { name: /Yearly/ }));
     expect(onChange).toHaveBeenLastCalledWith("growth-yearly-v2");
-    expect(screen.getByRole("radio", { name: /Growth/ }).textContent).toContain("5,990");
+    expect(screen.getByRole("radio", { name: /Growth/ }).textContent).toContain(
+      "5,990",
+    );
   });
 });
