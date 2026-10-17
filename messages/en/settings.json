@@ -1521,12 +1521,15 @@
         "store_name": "Store name",
         "total_amount": "Order total",
         "paid_amount": "Amount paid",
+        "paid_total": "Total paid",
         "total_due": "Amount due",
         "cod_amount": "COD amount",
         "status": "Order status",
         "tracking_id": "Tracking code",
         "courier_name": "Courier",
-        "store_phone": "Store phone"
+        "store_phone": "Store phone",
+        "stock_status": "Stock status",
+        "orders_count": "Online orders"
       },
       "errors": {
         "SMS_TEMPLATE_NON_GSM": "\"{char}\" can't be sent. Custom SMS supports English letters only — you can write Bangla in English letters (Banglish).",

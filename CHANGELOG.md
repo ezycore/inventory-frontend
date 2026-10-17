@@ -10,6 +10,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Fixed
+- Notification settings: the new template variables (Total paid, Stock status, Online orders)
+  have labels in English and Bangla instead of showing their raw names.
 - Online order page, returned order: the banner no longer says "the refund was processed" when
   nothing was refunded (a COD parcel refused at the door). It names a refund only when the order
   was paid; otherwise it reads "the sale reversed. Nothing was refunded."
