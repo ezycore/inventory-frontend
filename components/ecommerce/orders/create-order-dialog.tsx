@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/currency";
 import type { AdminOrderChannel } from "@/services/api/modules/storefront-orders/api";
 import { BD_DISTRICTS, districtLabel, upazilasOf } from "@/lib/bd-geo";
@@ -42,13 +43,14 @@ import { useOrderForm, type OrderFormInitial } from "./use-order-form";
  * summary are their own components. This file is the shell and the field grid.
  */
 
-const CHANNELS: { value: AdminOrderChannel; label: string }[] = [
-  { value: "messenger", label: "Messenger" },
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "instagram", label: "Instagram" },
-  { value: "comment", label: "Post comment" },
-  { value: "phone", label: "Phone call" },
-  { value: "manual", label: "Other" },
+/** Brand names stay as they are; the rest are keys under `ecommerce.createOrder`. */
+const CHANNELS: { value: AdminOrderChannel; name?: string; key?: string }[] = [
+  { value: "messenger", name: "Messenger" },
+  { value: "whatsapp", name: "WhatsApp" },
+  { value: "instagram", name: "Instagram" },
+  { value: "comment", key: "channelComment" },
+  { value: "phone", key: "channelPhone" },
+  { value: "manual", key: "channelOther" },
 ];
 
 /**
@@ -61,13 +63,13 @@ const CHANNELS: { value: AdminOrderChannel; label: string }[] = [
  * week by a method switched off yesterday still has to be recordable.
  */
 const BUILT_IN_PAYMENT_METHODS = [
-  { value: "cod", label: "Cash on delivery" },
-  { value: "manual", label: "Already paid / manual" },
+  { value: "cod", key: "payCod" },
+  { value: "manual", key: "payManual" },
 ];
 
 const DISCOUNT_TYPES = [
-  { value: "fixed", label: "Amount (৳)" },
-  { value: "percentage", label: "Percent (%)" },
+  { value: "fixed", key: "discountFixed" },
+  { value: "percentage", key: "discountPercent" },
 ];
 
 export function CreateOrderDialog({
@@ -80,6 +82,16 @@ export function CreateOrderDialog({
   /** Present ⇒ the dialog edits that order instead of creating a new one. */
   initial?: OrderFormInitial;
 }) {
+  const t = useTranslations("ecommerce.createOrder");
+  const locale = useLocale();
+  const channelOptions = useMemo(
+    () => CHANNELS.map((c) => ({ value: c.value, label: c.name ?? t(c.key!) })),
+    [t],
+  );
+  const discountTypeOptions = useMemo(
+    () => DISCOUNT_TYPES.map((d) => ({ value: d.value, label: t(d.key) })),
+    [t],
+  );
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const form = useOrderForm(() => onOpenChange(false), initial);
   const areas = useMemo(() => upazilasOf(form.district), [form.district]);
@@ -90,12 +102,12 @@ export function CreateOrderDialog({
   const { data: storeSettings } = useGetStorefrontSettings();
   const paymentMethodOptions = useMemo(
     () => [
-      ...BUILT_IN_PAYMENT_METHODS,
+      ...BUILT_IN_PAYMENT_METHODS.map((m) => ({ value: m.value, label: t(m.key) })),
       ...(storeSettings?.paymentMethods ?? [])
         .filter((m): m is { id: string; title: string } => !!m.id)
         .map((m) => ({ value: m.id, label: m.title })),
     ],
-    [storeSettings?.paymentMethods],
+    [storeSettings?.paymentMethods, t],
   );
 
   return (
@@ -122,12 +134,8 @@ export function CreateOrderDialog({
         }
       >
         <DialogHeader>
-          <DialogTitle>{form.isEdit ? "Edit order" : "Create order"}</DialogTitle>
-          <DialogDescription>
-            {form.isEdit
-              ? "Change the lines, address or price before the order goes to the courier. Prices already agreed stay as they are unless you re-price."
-              : "For an order taken on Messenger, WhatsApp, a post comment or the phone. It runs the same pipeline as a website order — courier, tracking and COD included."}
-          </DialogDescription>
+          <DialogTitle>{t(form.isEdit ? "editTitle" : "createTitle")}</DialogTitle>
+          <DialogDescription>{t(form.isEdit ? "editBody" : "createBody")}</DialogDescription>
         </DialogHeader>
 
         {/* `min-w-0`: DialogContent is a grid, and a grid item will not shrink
@@ -139,18 +147,15 @@ export function CreateOrderDialog({
               empty fields alone, and an edit opens with every one filled. */}
           {!form.isEdit && (
             <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
-              <Label>Paste the customer&apos;s message</Label>
+              <Label>{t("paste")}</Label>
               <Textarea
                 value={form.pasted}
                 rows={3}
-                placeholder={"Rahim Uddin\n01712345678\nHouse 12, Road 4, Dhanmondi, Dhaka"}
+                placeholder={t("pastePlaceholder")}
                 onChange={(e) => form.setPasted(e.target.value)}
               />
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-muted-foreground">
-                  Fills only the fields it recognises, and never overwrites one you
-                  have already typed.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("pasteHint")}</p>
                 <Button
                   type="button"
                   variant="secondary"
@@ -158,7 +163,7 @@ export function CreateOrderDialog({
                   onClick={form.applyPaste}
                   disabled={!form.pasted.trim()}
                 >
-                  Fill fields
+                  {t("fill")}
                 </Button>
               </div>
             </div>
@@ -178,12 +183,12 @@ export function CreateOrderDialog({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Where did this order come from?</Label>
+              <Label>{t("channel")}</Label>
               <SimpleSelect
                 value={form.channel}
                 onValueChange={(v) => form.setChannel(v as AdminOrderChannel)}
-                options={CHANNELS}
-                placeholder="Select a channel"
+                options={channelOptions}
+                placeholder={t("channelPlaceholder")}
                 // Where an order came from is a fact about the past. A website
                 // order was placed by the shopper, and rewriting that would make
                 // the channel report — which tells the merchant whether Messenger
@@ -191,13 +196,11 @@ export function CreateOrderDialog({
                 disabled={form.isEdit}
               />
               {form.isEdit ? (
-                <p className="text-xs text-muted-foreground">
-                  Where an order came from can&apos;t be changed.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("channelLocked")}</p>
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <Label>Payment</Label>
+              <Label>{t("payment")}</Label>
               <SimpleSelect
                 value={form.paymentMethod}
                 onValueChange={form.setPaymentMethod}
@@ -205,14 +208,14 @@ export function CreateOrderDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Customer name</Label>
+              <Label>{t("name")}</Label>
               <Input
                 value={form.name}
                 onChange={(e) => form.setName(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Phone</Label>
+              <Label>{t("phone")}</Label>
               <Input
                 value={form.phone}
                 inputMode="tel"
@@ -223,20 +226,18 @@ export function CreateOrderDialog({
                   it keys the customer match, the delivery-risk score and the
                   coupon limit — so the server rejects one it cannot normalise. */}
               {form.phoneInvalid ? (
-                <p className="text-xs text-destructive">
-                  Enter a valid Bangladeshi mobile number, e.g. 01712345678
-                </p>
+                <p className="text-xs text-destructive">{t("phoneInvalid")}</p>
               ) : null}
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Address</Label>
+              <Label>{t("address")}</Label>
               <Input
                 value={form.address}
                 onChange={(e) => form.setAddress(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>District</Label>
+              <Label>{t("district")}</Label>
               <SimpleSelect
                 value={form.district}
                 onValueChange={(v) => {
@@ -247,41 +248,39 @@ export function CreateOrderDialog({
                 }}
                 options={BD_DISTRICTS.map((d) => ({
                   value: d.name,
-                  label: districtLabel(d, "en"),
+                  label: districtLabel(d, locale),
                 }))}
-                placeholder="Select a district"
+                placeholder={t("districtPlaceholder")}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Area</Label>
+              <Label>{t("area")}</Label>
               <SimpleSelect
                 value={form.area}
                 onValueChange={form.setArea}
                 options={areas.map((a) => ({ value: a.name, label: a.name }))}
-                placeholder={
-                  form.district ? "Select an area" : "Pick a district first"
-                }
+                placeholder={t(form.district ? "areaPlaceholder" : "areaNeedsDistrict")}
                 disabled={!form.district}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Delivery charge</Label>
+              <Label>{t("deliveryCharge")}</Label>
               <NumberField
                 value={form.shippingCharged}
                 precision={2}
                 min={0}
                 onChange={form.setShippingCharged}
-                placeholder="Use store rule"
+                placeholder={t("deliveryChargePlaceholder")}
               />
               {/* Blank = price it like a web order. A typed 0 is a real answer
                   ("free delivery, we agreed") and the server honours it. */}
             </div>
             <div className="space-y-1.5">
-              <Label>Coupon code</Label>
+              <Label>{t("coupon")}</Label>
               <Input
                 value={form.coupon}
                 onChange={(e) => form.setCoupon(e.target.value.toUpperCase())}
-                placeholder="Optional"
+                placeholder={t("optional")}
                 aria-invalid={!!form.quote?.couponError}
               />
               {/* The buyer quoting a code back from a boosted post is the case
@@ -293,20 +292,22 @@ export function CreateOrderDialog({
                 </p>
               ) : form.quote?.couponCode ? (
                 <p className="text-xs text-muted-foreground">
-                  {form.quote.couponCode} applied ·{" "}
-                  {formatCurrency(form.quote.couponDiscount, currency)} off
+                  {t("couponApplied", {
+                    code: form.quote.couponCode,
+                    amount: formatCurrency(form.quote.couponDiscount, currency),
+                  })}
                 </p>
               ) : null}
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Discount</Label>
+              <Label>{t("discount")}</Label>
               <div className="flex gap-2">
                 <SimpleSelect
                   value={form.discountType}
                   onValueChange={(v) =>
                     form.setDiscountType(v as "fixed" | "percentage")
                   }
-                  options={DISCOUNT_TYPES}
+                  options={discountTypeOptions}
                   className="w-36 shrink-0"
                 />
                 <NumberField
@@ -321,13 +322,10 @@ export function CreateOrderDialog({
                   className="min-w-0 flex-1"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                An amount you agreed in the conversation. Applies on top of a
-                coupon.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("discountHint")}</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Notes</Label>
+              <Label>{t("notes")}</Label>
               <Textarea
                 value={form.notes}
                 rows={2}
@@ -346,11 +344,8 @@ export function CreateOrderDialog({
                 onCheckedChange={(c) => form.setReprice(c === true)}
               />
               <span>
-                Re-price everything at today&apos;s prices
-                <span className="block text-xs text-muted-foreground">
-                  Off by default, so changing one line never quietly reprices the
-                  rest against a total the customer already agreed.
-                </span>
+                {t("reprice")}
+                <span className="block text-xs text-muted-foreground">{t("repriceHint")}</span>
               </span>
             </label>
           ) : (
@@ -361,10 +356,8 @@ export function CreateOrderDialog({
                 onCheckedChange={(c) => form.setConfirmImmediately(c === true)}
               />
               <span>
-                Confirm and reserve stock now
-                <span className="block text-xs text-muted-foreground">
-                  A chat order is already agreed, so this saves a second click.
-                </span>
+                {t("confirmNow")}
+                <span className="block text-xs text-muted-foreground">{t("confirmNowHint")}</span>
               </span>
             </label>
             <label className="flex items-start gap-2 text-sm">
@@ -373,11 +366,8 @@ export function CreateOrderDialog({
                 onCheckedChange={(c) => form.setExcludeFromMeta(c === true)}
               />
               <span>
-                Don&apos;t report this order to Meta
-                <span className="block text-xs text-muted-foreground">
-                  For a personal, internal or test order. Tick it here — confirming above sends
-                  the order to Meta straight away, so there is no chance to exclude it later.
-                </span>
+                {t("excludeMeta")}
+                <span className="block text-xs text-muted-foreground">{t("excludeMetaHint")}</span>
               </span>
             </label>
             </>
@@ -397,7 +387,7 @@ export function CreateOrderDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -405,12 +395,8 @@ export function CreateOrderDialog({
             disabled={!form.canSubmit || form.submitting}
           >
             {form.isEdit
-              ? form.submitting
-                ? "Saving…"
-                : "Save changes"
-              : form.submitting
-                ? "Creating…"
-                : "Create order"}
+              ? t(form.submitting ? "saving" : "save")
+              : t(form.submitting ? "creating" : "create")}
           </Button>
         </DialogFooter>
       </DialogContent>

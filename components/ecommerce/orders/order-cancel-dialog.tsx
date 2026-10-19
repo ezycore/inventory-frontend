@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useCancelOrder, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useStockTracked } from "@/hooks/use-stock-tracked";
@@ -21,7 +22,7 @@ import { Label } from "@/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@/ui/components/radio-group";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import {
-  REJECTION_REASON_OPTIONS,
+  rejectionReasonOptions,
   type RejectionReason,
 } from "./helpers";
 
@@ -48,6 +49,9 @@ export function OrderCancelDialog({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.cancelDialog");
+  const reasonOptions = useMemo(() => rejectionReasonOptions(tAll), [tAll]);
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const cancel = useCancelOrder();
@@ -97,7 +101,6 @@ export function OrderCancelDialog({
   // exist, so keeping it leaves cash in the ledger that no P&L will ever see.
   const keptGoodsLeg = order.prepaidGoodsAmount ?? 0;
   const money = (n: number) => formatMoney(n, currency);
-  const verb = reject ? "Reject" : "Cancel";
 
   const submit = () => {
     cancel.mutate(
@@ -124,28 +127,22 @@ export function OrderCancelDialog({
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{verb} this order?</DialogTitle>
+          <DialogTitle>{t(reject ? "rejectTitle" : "cancelTitle")}</DialogTitle>
           <DialogDescription>
-            {reject
-              ? "The shopper is notified the order was rejected. "
-              : stockTracked
-                ? "Reserved stock is released back to inventory. "
-                // Confirm reserved nothing on a stock-free workspace, so there
-                // is no hold to give back (QA-N13). The half that stays true at
-                // both tiers is the sentence below.
-                : ""}
-            This can&apos;t be undone.
+            {/* Confirm reserved nothing on a stock-free workspace, so there is no hold to give
+                back (QA-N13); only "can't be undone" stays true at both tiers. */}
+            {t(reject ? "rejectBody" : stockTracked ? "cancelBodyStock" : "cancelBody")}
           </DialogDescription>
         </DialogHeader>
 
         {reject && (
           <div className="space-y-2">
-            <Label htmlFor="rejection-reason">Why are you rejecting it?</Label>
+            <Label htmlFor="rejection-reason">{t("whyReject")}</Label>
             <SimpleSelect
               value={reason}
               onValueChange={setReason}
-              options={REJECTION_REASON_OPTIONS}
-              placeholder="Pick a reason"
+              options={reasonOptions}
+              placeholder={t("pickReason")}
               className="w-full"
             />
             {/* Required, and the button below stays disabled until it is
@@ -154,17 +151,14 @@ export function OrderCancelDialog({
                 numbers from stock-outs later without it. */}
             {reason === "other" && (
               <Input
-                aria-label="What was the reason?"
+                aria-label={t("otherReason")}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={280}
-                placeholder="What was the reason? (required)"
+                placeholder={t("otherReasonRequired")}
               />
             )}
-            <p className="text-xs text-muted-foreground">
-              Counted on your rejection report, so you can see what you are
-              actually turning away.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("reportHint")}</p>
           </div>
         )}
 
@@ -172,16 +166,14 @@ export function OrderCancelDialog({
           <div className="space-y-3">
             <div className="rounded-lg bg-muted p-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Prepayment collected
-                </span>
+                <span className="text-muted-foreground">{t("prepaid")}</span>
                 <span className="font-semibold tabular-nums">
                   {money(prepaid)}
                 </span>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>What happens to the money?</Label>
+              <Label>{t("moneyQuestion")}</Label>
               <RadioGroup
                 value={choice}
                 onValueChange={(v) => setChoice(v as "refund" | "keep")}
@@ -190,21 +182,19 @@ export function OrderCancelDialog({
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="refund" id="prepaid-refund" />
                   <Label htmlFor="prepaid-refund" className="font-normal">
-                    Refund {money(prepaid)} to the customer
+                    {t("refund", { amount: money(prepaid) })}
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="keep" id="prepaid-keep" />
                   <Label htmlFor="prepaid-keep" className="font-normal">
-                    Keep the prepayment
+                    {t("keep")}
                   </Label>
                 </div>
               </RadioGroup>
               {choice === "keep" && keptGoodsLeg > 0 && (
                 <p className="text-xs text-amber-700">
-                  {money(keptGoodsLeg)} of this was collected against the goods.
-                  The cash stays in your account, but it is not counted in your order
-                  revenue — add it as other income if you want it counted as profit.
+                  {t("keptGoods", { amount: money(keptGoodsLeg) })}
                 </p>
               )}
               {choice === "refund" &&
@@ -214,7 +204,7 @@ export function OrderCancelDialog({
                     value={accountId}
                     onValueChange={setAccountId}
                     options={accountOptions}
-                    placeholder="Refund from account (received into)"
+                    placeholder={t("refundAccount")}
                   />
                 )}
             </div>
@@ -223,7 +213,7 @@ export function OrderCancelDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Keep order
+            {t("keepOrder")}
           </Button>
           <Button
             variant="destructive"
@@ -231,12 +221,12 @@ export function OrderCancelDialog({
             onClick={submit}
           >
             {cancel.isPending
-              ? "Processing…"
+              ? t("processing")
               : reject
-                ? "Reject order"
+                ? t("rejectAction")
                 : stockTracked
-                  ? "Cancel & release stock"
-                  : "Cancel order"}
+                  ? t("cancelReleaseAction")
+                  : t("cancelAction")}
           </Button>
         </DialogFooter>
       </DialogContent>

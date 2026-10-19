@@ -294,6 +294,21 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       // one in every period (shadow test S14; `costsSet` is absent from an older API).
       const onlyUndispatched =
         coverage.costsSet !== false && coverage.unknownLines === 0 && coverage.uncommittedOrders > 0
+      // Nothing sold at all in the period: no cost is missing and nothing waits for dispatch,
+      // so either of the other two lines sends the merchant to fix nothing (shadow test S36).
+      const nothingSold =
+        coverage.costsSet !== false &&
+        unknown <= 0 &&
+        coverage.unknownLines === 0 &&
+        coverage.uncommittedOrders === 0
+      if (nothingSold) {
+        return {
+          label: t('grossProfit'),
+          value: '—',
+          icon: TrendingUp,
+          description: t('noSalesYet'),
+        }
+      }
       return {
         label: t('grossProfit'),
         value: '—',

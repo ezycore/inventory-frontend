@@ -1,8 +1,8 @@
 // coding-standard: maintained
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 import { useSetCourierStatus, type AdminStorefrontOrder } from "@/services/api";
-import { COURIER_STATUS } from "@/lib/courier-status";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -17,11 +17,15 @@ import { CourierTimeline } from "./courier-timeline";
  * `unknown` is not offered: it is what an unmapped provider string normalizes to,
  * never something a person would choose.
  */
-const STATUS_OPTIONS = (
-  ["pending", "in_transit", "delivered", "returned", "cancelled"] as const
-).map((value) => ({ value, label: COURIER_STATUS[value].admin }));
+const STATUS_VALUES = ["pending", "in_transit", "delivered", "returned", "cancelled"] as const;
 
 export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.manualStatus");
+  const tBadge = useTranslations("ecommerce.courierBadge");
+  const statusOptions = useMemo(
+    () => STATUS_VALUES.map((value) => ({ value, label: tBadge(value) })),
+    [tBadge],
+  );
   const setStatus = useSetCourierStatus();
 
   const current = order.courier?.normalizedStatus ?? "pending";
@@ -37,24 +41,21 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
   return (
     <div className="space-y-3 rounded-lg border p-3">
       <div>
-        <h4 className="text-sm font-semibold">Update delivery status</h4>
-        <p className="text-xs text-muted-foreground">
-          This courier has no tracking API — what you set here is what your
-          customer sees.
-        </p>
+        <h4 className="text-sm font-semibold">{t("title")}</h4>
+        <p className="text-xs text-muted-foreground">{t("hint")}</p>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <SimpleSelect
           value={status}
           onValueChange={setStatus_}
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           className="sm:w-48"
         />
         <Input
           value={note}
           maxLength={280}
-          placeholder="Add a note (optional) — shown to your customer"
+          placeholder={t("notePlaceholder")}
           onChange={(e) => setNote(e.target.value)}
         />
         <Button
@@ -67,7 +68,7 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
             )
           }
         >
-          Update
+          {t("update")}
         </Button>
       </div>
 
@@ -77,19 +78,13 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
       {needsReturn ? (
         <p className="flex items-start gap-2 rounded-md bg-amber-50 p-2.5 text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
           <AlertTriangle className="mt-px size-3.5 shrink-0" />
-          <span>
-            The parcel is marked returned, but the sale is still recorded. Use{" "}
-            <b>Return whole order</b> above to restock the items and settle the
-            refund.
-          </span>
+          <span>{t.rich("needsReturn", { b: (chunks) => <b>{chunks}</b> })}</span>
         </p>
       ) : null}
 
       {history.length > 0 ? (
         <div className="space-y-2 border-t pt-3">
-          <div className="text-xs font-medium text-muted-foreground">
-            Progress your customer sees
-          </div>
+          <div className="text-xs font-medium text-muted-foreground">{t("progress")}</div>
           {/* The same component the integrated couriers render, so a merchant
               driving a parcel by hand reads it exactly as they read Pathao's. */}
           <CourierTimeline history={history} />

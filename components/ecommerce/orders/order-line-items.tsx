@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { useUpdateCourierCost, type AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -16,6 +17,7 @@ import { OrderSaleSerials } from "@/components/sales/serials/order-sale-serials"
  * shipping-margin note the shopper never sees.
  */
 export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.lineItems");
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const updateCourierCost = useUpdateCourierCost();
   const [courierCost, setCourierCost] = useState<number | null>(
@@ -34,10 +36,10 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
   return (
     <Card className="overflow-hidden shadow-none">
       <div className="flex items-center justify-between gap-2 border-b px-4 py-3.5 sm:px-5">
-        <h3 className="text-sm font-semibold">Line items</h3>
+        <h3 className="text-sm font-semibold">{t("title")}</h3>
         {order.saleId && <OrderSaleSerials saleId={String(order.saleId)} />}
         <span className="ml-auto flex flex-none items-center gap-1.5 text-xs text-muted-foreground">
-          <Lock className="h-3 w-3" /> snapshotted at purchase
+          <Lock className="h-3 w-3" /> {t("snapshot")}
         </span>
       </div>
       {order.items.map((it, idx) => (
@@ -78,18 +80,16 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
       ))}
 
       <div className="space-y-2 px-4 py-4 text-sm sm:px-5">
-        <BreakdownRow label="Subtotal" value={money(order.subtotal)} />
+        <BreakdownRow label={t("subtotal")} value={money(order.subtotal)} />
         {order.discountAmount > 0 && (
           <BreakdownRow
-            label={
-              order.couponCode ? `Discount · ${order.couponCode}` : "Discount"
-            }
+            label={order.couponCode ? t("discountCode", { code: order.couponCode }) : t("discount")}
             value={`−${money(order.discountAmount)}`}
             positive
           />
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 text-muted-foreground">
-          <span>Shipping fee</span>
+          <span>{t("shippingFee")}</span>
           {editingShipping ? (
             <span className="flex items-center gap-2">
               <NumberField
@@ -105,7 +105,7 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
                 disabled={updateCourierCost.isPending}
                 onClick={saveShipping}
               >
-                Save
+                {t("save")}
               </Button>
             </span>
           ) : (
@@ -118,13 +118,13 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
                 onClick={() => setEditingShipping(true)}
                 className="text-xs font-semibold text-primary"
               >
-                Edit
+                {t("edit")}
               </button>
             </span>
           )}
         </div>
         <div className="flex justify-between border-t pt-2.5 text-base font-bold">
-          <span>Total</span>
+          <span>{t("total")}</span>
           <span className="tabular-nums">{money(order.totalAmount)}</span>
         </div>
         <CourierCostLine order={order} money={money} />
@@ -146,11 +146,12 @@ export function CourierCostLine({
   order: AdminStorefrontOrder;
   money: (n: number) => string;
 }) {
+  const t = useTranslations("ecommerce.lineItems");
   // Handed over in person: no courier carries it, so there is no cost to estimate (S16).
   if (order.handedOverAt) {
     return (
       <p className="pt-1 text-xs text-muted-foreground">
-        Handed over in person — no courier, no courier charge.
+        {t("handedOver")}
       </p>
     );
   }
@@ -162,17 +163,15 @@ export function CourierCostLine({
     const paid = order.courier?.deliveryReceived ?? order.shippingCharged;
     return (
       <p className="pt-1 text-xs text-muted-foreground">
-        Courier charged {money(billed)} · delivery margin {money(paid - billed)}
-        {paid !== order.shippingCharged && ` (customer paid ${money(paid)} for delivery)`}
+        {paid !== order.shippingCharged
+          ? t("billedPaid", { billed: money(billed), margin: money(paid - billed), paid: money(paid) })
+          : t("billed", { billed: money(billed), margin: money(paid - billed) })}
       </p>
     );
   }
   return (
     <p className="pt-1 text-xs text-muted-foreground">
-      Estimated courier cost {money(order.shippingCost)} —{" "}
-      {sent
-        ? "the courier's own charge replaces it when they bill."
-        : "the courier's real charge replaces it after dispatch, and weight and district can raise it."}
+      {t(sent ? "estimateSent" : "estimate", { cost: money(order.shippingCost) })}
     </p>
   );
 }

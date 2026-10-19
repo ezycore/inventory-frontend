@@ -141,6 +141,63 @@ sidebar must say which one it is opening.
 > *sentences* under each heading are the courier's free text — hub and rider names — and are not
 > translatable; the heading is, and it is the half a Bangla buyer actually needs.
 
+## Online orders admin (S29) — APPROVED by the owner 2026-10-19
+
+For the order list, order page and its dialogs (`components/ecommerce/orders/**`,
+`messages/*/ecommerce.json`). The ⚠ rows were settled by the owner. The storefront's `ORDER_STATUS`
+(`lib/storefront-i18n.ts`) still ships the older words (বাকি, ডেলিভারড, বাতিল for Rejected) — aligning
+it is a separate change.
+
+| English | Proposed Bangla | Note |
+|---|---|---|
+| Pending (order) | অপেক্ষমাণ | ✓ owner; the storefront still ships বাকি |
+| Confirmed | নিশ্চিত | as `ORDER_STATUS` |
+| Processing | প্রসেসিং | as `ORDER_STATUS` |
+| Shipped | পাঠানো হয়েছে | as `ORDER_STATUS` |
+| Delivered | ডেলিভারি হয়েছে | ✓ owner; the storefront still ships ডেলিভারড |
+| Partially returned | আংশিক ফেরত | |
+| Returned | ফেরত | as `ORDER_STATUS` |
+| Cancelled | বাতিল | |
+| Rejected | প্রত্যাখ্যাত | ✓ owner — never বাতিল, which is Cancelled |
+| Ready for pickup / Picked up | পিকআপের জন্য প্রস্তুত / সংগ্রহ করা হয়েছে | as `ORDER_STATUS` |
+| Awaiting dispatch | পাঠানোর অপেক্ষায় | queue filter |
+| In transit (COD) | পথে আছে (COD) | queue filter |
+| Awaiting pickup | কুরিয়ার পিকআপের অপেক্ষায় | as `lib/courier-status.ts` |
+| Courier says returned | কুরিয়ার বলছে ফেরত | queue filter |
+| Delivered · uncollected | ডেলিভারি হয়েছে · টাকা আসেনি | queue filter |
+| Collected today / Returned today | আজ আদায় হয়েছে / আজ ফেরত | |
+| Confirm / Reject / Cancel order | অর্ডার নিশ্চিত করুন / প্রত্যাখ্যান করুন / বাতিল করুন | |
+| Mark as Processing | প্রসেসিং-এ নিন | |
+| Send to courier | কুরিয়ারে পাঠান | |
+| Mark as Delivered | ডেলিভারি হয়েছে চিহ্নিত করুন | |
+| Handed over in person | সরাসরি হাতে দেওয়া হয়েছে | the customer took it from the shop |
+| Return whole order / Return items | পুরো অর্ডার ফেরত / কিছু পণ্য ফেরত | |
+| Courier collected ৳X / less… | কুরিয়ার ৳X আদায় করেছে / কম আদায় করেছে… | |
+| Collect / Collection (COD money) | আদায় | ✓ owner |
+| Prepayment / Advance | অ্যাডভান্স (অগ্রিম) | ✓ owner — অ্যাডভান্স first, অগ্রিম in brackets where space allows |
+| Collected at door | ডেলিভারির সময় আদায় | money paid to the rider, incl. a paid return |
+| Courier charge | কুরিয়ার চার্জ | |
+| Return courier charge | ফেরতের কুরিয়ার চার্জ | |
+| Quoted at dispatch / Actually billed | পাঠানোর সময়ের হিসাব / কুরিয়ারের আসল বিল | |
+| Discount at collection | আদায়ের সময় ছাড় | the S40 short-collection discount |
+| Delivery charge (to customer) | ডেলিভারি চার্জ | |
+| Delivery margin | ডেলিভারি মার্জিন | |
+| Receiving account | যে অ্যাকাউন্টে টাকা আসে | |
+| Parcel / Consignment | পার্সেল | কনসাইনমেন্ট is the courier's word |
+| Rider | রাইডার | as `lib/courier-status.ts` |
+| Tracking link | ট্র্যাকিং লিংক | |
+| Delivery / Pickup (fulfilment) | ডেলিভারি / পিকআপ | |
+| Reject reasons: Fake number · No answer · Out of stock · Price dispute · Duplicate order · Other | ভুয়া নম্বর · ফোন ধরেনি · স্টক নেই · দাম নিয়ে আপত্তি · একই অর্ডার দুবার · অন্যান্য | |
+| Return reasons: Customer changed mind · Wrong item / size · Damaged · Defective | গ্রাহক মত বদলেছেন · ভুল পণ্য / সাইজ · ক্ষতিগ্রস্ত · ত্রুটিপূর্ণ | |
+| Channels: Website · Phone call · Post comment | ওয়েবসাইট · ফোন কল · পোস্টে কমেন্ট | Messenger / WhatsApp / Instagram stay in English |
+| Cash on delivery / Already paid | ক্যাশ অন ডেলিভারি / আগেই পরিশোধিত | |
+| Paid return (refused, delivery paid) | পেইড রিটার্ন | added during S29 — what couriers and merchants say; REVIEW |
+| Fulfillment | ফুলফিলমেন্ট | added during S29 — the order page's dispatch card; REVIEW |
+| Fraud-score check / Delivery risk | ফ্রড-স্কোর যাচাই / ডেলিভারি ঝুঁকি | added during S29; REVIEW |
+| Store credit | স্টোর ক্রেডিট | added during S29 — a return's refund to the customer's balance; REVIEW |
+| Activity log | কার্যক্রমের লগ | added during S29; REVIEW |
+| Move back (a step) | পেছনে নিন | added during S29 — correcting a status; REVIEW |
+
 ## Statuses
 
 | English | Bangla |

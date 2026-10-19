@@ -8267,6 +8267,7 @@ export interface components {
                 categoryName: string | null;
                 status: string;
                 price: number;
+                onlinePrice: number | null;
                 costPrice: number;
             }[];
         };
@@ -12081,6 +12082,7 @@ export interface components {
                         clearingAccountId?: string | null;
                         clearingAmount?: number;
                         clearingTxnId?: string | null;
+                        clawbackAmount?: number;
                         /** Format: date-time */
                         openedAt?: string | null;
                         partialDelivery?: boolean;
@@ -12316,6 +12318,7 @@ export interface components {
                     clearingAccountId?: string | null;
                     clearingAmount?: number;
                     clearingTxnId?: string | null;
+                    clawbackAmount?: number;
                     /** Format: date-time */
                     openedAt?: string | null;
                     partialDelivery?: boolean;
@@ -12541,6 +12544,7 @@ export interface components {
                         clearingAccountId?: string | null;
                         clearingAmount?: number;
                         clearingTxnId?: string | null;
+                        clawbackAmount?: number;
                         /** Format: date-time */
                         openedAt?: string | null;
                         partialDelivery?: boolean;
@@ -16856,6 +16860,7 @@ export interface components {
                 cash: number;
                 accountCount: number;
                 withCourier: number;
+                withCourierBeforePayouts: number;
                 stockValue: number;
                 receivables: number;
                 receivableCount: number;

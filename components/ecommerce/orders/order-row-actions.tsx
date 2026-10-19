@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, ExternalLink, Eye, MoreHorizontal, Trash2, X } from "lucide-react";
 import {
   useConfirmOrder,
@@ -44,6 +45,8 @@ export function OrderRowActions({
   const [dialog, setDialog] = useState<"confirm" | "reject" | "delete" | null>(
     null,
   );
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.rowActions");
   const confirm = useConfirmOrder();
   const remove = useDeleteOrder();
   const stockTracked = useStockTracked();
@@ -70,7 +73,7 @@ export function OrderRowActions({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            aria-label={`Actions for ${order.orderNumber}`}
+            aria-label={t("menu", { orderNumber: order.orderNumber })}
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -78,7 +81,7 @@ export function OrderRowActions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={onOpen}>
             <Eye className="h-4 w-4" />
-            View details
+            {t("view")}
           </DropdownMenuItem>
           {/* Spelled out rather than left to ctrl/cmd-click, because triage is
               the one job here that wants several orders open at once and the
@@ -92,7 +95,7 @@ export function OrderRowActions({
               rel="noopener noreferrer"
             >
               <ExternalLink className="h-4 w-4" />
-              Open in new tab
+              {t("newTab")}
             </a>
           </DropdownMenuItem>
           {isPending && (
@@ -106,14 +109,14 @@ export function OrderRowActions({
                 }
               >
                 <Check className="h-4 w-4" />
-                Confirm order
+                {t("confirm")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onSelect={() => setDialog("reject")}
               >
                 <X className="h-4 w-4" />
-                Reject
+                {t("reject")}
               </DropdownMenuItem>
             </>
           )}
@@ -125,7 +128,7 @@ export function OrderRowActions({
                 onSelect={() => setDialog("delete")}
               >
                 <Trash2 className="h-4 w-4" />
-                Delete permanently
+                {t("delete")}
               </DropdownMenuItem>
             </>
           )}
@@ -136,8 +139,8 @@ export function OrderRowActions({
       <OrderConfirmDialog
         open={dialog === "confirm"}
         onOpenChange={(o) => setDialog(o ? "confirm" : null)}
-        {...confirmOrderPrompt(itemCount, isPickup)}
-        cancelLabel="Not yet"
+        {...confirmOrderPrompt(itemCount, isPickup, tAll)}
+        cancelLabel={t("notYet")}
         onConfirm={() => confirm.mutate(order._id)}
       />
       <OrderCancelDialog
@@ -155,9 +158,9 @@ export function OrderRowActions({
         destructive
         open={dialog === "delete"}
         onOpenChange={(o) => setDialog(o ? "delete" : null)}
-        title={`Delete ${order.orderNumber} permanently?`}
-        description="The order is removed for good — this can't be undone. A record of the order number, customer and total is kept in case the customer asks about it later."
-        actionLabel="Delete permanently"
+        title={t("deleteTitle", { orderNumber: order.orderNumber })}
+        description={t("deleteBody")}
+        actionLabel={t("delete")}
         onConfirm={() => remove.mutate(order._id)}
       />
     </>

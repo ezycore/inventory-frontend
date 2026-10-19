@@ -2,6 +2,7 @@
 // coding-standard: maintained
 import { useState } from "react";
 import { Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { CreateOrderDialog } from "./create-order-dialog";
@@ -37,6 +38,7 @@ export const canEditOrder = (order: AdminStorefrontOrder): boolean =>
 export function OrderEditButton({ order }: { order: AdminStorefrontOrder }) {
   const [open, setOpen] = useState(false);
   const { initial, loading } = useOrderEditInitial(order, open);
+  const t = useTranslations("ecommerce.orderForm");
 
   if (!canEditOrder(order)) return null;
 
@@ -49,7 +51,7 @@ export function OrderEditButton({ order }: { order: AdminStorefrontOrder }) {
         disabled={loading && open}
       >
         <Pencil className="mr-1.5 h-3.5 w-3.5" />
-        Edit
+        {t("edit")}
       </Button>
       {/* Mounted only once seeded — an edit dialog that opened empty and filled in
           afterwards would let the merchant start typing into a form that is about

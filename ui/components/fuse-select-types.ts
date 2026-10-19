@@ -63,6 +63,12 @@ export interface FuseAdvancedSelectProps {
   defaultFlag?: string;
   /** Pre-fill the option with this label when none carries `defaultFlag`. */
   defaultFallbackLabel?: string;
+  /**
+   * Receives the pre-filled default instead of `onValueChange`. A form uses it to set the value
+   * without marking the field edited — a pre-fill is not the user's change, and counting it as
+   * one made Cancel on an untouched create form ask "Discard your changes?".
+   */
+  onDefaultValue?: (value: FuseSelectValue) => void;
 
   /**
    * Single mode: a first menu item with this label that clears the selection

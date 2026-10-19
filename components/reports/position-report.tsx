@@ -94,6 +94,17 @@ export function PositionReport() {
                     format={format}
                   />
                 )}
+                {/* Part OF the row above, never added to it: what Courier Payouts does not
+                    count because it predates that page's start. With it named, with courier
+                    − this − charges to come = Payouts owed (S34). A note, not a Row, so the
+                    asset rows still sum to their total. */}
+                {(data.assets.withCourierBeforePayouts ?? 0) > 0 && (
+                  <p className="pb-2 text-xs text-muted-foreground">
+                    {t('withCourierBeforePayouts', {
+                      amount: format(data.assets.withCourierBeforePayouts ?? 0),
+                    })}
+                  </p>
+                )}
                 {/* Dropped, not zeroed. "Stock ৳0" as an asset line reads as a
                     shop that has sold out; the notice above says the truer
                     thing, which is that this business does not carry stock. */}

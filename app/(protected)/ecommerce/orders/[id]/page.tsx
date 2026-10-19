@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowLeft, Ban, RotateCcw, Store } from "lucide-react";
 import { useStorefrontOrder, type AdminStorefrontOrder } from "@/services/api";
 import { useGetMetaSettings } from "@/services/api";
@@ -12,7 +13,6 @@ import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-pr
 import {
   DELIVERY_STEPS,
   PICKUP_STEPS,
-  cap,
   longDate,
 } from "@/components/ecommerce/orders/order-detail-helpers";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
@@ -35,6 +35,7 @@ import { OrderCourierMoney } from "@/components/ecommerce/orders/order-courier-m
 import { OrderReturnsPanel } from "@/components/ecommerce/orders/order-returns-panel";
 
 export default function AdminOrderDetailPage() {
+  const t = useTranslations("ecommerce.orderDetail");
   const id = String(useParams().id);
   const { data: order, isLoading, isError } = useStorefrontOrder(id);
 
@@ -54,9 +55,9 @@ export default function AdminOrderDetailPage() {
   if (isError || !order) {
     return (
       <div className="space-y-2 p-6">
-        <p className="text-sm text-muted-foreground">Order not found.</p>
+        <p className="text-sm text-muted-foreground">{t("notFound")}</p>
         <Link href="/ecommerce/orders" className="text-sm underline">
-          ← Back to orders
+          {t("back")}
         </Link>
       </div>
     );
@@ -68,6 +69,8 @@ export default function AdminOrderDetailPage() {
 function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   // Only to decide whether the Meta panel renders at all. Cheap and cached — the settings card
   // on Store Settings shares this query.
+  const t = useTranslations("ecommerce.orderDetail");
+  const locale = useLocale();
   const { data: metaSettings } = useGetMetaSettings();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { labelFor } = useOrderStatusLabels();
@@ -101,7 +104,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
         className="h-auto gap-1.5 px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
       >
         <Link href="/ecommerce/orders">
-          <ArrowLeft className="h-4 w-4" /> Back to orders
+          <ArrowLeft className="h-4 w-4" /> {t("backShort")}
         </Link>
       </Button>
 
@@ -119,8 +122,11 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Placed {longDate(order.createdAt)} · {itemCount} item
-            {itemCount === 1 ? "" : "s"} · {money(order.totalAmount)}
+            {t("placed", {
+              date: longDate(order.createdAt, locale),
+              count: itemCount,
+              total: money(order.totalAmount),
+            })}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -134,28 +140,24 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
         {isTerminalBad ? (
           <div className="flex items-center gap-2.5 text-sm font-semibold text-red-700">
             <Ban className="h-5 w-5" />
-            This order was {cap(order.status)}. Any reserved stock was released
-            back to inventory.
+            {t("terminal", { status: labelFor(order.status) })}
           </div>
         ) : isReturned ? (
           <div className="flex flex-wrap items-center gap-2.5 text-sm font-semibold text-gray-700">
             <RotateCcw className="h-5 w-5" />
-            This order was returned
-            {order.returnedAt ? ` on ${longDate(order.returnedAt)}` : ""}.{" "}
+            {order.returnedAt
+              ? t("returnedOn", { date: longDate(order.returnedAt, locale) })
+              : t("returned")}{" "}
             {/* `refunded` is set only when a paid order comes back. A COD parcel refused
                 at the door was never paid, so claiming a refund there is false (S20). */}
             {order.paymentStatus === "refunded"
-              ? stockTracked
-                ? "Stock was restocked and the payment refunded."
-                : "The payment was refunded."
-              : stockTracked
-                ? "Stock was restocked and the sale reversed. Nothing was refunded."
-                : "The sale was reversed. Nothing was refunded."}
+              ? t(stockTracked ? "refundedStock" : "refunded")
+              : t(stockTracked ? "reversedStock" : "reversed")}
             <Link
               href="/sales/returns"
               className="font-medium text-primary underline"
             >
-              View sales returns
+              {t("viewReturns")}
             </Link>
           </div>
         ) : (
@@ -165,17 +167,16 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-sm text-muted-foreground">
                 <RotateCcw className="h-4 w-4 shrink-0" />
                 <span>
-                  Part of this order came back
-                  {lastReturnAt ? ` on ${longDate(lastReturnAt)}` : ""}.{" "}
-                  {stockTracked
-                    ? "Those items were restocked and the refund settled against the collection."
-                    : "The refund was settled against the collection."}
+                  {lastReturnAt
+                    ? t("partReturnedOn", { date: longDate(lastReturnAt, locale) })
+                    : t("partReturned")}{" "}
+                  {t(stockTracked ? "partStock" : "part")}
                 </span>
                 <Link
                   href="/sales/returns"
                   className="font-medium text-primary underline"
                 >
-                  View sales returns
+                  {t("viewReturns")}
                 </Link>
               </div>
             ) : null}
@@ -202,7 +203,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
 
           {/* Activity log */}
           <Card className="gap-0 p-5 shadow-none">
-            <h3 className="mb-4 text-sm font-semibold">Activity log</h3>
+            <h3 className="mb-4 text-sm font-semibold">{t("activity")}</h3>
             <OrderActivityLog order={order} />
           </Card>
         </div>
@@ -212,7 +213,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           {/* Customer & delivery + fraud */}
           <Card className="gap-0 p-5 shadow-none">
             <h3 className="mb-3 text-sm font-semibold">
-              {isPickup ? "Customer" : "Customer & delivery"}
+              {t(isPickup ? "customer" : "customerDelivery")}
             </h3>
             <div className="text-sm font-semibold">
               {order.shippingAddress.name}
@@ -223,7 +224,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             {isPickup ? (
               <div className="mt-2.5">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
-                  <Store className="h-3 w-3" /> Store pickup
+                  <Store className="h-3 w-3" /> {t("storePickup")}
                 </span>
               </div>
             ) : (
@@ -249,14 +250,14 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             {order.shippingAddress.notes && (
               <div className="mt-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
                 <b className="text-foreground">
-                  {isPickup ? "Customer note:" : "Delivery note:"}
+                  {t(isPickup ? "customerNote" : "deliveryNote")}
                 </b>{" "}
                 {order.shippingAddress.notes}
               </div>
             )}
             {order.notes && (
               <div className="mt-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
-                <b className="text-foreground">Note:</b> {order.notes}
+                <b className="text-foreground">{t("note")}</b> {order.notes}
               </div>
             )}
 

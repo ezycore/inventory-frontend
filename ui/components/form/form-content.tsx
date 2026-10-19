@@ -16,6 +16,7 @@ export const FormContent: FC<{
   formState: any;
   watch: any;
   setValue: any;
+  resetField?: any;
   onFieldChange?: any;
   className?: string;
   viewMode?: boolean;
@@ -28,6 +29,7 @@ export const FormContent: FC<{
   formState,
   watch,
   setValue,
+  resetField,
   onFieldChange,
   className,
   viewMode = false,
@@ -55,6 +57,7 @@ export const FormContent: FC<{
               formState={formState}
               watch={watch}
               setValue={setValue}
+              resetField={resetField}
               onFieldChange={onFieldChange}
               maxColumns={12}
               viewMode={viewMode}
@@ -76,6 +79,7 @@ export const FormContent: FC<{
                 formState={formState}
                 watch={watch}
                 setValue={setValue}
+                resetField={resetField}
                 onFieldChange={onFieldChange}
                 viewMode={viewMode}
                 disabledFieldsInEdit={disabledFieldsInEdit}

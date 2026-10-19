@@ -14,7 +14,7 @@ import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
 import { Switch } from "@/ui/components/switch";
-import { costRowKey, costsToSave, filterCostRows } from "./cost-prices-helpers";
+import { costRowKey, costsToSave, filterCostRows, marginPercent } from "./cost-prices-helpers";
 
 const ALL = "all";
 
@@ -108,7 +108,23 @@ export function CostPricesEditor({
       header: t("columns.category"),
       cell: (row) => <span className="text-muted-foreground">{row.categoryName ?? "—"}</span>,
     },
-    { key: "price", header: t("columns.price"), align: "right", cell: (row) => money(row.price) },
+    {
+      key: "price",
+      header: t("columns.price"),
+      align: "right",
+      // The price it really sells at; a live campaign or online price shows the list under it (S39).
+      cell: (row) =>
+        row.onlinePrice == null ? (
+          money(row.price)
+        ) : (
+          <div>
+            <div>{money(row.onlinePrice)}</div>
+            <div className="text-xs text-muted-foreground">
+              {t("listPrice", { price: money(row.price) })}
+            </div>
+          </div>
+        ),
+    },
     {
       key: "cost",
       header: t("columns.cost"),
@@ -133,9 +149,8 @@ export function CostPricesEditor({
       header: t("columns.margin"),
       align: "right",
       cell: (row) => {
-        const cost = costOf(row);
-        if (!cost || row.price <= 0) return <span className="text-muted-foreground">—</span>;
-        const margin = Math.round(((row.price - cost) / row.price) * 100);
+        const margin = marginPercent(row, costOf(row));
+        if (margin === null) return <span className="text-muted-foreground">—</span>;
         return <span className={margin < 0 ? "font-medium text-red-600" : ""}>{margin}%</span>;
       },
     },

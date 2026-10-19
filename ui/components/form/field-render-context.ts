@@ -24,6 +24,8 @@ export interface FieldRenderContext {
   control: any;
   watch: any;
   setValue: any;
+  /** `useForm`'s `resetField`: a pre-filled default becomes the field's default, not an edit. */
+  resetField?: any;
   onFieldChange?: (fieldName: string, value: any, allValues: any) => void;
   error?: string;
   effectiveDisabled: boolean;

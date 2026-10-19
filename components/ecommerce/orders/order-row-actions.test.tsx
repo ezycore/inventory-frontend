@@ -1,6 +1,6 @@
 // coding-standard: maintained
 
-import { render, screen } from "@testing-library/react";
+import { renderWithProviders as render, screen } from "@/tests/test-utils";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OrderRowActions } from "./order-row-actions";

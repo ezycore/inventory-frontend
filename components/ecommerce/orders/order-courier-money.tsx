@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { RefreshCw } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { formatMoney } from "@/components/storefront/format";
 import { countsTowardPayouts, courierDisplayName } from "@/components/ecommerce/payouts/helpers";
@@ -36,15 +37,22 @@ import { longDate } from "./order-detail-helpers";
  * `supported: false` from a refresh is an answer, not a failure — Steadfast publishes no charge
  * anywhere in its API, and an invented number would be worse than an unknown one.
  */
-const SOURCE_LABELS: Record<string, string> = {
-  quote: "dispatch quote",
-  manual: "entered by hand",
-  webhook: "courier webhook",
-  api: "courier API",
-  payout: "payout statement (legacy)",
+/** Each source's key under `ecommerce.courierMoney`. */
+const SOURCE_KEYS: Record<string, string> = {
+  quote: "sourceQuote",
+  manual: "sourceManual",
+  webhook: "sourceWebhook",
+  api: "sourceApi",
+  payout: "sourcePayout",
 };
 
 export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.courierMoney");
+  const locale = useLocale();
+  const sourceLabel = (source: string) => (SOURCE_KEYS[source] ? t(SOURCE_KEYS[source]) : source);
+  const strong = (chunks: React.ReactNode) => (
+    <span className="font-medium text-foreground">{chunks}</span>
+  );
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   // Who owes what is shown only to a merchant who records courier payments (`courierPayouts`,
   // business-modes D2): otherwise a delivered parcel would read "they owe it to you" forever.
@@ -85,10 +93,10 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
     <Card className="p-5 shadow-none">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold">Courier charges</h3>
+          <h3 className="text-sm font-semibold">{t("title")}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {courierName}
-            {charges?.source ? ` · ${SOURCE_LABELS[charges.source] ?? charges.source}` : ""}
+            {charges?.source ? ` · ${sourceLabel(charges.source)}` : ""}
           </p>
         </div>
         {canRefresh && (
@@ -101,43 +109,42 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
             <RefreshCw
               className={cn("mr-2 h-3.5 w-3.5", refresh.isPending && "animate-spin")}
             />
-            {refresh.isPending ? "Asking…" : "Ask the courier"}
+            {refresh.isPending ? t("asking") : t("ask")}
           </Button>
         )}
       </div>
 
       <div className="mt-4 space-y-1.5 text-sm">
         {quoted !== undefined && (
-          <Row label="Quoted at dispatch" value={money(quoted)} muted />
+          <Row label={t("quoted")} value={money(quoted)} muted />
         )}
         {actual ? (
           <>
-            <Row label="Delivery fee" value={money(actual.deliveryFee)} muted />
+            <Row label={t("deliveryFee")} value={money(actual.deliveryFee)} muted />
             {/* Absent, not zero: a courier that itemises no COD fee has not said it was
                 free — so the row is dropped rather than printed as 0. */}
             {actual.codFee !== undefined && (
-              <Row label="COD fee" value={money(actual.codFee)} muted />
+              <Row label={t("codFee")} value={money(actual.codFee)} muted />
             )}
             {actual.additionalCharge !== undefined && (
-              <Row label="Additional" value={money(actual.additionalCharge)} muted />
+              <Row label={t("additional")} value={money(actual.additionalCharge)} muted />
             )}
             {actual.discount !== undefined && actual.discount !== 0 && (
-              <Row label="Discount" value={`−${money(actual.discount)}`} muted />
+              <Row label={t("discount")} value={`−${money(actual.discount)}`} muted />
             )}
             <div className="flex items-center justify-between border-t pt-2 font-semibold">
-              <span>Actually billed</span>
+              <span>{t("billed")}</span>
               <span className="tabular-nums">{money(actual.totalFee)}</span>
             </div>
             {actual.weightKg !== undefined && (
               <p className="text-xs text-muted-foreground">
-                Billed on {actual.weightKg} kg.
+                {t("weight", { weight: actual.weightKg })}
               </p>
             )}
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            The courier has not published a charge for this parcel. The dispatch quote stands
-            until they do — it is the figure the courier balance subtracts meanwhile.
+            {t("noCharge")}
           </p>
         )}
 
@@ -151,8 +158,8 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
             )}
           >
             {variance > 0
-              ? `${money(variance)} more than quoted.`
-              : `${money(Math.abs(variance))} less than quoted.`}
+              ? t("more", { amount: money(variance) })
+              : t("less", { amount: money(Math.abs(variance)) })}
           </p>
         )}
       </div>
@@ -162,7 +169,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
       {history.length > 1 && (
         <div className="mt-4 space-y-1 border-t pt-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            How this figure changed
+            {t("history")}
           </p>
           {history.map((entry, index) => (
             <div
@@ -170,8 +177,8 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
               className="flex items-center justify-between text-xs text-muted-foreground"
             >
               <span>
-                {SOURCE_LABELS[entry.source] ?? entry.source}
-                {entry.at ? ` · ${longDate(entry.at)}` : ""}
+                {sourceLabel(entry.source)}
+                {entry.at ? ` · ${longDate(entry.at, locale)}` : ""}
               </span>
               <span className="tabular-nums">{money(entry.totalFee)}</span>
             </div>
@@ -188,48 +195,59 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
           accounts: with accounts off it is the only place the money is written down. */}
       {paidReturn && (
         <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-          The customer refused the parcel but paid{" "}
           {courier.collectedAmount !== undefined
-            ? money(courier.collectedAmount)
-            : "the delivery charge"}{" "}
-          at the door. {courierName} holds it until they pay you.
+            ? t("paidReturn", { amount: money(courier.collectedAmount), courier: courierName })
+            : t("paidReturnCharge", { courier: courierName })}
         </p>
       )}
       {partialDelivery &&
         order.status !== "partially_returned" &&
         order.status !== "returned" && (
           <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-            {courierName} reported a partial delivery
             {courier?.collectedAmount !== undefined
-              ? ` and collected ${money(courier.collectedAmount)}`
-              : ""}
-            . The customer kept some items — record the ones that came back with{" "}
-            <b>Return items</b>, not Return whole order.
+              ? t.rich("partialCollected", {
+                  courier: courierName,
+                  amount: money(courier.collectedAmount),
+                  b: (chunks) => <b>{chunks}</b>,
+                })
+              : t.rich("partial", { courier: courierName, b: (chunks) => <b>{chunks}</b> })}
           </p>
         )}
       {tracksPayouts && remittance?.status === "with_courier" && (
         <div className="mt-4 border-t pt-3 text-sm text-muted-foreground">
-          {(remittance.clearingAmount ?? 0) > 0 ? (
+          {/* Paid out, then returned (S33): the money goes back, and the charge was settled
+              with the earlier payment — so neither "they owe it to you" nor "will take its
+              charge" is true here. */}
+          {(remittance.clawbackAmount ?? 0) > 0 ? (
             <p>
-              <span className="font-medium text-foreground">
-                {money(remittance.clearingAmount ?? 0)}
-              </span>{" "}
-              collected by {courierName} — they owe it to you, less their charge, until you
-              record their payment.
+              {t.rich("clawback", {
+                courier: courierName,
+                amount: money(remittance.clawbackAmount ?? 0),
+                strong,
+              })}
+            </p>
+          ) : (remittance.clearingAmount ?? 0) > 0 ? (
+            <p>
+              {t.rich("owed", {
+                courier: courierName,
+                amount: money(remittance.clearingAmount ?? 0),
+                strong,
+              })}
             </p>
           ) : (
             <p>
-              {courierName} will take its charge
-              {actual ? ` (${money(actual.totalFee)})` : ""} out of a payment for this
-              parcel.
+              {actual
+                ? t("chargeOnlyAmount", { courier: courierName, amount: money(actual.totalFee) })
+                : t("chargeOnly", { courier: courierName })}
             </p>
           )}
         </div>
       )}
       {tracksPayouts && remittance?.status === "remitted" && (
         <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
-          Covered by a payment from {courierName}
-          {remittance.remittedAt ? ` on ${longDate(remittance.remittedAt)}` : ""}.
+          {remittance.remittedAt
+            ? t("coveredOn", { courier: courierName, date: longDate(remittance.remittedAt, locale) })
+            : t("covered", { courier: courierName })}
         </p>
       )}
     </Card>

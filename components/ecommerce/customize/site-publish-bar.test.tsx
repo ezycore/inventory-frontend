@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, renderWithProviders as render, screen } from "@/tests/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StorefrontSite } from "@/services/api";
 

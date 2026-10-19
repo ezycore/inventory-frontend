@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { Label } from "@/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@/ui/components/radio-group";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -28,9 +29,10 @@ export function OrderRefundDestination({
   onAccountChange: (accountId: string) => void;
   accountOptions: { value: string; label: string }[];
 }) {
+  const t = useTranslations("ecommerce.refundDestination");
   return (
     <div className="space-y-2">
-      <Label>Refund the paid amount</Label>
+      <Label>{t("title")}</Label>
       <RadioGroup
         value={mode}
         onValueChange={(v) => onModeChange(v as RefundMode)}
@@ -39,13 +41,13 @@ export function OrderRefundDestination({
         <div className="flex items-center gap-2">
           <RadioGroupItem value="account" id={`${idPrefix}-account`} />
           <Label htmlFor={`${idPrefix}-account`} className="font-normal">
-            Refund to an account (cash out)
+            {t("account")}
           </Label>
         </div>
         <div className="flex items-center gap-2">
           <RadioGroupItem value="credit" id={`${idPrefix}-credit`} />
           <Label htmlFor={`${idPrefix}-credit`} className="font-normal">
-            Store credit (customer balance)
+            {t("credit")}
           </Label>
         </div>
       </RadioGroup>
@@ -54,7 +56,7 @@ export function OrderRefundDestination({
           value={accountId}
           onValueChange={onAccountChange}
           options={accountOptions}
-          placeholder="Refund from account (default)"
+          placeholder={t("accountPlaceholder")}
         />
       )}
     </div>

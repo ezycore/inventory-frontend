@@ -1,6 +1,7 @@
 // coding-standard: maintained
+import { useLocale, useTranslations } from "next-intl";
 import type { AdminStorefrontOrder } from "@/services/api";
-import { courierStatusPresentation } from "@/lib/courier-status";
+import { courierGroupLabel, courierStatusPresentation } from "@/lib/courier-status";
 import { longDate } from "./order-detail-helpers";
 
 type CourierEvent = NonNullable<
@@ -31,6 +32,8 @@ export function CourierTimeline({
   /** Shown instead of the feed when there is nothing yet. */
   emptyHint?: string;
 }) {
+  const tBadge = useTranslations("ecommerce.courierBadge");
+  const locale = useLocale();
   if (!history.length) {
     return emptyHint ? (
       <p className="text-xs text-muted-foreground">{emptyHint}</p>
@@ -88,7 +91,8 @@ export function CourierTimeline({
             <div className={isLastGroup ? "min-w-0 flex-1" : "min-w-0 flex-1 pb-4"}>
               {group.name ? (
                 <div className="text-sm font-semibold" style={{ color: tone }}>
-                  {group.name}
+                  {/* The carrier's English phase heading, in Bangla where we know it. */}
+                  {courierGroupLabel(group.name, locale === "bn")}
                 </div>
               ) : null}
 
@@ -106,10 +110,10 @@ export function CourierTimeline({
                         label otherwise, which is what a manual courier and a
                         status-only push produce. */}
                     <div className="text-sm">
-                      {event.label || presentation.admin}
+                      {event.label || tBadge(presentation.key)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {event.at ? longDate(String(event.at)) : "—"}
+                      {event.at ? longDate(String(event.at), locale) : "—"}
                     </div>
                   </div>
                 );

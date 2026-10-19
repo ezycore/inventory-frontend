@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { HandHelping } from "lucide-react";
 import { useHandOverOrder, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
@@ -43,6 +44,7 @@ export const canHandOver = (order: AdminStorefrontOrder): boolean =>
  * a courier.
  */
 export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.handOver");
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   // Unticked by default — the merchant opts in to dropping the charge (owner, 2026-10-13).
@@ -79,33 +81,29 @@ export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) 
     <>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <HandHelping className="mr-1.5 h-3.5 w-3.5" />
-        Handed over in person
+        {t("title")}
       </Button>
       <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Handed over in person</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              The customer got this order from you, not from a courier. It is marked delivered
-              and paid to you in one step
-              {courierBookingCancelled(order) ? " — the cancelled courier booking stays on record, with no charge" : ""}.
+              {t(courierBookingCancelled(order) ? "bodyCancelledBooking" : "body")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="hand-over-note">Why no courier?</Label>
+              <Label htmlFor="hand-over-note">{t("why")}</Label>
               <Textarea
                 id="hand-over-note"
                 value={note}
                 rows={2}
                 maxLength={280}
-                placeholder="Customer collected it from our office"
+                placeholder={t("whyPlaceholder")}
                 onChange={(e) => setNote(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Saved to the order history so anyone can see why it was not sent.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("whyHint")}</p>
             </div>
 
             {canRemoveCharge && (
@@ -114,28 +112,28 @@ export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) 
                   checked={removeDeliveryCharge}
                   onCheckedChange={(checked) => setRemoveDeliveryCharge(checked === true)}
                 />
-                Remove the {money(deliveryCharge)} delivery charge
+                {t("removeCharge", { amount: money(deliveryCharge) })}
               </label>
             )}
 
             {accountsEnabled && (
               <div className="space-y-1.5">
-                <Label>Money received into</Label>
+                <Label>{t("account")}</Label>
                 <SimpleSelect
                   value={accountId}
                   onValueChange={setAccountId}
                   options={options}
-                  placeholder="Select an account"
+                  placeholder={t("accountPlaceholder")}
                 />
               </div>
             )}
 
-            <p className="text-sm font-medium">Customer paid {money(toPay)}</p>
+            <p className="text-sm font-medium">{t("customerPaid", { amount: money(toPay) })}</p>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={close}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="button"
@@ -152,7 +150,7 @@ export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) 
                 )
               }
             >
-              {handOver.isPending ? "Saving…" : "Mark delivered and paid"}
+              {handOver.isPending ? t("saving") : t("submit")}
             </Button>
           </DialogFooter>
         </DialogContent>

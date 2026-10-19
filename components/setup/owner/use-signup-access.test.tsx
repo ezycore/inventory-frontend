@@ -27,6 +27,7 @@ const plan = (
   groupRank: rank,
   modules: [],
   features: [],
+  limits: {},
 });
 const PLANS = [
   plan("start", 1, "month"),

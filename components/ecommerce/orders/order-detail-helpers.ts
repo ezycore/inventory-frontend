@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { getOrgTimezone } from "@/hooks/use-org-calendar";
+import type { Translator } from "@/i18n/config";
 
 /** The forward delivery pipeline (terminal Cancelled/Rejected sit outside it). */
 export const DELIVERY_STEPS = [
@@ -49,14 +50,19 @@ type CollectionOrder = {
  * parcel that money is with the courier, not the merchant (paying it over is Courier Payouts). The
  * old "Mark COD collected" read as "the money is in my hand", so the courier is named.
  */
-export const collectionLabels = (order: CollectionOrder, amount: string) => {
+export const collectionLabels = (
+  order: CollectionOrder,
+  amount: string,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
+) => {
   const viaCourier = order.fulfillmentType !== "pickup" && !!order.courier;
   if (viaCourier) {
-    return { full: `Courier collected ${amount}`, less: "Courier collected less…" };
+    return { full: t("orders.courierCollected", { amount }), less: t("orders.courierCollectedLess") };
   }
   return {
-    full: order.paymentMethod === "cod" ? `Customer paid ${amount}` : "Mark as paid",
-    less: "Customer paid less…",
+    full: order.paymentMethod === "cod" ? t("orders.customerPaid", { amount }) : t("orders.markPaid"),
+    less: t("orders.customerPaidLess"),
   };
 };
 
@@ -74,18 +80,25 @@ export const awaitsCourierReport = (order: CollectionOrder) =>
  * cancelled until it ships, so it confirms in one click. The old copy talked about a "sale" being
  * booked, which a storefront-only merchant never sees (2026-10-10).
  */
-export const confirmOrderPrompt = (itemCount: number, isPickup: boolean) => ({
-  title: "Confirm this order?",
-  description: `This holds ${itemCount} item${itemCount === 1 ? "" : "s"} in stock for this order. Cancelling before you ${
-    isPickup ? "mark it ready for pickup" : "ship it"
-  } puts them back.`,
-  actionLabel: "Confirm order",
+export const confirmOrderPrompt = (
+  itemCount: number,
+  isPickup: boolean,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
+) => ({
+  title: t("orders.confirmTitle"),
+  description: t(isPickup ? "orders.confirmBodyPickup" : "orders.confirmBodyShip", { count: itemCount }),
+  actionLabel: t("orders.confirmAction"),
 });
 
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export const longDate = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, {
+/**
+ * A timestamp on the organization's clock. Bangla gets Bangla month names with Western digits
+ * (`docs/I18N.md`: digits stay 0-9); English keeps the browser's own format, as before.
+ */
+export const longDate = (iso: string, locale?: string) =>
+  new Date(iso).toLocaleString(locale === "bn" ? "bn-BD-u-nu-latn" : undefined, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -96,11 +109,12 @@ export const longDate = (iso: string) =>
 
 // "courier" is what a courier's poll or push writes (and an automatic return, G3). It read
 // "Staff" until 2026-10-10 — the activity log credited a person with Pathao's delivery (G14).
-const ACTOR_LABELS: Record<string, string> = {
-  shopper: "Customer",
-  system: "System",
-  courier: "Courier",
+const ACTOR_KEYS: Record<string, string> = {
+  shopper: "orders.actorCustomer",
+  system: "orders.actorSystem",
+  courier: "orders.actorCourier",
 };
 
-export const actorLabel = (by?: string) =>
-  by ? (ACTOR_LABELS[by] ?? "Staff") : "—";
+/** `t` is bound to the `ecommerce` namespace. */
+export const actorLabel = (by: string | undefined, t: Translator) =>
+  by ? t(ACTOR_KEYS[by] ?? "orders.actorStaff") : "—";

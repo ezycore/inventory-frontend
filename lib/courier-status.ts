@@ -19,7 +19,12 @@ export type CourierNormalizedStatus =
   | "unknown";
 
 interface CourierStatusPresentation {
-  /** Merchant-facing label (English only — the admin app is not bilingual). */
+  /**
+   * The merchant label's message key under `ecommerce.courierBadge` — the admin order screens
+   * translate through it. `admin` stays the English source of truth.
+   */
+  key: string;
+  /** Merchant-facing label in English. */
   admin: string;
   /** Shopper-facing label, per storefront language. */
   shopper: { en: string; bn: string };
@@ -32,31 +37,37 @@ export const COURIER_STATUS: Record<
   CourierStatusPresentation
 > = {
   pending: {
+    key: "pending",
     admin: "Awaiting pickup",
     shopper: { en: "Awaiting courier pickup", bn: "কুরিয়ার পিকআপের অপেক্ষায়" },
     tone: "#b45309",
   },
   in_transit: {
+    key: "in_transit",
     admin: "In transit",
     shopper: { en: "On the way", bn: "পথে আছে" },
     tone: "#0e7490",
   },
   delivered: {
+    key: "delivered",
     admin: "Delivered",
     shopper: { en: "Delivered by rider", bn: "রাইডার ডেলিভারি করেছেন" },
     tone: "#15803d",
   },
   returned: {
+    key: "returned",
     admin: "Returned",
     shopper: { en: "Returned to sender", bn: "প্রেরকের কাছে ফেরত" },
     tone: "#c2410c",
   },
   cancelled: {
+    key: "cancelled",
     admin: "Cancelled",
     shopper: { en: "Order cancelled", bn: "অর্ডার বাতিল" },
     tone: "#b91c1c",
   },
   unknown: {
+    key: "unknown",
     admin: "Status unavailable",
     shopper: { en: "Tracking update pending", bn: "ট্র্যাকিং আপডেট আসছে" },
     tone: "#475467",
@@ -109,11 +120,13 @@ export type CourierReturnStage = "returning" | "back";
 
 const RETURN_STAGE: Record<CourierReturnStage, CourierStatusPresentation> = {
   returning: {
+    key: "returning",
     admin: "Returning to you",
     shopper: { en: "Returning to sender", bn: "প্রেরকের কাছে ফেরত যাচ্ছে" },
     tone: "#c2410c",
   },
   back: {
+    key: "back",
     admin: "Back with you",
     shopper: { en: "Returned to sender", bn: "প্রেরকের কাছে ফেরত" },
     tone: "#c2410c",
@@ -127,15 +140,15 @@ const RETURN_STAGE: Record<CourierReturnStage, CourierStatusPresentation> = {
  * refused (live: UriiBaba ORD-20261004-00014, paid ৳70 at the door, already returned).
  */
 const DOOR_OUTCOME = {
-  paidReturnComing: { admin: "Paid return · coming back", tone: "#c2410c" },
-  paidReturnBack: { admin: "Paid return · back with you", tone: "#c2410c" },
-  partial: { admin: "Part delivered", tone: "#b45309" },
+  paidReturnComing: { key: "paidReturnComing", admin: "Paid return · coming back", tone: "#c2410c" },
+  paidReturnBack: { key: "paidReturnBack", admin: "Paid return · back with you", tone: "#c2410c" },
+  partial: { key: "partial", admin: "Part delivered", tone: "#b45309" },
 } as const;
 
 export function courierDoorBadge(
   courier: { paidReturn?: boolean; partialDelivery?: boolean } | null | undefined,
   orderStatus: string | undefined,
-): { admin: string; tone: string } | null {
+): { key: string; admin: string; tone: string } | null {
   if (courier?.paidReturn) {
     // The merchant's Return whole order is what says the goods are back.
     return orderStatus === "returned" ? DOOR_OUTCOME.paidReturnBack : DOOR_OUTCOME.paidReturnComing;

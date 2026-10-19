@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
 import { useUpdateOrderStatus, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
@@ -56,6 +57,7 @@ export const reversibleTargets = (order: AdminStorefrontOrder): string[] => {
 };
 
 export function OrderReverseStatusDialog({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.reverseStatus");
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState("");
   const [note, setNote] = useState("");
@@ -80,50 +82,43 @@ export function OrderReverseStatusDialog({ order }: { order: AdminStorefrontOrde
     <>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <Undo2 className="mr-1.5 h-3.5 w-3.5" />
-        Move back
+        {t("button")}
       </Button>
       <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Move this order back</DialogTitle>
-            <DialogDescription>
-              The customer is not told about this — it corrects your own record.
-              {order.stockReserved
-                ? " Going back to the first step also releases the stock this order is holding."
-                : ""}
-            </DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t(order.stockReserved ? "bodyReserved" : "body")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Move back to</Label>
+              <Label>{t("to")}</Label>
               <SimpleSelect
                 value={status}
                 onValueChange={setStatus}
                 options={options}
-                placeholder="Select a step"
+                placeholder={t("stepPlaceholder")}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Why?</Label>
+              <Label>{t("why")}</Label>
               <Textarea
                 value={note}
                 rows={2}
                 maxLength={280}
-                placeholder="Confirmed by mistake"
+                placeholder={t("whyPlaceholder")}
                 onChange={(e) => setNote(e.target.value)}
               />
               {/* Required, unlike a forward step: months later this line is the
                   only thing explaining why the order went backward. */}
-              <p className="text-xs text-muted-foreground">
-                Saved to the order history so anyone can see why it moved.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("whyHint")}</p>
             </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={close}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="button"
@@ -135,7 +130,7 @@ export function OrderReverseStatusDialog({ order }: { order: AdminStorefrontOrde
                 )
               }
             >
-              {updateStatus.isPending ? "Moving…" : "Move back"}
+              {updateStatus.isPending ? t("moving") : t("button")}
             </Button>
           </DialogFooter>
         </DialogContent>
