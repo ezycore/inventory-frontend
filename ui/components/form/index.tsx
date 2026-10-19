@@ -21,6 +21,7 @@ import { Skeleton } from '../skeleton'
 import { Button } from '../button'
 import { FC, useCallback, useState } from 'react'
 import { FormContent } from './form-content'
+import { hasUserEdits } from './form-utils'
 import { cn } from '@/ui/lib/utils';
 import { Spinner } from '../spinner';
 import { toast } from 'sonner';
@@ -135,6 +136,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
     const isModalMode = openInside === 'modal';
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
     const [confirmDiscard, setConfirmDiscard] = useState(false)
+    // Read during render so React Hook Form tracks it; see `hasUserEdits` for why not `isDirty` (S45).
+    const userEdited = hasUserEdits(formState?.dirtyFields)
 
     // Form submission handler that works with React Hook Form
     const handleFormSubmit = useCallback((data: any) => {
@@ -187,7 +190,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     }
 
     const handleContainerCancel = () => {
-        if (form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+        if (userEdited && !isActuallySubmitting && !viewMode) {
             setConfirmDiscard(true)
             return
         }
@@ -216,7 +219,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
      * discarding), and view mode has nothing to lose.
      */
     const handleContainerOpenChange = (next: boolean) => {
-        if (!next && form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+        if (!next && userEdited && !isActuallySubmitting && !viewMode) {
             setConfirmDiscard(true)
             return
         }

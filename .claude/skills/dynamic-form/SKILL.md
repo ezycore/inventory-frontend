@@ -152,7 +152,14 @@ When the section's `dependsOn` condition is not met, the **entire section render
   `onCancel` — in **every** mode, inline included (shadow test S38: the prompt used to render only in
   the modal/drawer branches, so Cancel on an edited inline form did nothing). Inline, only the Cancel
   button is guarded: a caller-owned `Dialog`'s Esc / X / backdrop still close without asking.
-  Test: `ui/components/form/__tests__/inline-discard.test.tsx`.
+  "Dirty" means **the user changed a field**: `hasUserEdits(formState.dirtyFields)`
+  (`ui/components/form/form-utils.ts`), never the whole-form `isDirty` — that one is
+  `deepEqual(values, defaults)`, which also compares key counts, so any registered field with no
+  default holding `undefined` made an untouched form ask (S45, Add Product). Pre-fills are not edits
+  either: a `defaultFlag` default lands via `resetField`, and a value a select **mounts** with is
+  copied to its `copyValueTo` / `autoFillFields` targets as their default too (the target is
+  registered first — `resetField` ignores an unregistered name, which would drop the copy).
+  Test: `ui/components/form/__tests__/inline-discard.test.tsx`, `has-user-edits.test.ts`.
 
 ## Critical Conventions (DO / DON'T)
 

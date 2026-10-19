@@ -95,6 +95,68 @@ describe("DynamicForm inline — Cancel", () => {
     expect(screen.queryByText("Discard your changes?")).toBeNull();
   });
 
+  it("a default copied to another field (copyValueTo) is not an edit either (S45)", async () => {
+    // Add Product: the unit pre-fills from the default unit and copies itself into
+    // `saleUnit.unitId`. The copy was written as an edit, so the untouched form asked to discard.
+    const withCopy: DynamicFormConfig = {
+      fields: [
+        {
+          name: "unitId",
+          type: "fuseSelect",
+          label: "Unit",
+          options: [
+            { value: "u1", label: "Box" },
+            { value: "u2", label: "Piece", isDefault: true } as never,
+          ],
+          defaultFlag: "isDefault",
+          copyValueTo: ["saleUnit.unitId"],
+        },
+        { name: "note", type: "input", label: "Note" },
+      ],
+    };
+    const onCancel = vi.fn();
+    let values: { unitId?: string; saleUnit?: { unitId?: string } } = {};
+    function CopyHarness() {
+      const form = useForm<Record<string, unknown>>({ defaultValues: { unitId: "", note: "" } });
+      values = form.watch() as typeof values;
+      return <DynamicForm form={form} config={withCopy} onSubmit={() => {}} onCancel={onCancel} />;
+    }
+    render(<CopyHarness />);
+
+    // The copy still happens — only its dirty flag changed.
+    await waitFor(() => expect(values.saleUnit?.unitId).toBe("u2"));
+    type("x");
+    type("");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Discard your changes?")).toBeNull();
+  });
+
+  it("a field with no default is not an edit: Cancel still closes at once (S45)", () => {
+    // Add Product registers brand, tags, images… with no default. React Hook Form's whole-form
+    // `isDirty` compares key counts, so those `undefined` keys alone made it read as edited.
+    const withUndeclared: DynamicFormConfig = {
+      fields: [
+        { name: "note", type: "input", label: "Note" },
+        { name: "brand", type: "input", label: "Brand" },
+      ],
+    };
+    const onCancel = vi.fn();
+    function UndeclaredHarness() {
+      const form = useForm<Record<string, unknown>>({ defaultValues: { note: "" } });
+      return <DynamicForm form={form} config={withUndeclared} onSubmit={() => {}} onCancel={onCancel} />;
+    }
+    render(<UndeclaredHarness />);
+    type("x");
+    type("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Discard your changes?")).toBeNull();
+  });
+
   it("Keep editing leaves the form and its text in place", async () => {
     const onCancel = vi.fn();
     render(<Harness onCancel={onCancel} />);
