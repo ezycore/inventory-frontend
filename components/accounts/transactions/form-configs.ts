@@ -97,6 +97,8 @@ const buildMoneyFormConfig = (
       optionsApi: POSTABLE_ACCOUNTS,
       // A flat array, not the paginated list shape — without this the select reads no options.
       itemsCreateCallback: accountPaymentOptionItemsCallback,
+      // Starts on the org's default account, like the payment forms (shadow test S37).
+      defaultFlag: "isDefault",
     },
     {
       name: "amount",
@@ -191,6 +193,9 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
       optionsApi: POSTABLE_ACCOUNTS,
       // A flat array, not the paginated list shape — without this the select reads no options.
       itemsCreateCallback: accountPaymentOptionItemsCallback,
+      // Money usually moves out of the default account (S37). The destination stays the
+      // merchant's pick — the same account at both ends is no transfer.
+      defaultFlag: "isDefault",
     },
     {
       name: "toAccountId",

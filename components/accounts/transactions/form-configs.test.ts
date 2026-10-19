@@ -1,7 +1,14 @@
 // coding-standard: maintained
 import { describe, expect, it } from "vitest";
 
-import { getExpenseFormConfig, makeExpenseSchema } from "./form-configs";
+import { findDefaultOption } from "@/ui/components/select-default";
+
+import {
+  getExpenseFormConfig,
+  getIncomeFormConfig,
+  getTransferFormConfig,
+  makeExpenseSchema,
+} from "./form-configs";
 
 /**
  * Record Expense (shadow test S26): a date on the shop's calendar that cannot be in the future,
@@ -33,5 +40,34 @@ describe("expense form", () => {
     expect(
       account?.itemsCreateCallback?.({ data: [{ _id: "a1", name: "Cash", isDefault: true }] } as never),
     ).toEqual([{ value: "a1", label: "Cash", isDefault: true }]);
+  });
+});
+
+/**
+ * Shadow test S37: Record Expense / Income / Transfer opened on "Select account" while every
+ * payment form started on the default account. The select pre-fills through `defaultFlag`.
+ */
+describe("default account (S37)", () => {
+  const options = [
+    { _id: "a1", name: "Bank" },
+    { _id: "a2", name: "Cash", isDefault: true },
+  ];
+
+  it("expense, income and the transfer source start on the default account", () => {
+    const fields = [
+      getExpenseFormConfig(t, t, true, "2026-10-17").fields.find((f) => f.name === "accountId"),
+      getIncomeFormConfig(t, t, true, "2026-10-17").fields.find((f) => f.name === "accountId"),
+      getTransferFormConfig(t).fields.find((f) => f.name === "fromAccountId"),
+    ];
+    for (const field of fields) {
+      expect(field?.defaultFlag).toBe("isDefault");
+      const loaded = field!.itemsCreateCallback!({ data: options } as never);
+      expect(findDefaultOption(loaded, field!.defaultFlag!)?.value).toBe("a2");
+    }
+  });
+
+  it("leaves the transfer destination for the merchant to pick", () => {
+    const to = getTransferFormConfig(t).fields.find((f) => f.name === "toAccountId");
+    expect(to?.defaultFlag).toBeUndefined();
   });
 });

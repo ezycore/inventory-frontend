@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 
 import { renderWithProviders, screen } from "@/tests/test-utils";
 import type { ProductCostRow } from "@/types/api";
-import { costsToSave, filterCostRows } from "./cost-prices-helpers";
+import { costsToSave, filterCostRows, marginPercent } from "./cost-prices-helpers";
 
 const mutateAsync = vi.fn().mockResolvedValue({ data: { updated: 2, failed: [] } });
 vi.mock("@/services/api", () => ({
@@ -23,6 +23,7 @@ const row = (over: Partial<ProductCostRow>): ProductCostRow =>
     categoryName: "Floormat",
     status: "active",
     price: 450,
+    onlinePrice: null,
     costPrice: 0,
     ...over,
   }) as ProductCostRow;
@@ -44,6 +45,27 @@ describe("cost prices helpers", () => {
     expect(filterCostRows(rows, { search: "", categoryId: "mats", onlyMissing: false })).toHaveLength(2);
     expect(filterCostRows(rows, { search: "", categoryId: null, onlyMissing: true })).toHaveLength(2);
     expect(filterCostRows(rows, { search: "jerry", categoryId: null, onlyMissing: false })).toHaveLength(1);
+  });
+});
+
+/**
+ * Shadow test S39: list ৳599, a live "Mega Sale" sells it at ৳450, cost ৳210. The margin is the
+ * money really earned — 53% — not 65% at a list price nobody pays.
+ */
+describe("margin at the selling price (S39)", () => {
+  it("takes the margin at the online price when there is one, else at the list price", () => {
+    expect(marginPercent({ price: 599, onlinePrice: 450 }, 210)).toBe(53);
+    expect(marginPercent({ price: 599, onlinePrice: null }, 210)).toBe(65);
+    expect(marginPercent({ price: 599, onlinePrice: 450 }, null)).toBeNull();
+  });
+
+  it("shows the selling price with the list price under it, and the margin at the selling price", () => {
+    const sale = row({ productId: "p9", productName: "Cushion - Mega", price: 599, onlinePrice: 450, costPrice: 210 });
+    renderWithProviders(<CostPricesEditor rows={[sale]} readOnly money={(n) => `৳${n}`} />);
+    expect(screen.getByText("৳450")).toBeInTheDocument();
+    expect(screen.getByText("Online · list ৳599")).toBeInTheDocument();
+    expect(screen.getByText("53%")).toBeInTheDocument();
+    expect(screen.queryByText("65%")).not.toBeInTheDocument();
   });
 });
 

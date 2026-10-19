@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useStorefrontPage } from "@/services/api";
 import { Button } from "@/ui/components/button";
 
@@ -11,18 +12,19 @@ import { Button } from "@/ui/components/button";
  * of landing pages, and nobody wants to pick one from a list here.
  */
 export function LandingPageFilter({ pageId, onClear }: { pageId: string; onClear: () => void }) {
+  const t = useTranslations("ecommerce.landingFilter");
   const { data: page } = useStorefrontPage(pageId);
   return (
     <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 text-sm">
-      <span className="text-muted-foreground">From landing page</span>
+      <span className="text-muted-foreground">{t("from")}</span>
       <span className="font-medium">{page?.title ?? "…"}</span>
       <Button
         type="button"
         variant="ghost"
         size="icon"
         className="h-6 w-6"
-        aria-label="Show orders from every page"
-        title="Show orders from every page"
+        aria-label={t("clear")}
+        title={t("clear")}
         onClick={onClear}
       >
         <X className="h-3.5 w-3.5" />

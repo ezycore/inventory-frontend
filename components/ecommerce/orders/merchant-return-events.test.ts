@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import type { AdminStorefrontOrder } from "@/services/api";
 import { withMerchantReturns } from "./merchant-return-events";
+import { testTranslator } from "@/tests/test-utils";
+
+const t = testTranslator("ecommerce");
 
 const steadfastFeed = [
   { status: "delivered", code: "delivery_status", at: "2026-10-06T08:27:16.000Z", label: "Consignment marked as partially delivered by rider." },
@@ -16,6 +19,7 @@ describe("withMerchantReturns", () => {
   it("ends a Steadfast feed stuck on Processing with the merchant's return (live: ORD-20261004-00014)", () => {
     const feed = withMerchantReturns(
       order({ status: "returned", returns: [{ salesReturnId: "r1", at: "2026-10-07T12:52:10.000Z" }] }),
+      t,
     );
     expect(feed).toHaveLength(3);
     expect(feed.at(-1)).toMatchObject({
@@ -33,6 +37,7 @@ describe("withMerchantReturns", () => {
           { salesReturnId: "r2", at: "2026-10-09T05:00:00.000Z" },
         ],
       }),
+      t,
     );
     expect(feed.slice(-2).map((e) => e.label)).toEqual([
       "Items received back — part of the order returned by you",
@@ -43,6 +48,7 @@ describe("withMerchantReturns", () => {
   it("an order still partly returned reads as part, never whole", () => {
     const feed = withMerchantReturns(
       order({ status: "partially_returned", returns: [{ salesReturnId: "r1", at: "2026-10-08T05:00:00.000Z" }] }),
+      t,
     );
     expect(feed.at(-1)?.label).toBe("Items received back — part of the order returned by you");
   });
@@ -50,12 +56,13 @@ describe("withMerchantReturns", () => {
   it("an older order with no returns list falls back to its Returned status change", () => {
     const feed = withMerchantReturns(
       order({ status: "returned", statusHistory: [{ status: "returned", at: "2026-10-08T05:00:00.000Z" }] }),
+      t,
     );
     expect(feed.at(-1)?.label).toBe("Parcel received back — returned by you");
   });
 
   it("no return recorded: the courier's feed, untouched", () => {
     const o = order({ status: "shipped" });
-    expect(withMerchantReturns(o)).toBe(o.courier!.history);
+    expect(withMerchantReturns(o, t)).toBe(o.courier!.history);
   });
 });

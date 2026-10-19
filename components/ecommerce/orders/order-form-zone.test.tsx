@@ -16,6 +16,7 @@
  */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { TestProviders } from "@/tests/test-utils";
 
 import {
   useOrderForm,
@@ -75,7 +76,7 @@ beforeEach(() => {
 
 describe("order dialog payloads", () => {
   it("sends the same zone with the CREATE save as with the quote", () => {
-    const { result } = renderHook(() => useOrderForm(vi.fn()));
+    const { result } = renderHook(() => useOrderForm(vi.fn()), { wrapper: TestProviders });
 
     act(() => {
       result.current.addLine(product as never);
@@ -96,7 +97,7 @@ describe("order dialog payloads", () => {
   });
 
   it("sends the same zone with the EDIT save as with the quote", () => {
-    const { result } = renderHook(() => useOrderForm(vi.fn(), editInitial));
+    const { result } = renderHook(() => useOrderForm(vi.fn(), editInitial), { wrapper: TestProviders });
 
     act(() => result.current.submit());
 
@@ -107,7 +108,7 @@ describe("order dialog payloads", () => {
   });
 
   it("sends no zone at all when no district has been picked", () => {
-    const { result } = renderHook(() => useOrderForm(vi.fn()));
+    const { result } = renderHook(() => useOrderForm(vi.fn()), { wrapper: TestProviders });
 
     act(() => {
       result.current.addLine(product as never);

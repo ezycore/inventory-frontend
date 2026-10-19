@@ -37,3 +37,22 @@ export function costsToSave(
     return [{ productId: row.productId, variantId: row.variantId, costPrice: next }];
   });
 }
+
+/**
+ * The price the item actually sells at: the online shop's price when it differs from the list
+ * price (an online price, or a live campaign — the backend's own pricer, shadow test S39), else
+ * the list price. The margin is taken here; at the list price a ৳599 cushion selling at ৳450
+ * read 65% when it earned 53%.
+ */
+export const sellingPrice = (row: Pick<ProductCostRow, "price" | "onlinePrice">): number =>
+  row.onlinePrice ?? row.price;
+
+/** Whole-percent margin at the selling price, or `null` with no cost or no price to take it at. */
+export function marginPercent(
+  row: Pick<ProductCostRow, "price" | "onlinePrice">,
+  cost: number | null | undefined,
+): number | null {
+  const price = sellingPrice(row);
+  if (!cost || price <= 0) return null;
+  return Math.round(((price - cost) / price) * 100);
+}

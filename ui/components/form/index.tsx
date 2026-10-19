@@ -130,7 +130,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     isEditMode = false,
     ...props
 }) => {
-    const { control, formState, setValue, watch, handleSubmit } = form as any;
+    const { control, formState, setValue, resetField, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
@@ -270,6 +270,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
             formState={formState}
             watch={watch}
             setValue={setValue}
+            resetField={resetField}
             onFieldChange={onFieldChange}
             className={className}
             viewMode={viewMode}
@@ -410,7 +411,9 @@ const DynamicForm: FC<DynamicFormProps> = ({
         )
     }
 
-    // Regular form mode
+    // Regular form mode. The caller owns the dialog or page around it, but the Cancel button is
+    // still ours, and it waits on this prompt once the form is dirty — without the prompt in the
+    // tree, Cancel on an edited inline form did nothing at all (shadow test S38, 12 forms).
     return (
         <div>
             <form
@@ -423,7 +426,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 {formContent}
                 {actionsPlacement === 'bottom' && formActions}
             </form>
-
+            {discardDialog}
         </div>
     )
 }

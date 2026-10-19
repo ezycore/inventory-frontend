@@ -2,11 +2,12 @@
 // coding-standard: maintained
 
 import { CheckCircle2, CircleSlash, Clock, TriangleAlert } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useSetOrderExcludedFromMeta } from "@/services/api";
 import type { AdminStorefrontOrder } from "@/types/api";
 import { Badge } from "@/ui/components/badge";
 import { Switch } from "@/ui/components/switch";
-import { getOrgTimezone } from "@/hooks/use-org-calendar";
+import { longDate } from "./order-detail-helpers";
 
 /**
  * Whether this order reached Meta, and the merchant's per-order opt-out
@@ -28,6 +29,8 @@ export function OrderMetaPanel({
   /** The store has a pixel connected. From `useGetMetaSettings().capiReady`. */
   configured: boolean;
 }) {
+  const t = useTranslations("ecommerce.metaPanel");
+  const locale = useLocale();
   const setExcluded = useSetOrderExcludedFromMeta();
   if (!configured) return null;
 
@@ -37,46 +40,41 @@ export function OrderMetaPanel({
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold">Meta ads</h3>
+        <h3 className="text-sm font-semibold">{t("title")}</h3>
         {sent ? (
           <Badge variant="secondary" className="gap-1">
-            <CheckCircle2 className="size-3.5" /> Reported
+            <CheckCircle2 className="size-3.5" /> {t("reported")}
           </Badge>
         ) : excluded ? (
           <Badge variant="outline" className="gap-1 text-muted-foreground">
-            <CircleSlash className="size-3.5" /> Excluded
+            <CircleSlash className="size-3.5" /> {t("excluded")}
           </Badge>
         ) : (
           <Badge variant="outline" className="gap-1 text-muted-foreground">
-            <Clock className="size-3.5" /> Not yet
+            <Clock className="size-3.5" /> {t("notYet")}
           </Badge>
         )}
       </div>
 
       {sent ? (
         <p className="text-xs text-muted-foreground">
-          Counted as a purchase
           {order.meta?.purchaseSentAt
-            ? ` on ${new Date(order.meta.purchaseSentAt).toLocaleString(undefined, {
-                timeZone: getOrgTimezone(),
-              })}`
-            : ""}
-          . Cancellations and returns after this point can&apos;t be taken back from Meta&apos;s
-          reporting.
+            ? t("countedOn", { date: longDate(String(order.meta.purchaseSentAt), locale) })
+            : t("counted")}
         </p>
       ) : null}
 
       <label className="flex items-start justify-between gap-4">
         <span>
-          <span className="text-sm font-medium">Don&apos;t report this order</span>
+          <span className="text-sm font-medium">{t("dontReport")}</span>
           <span className="mt-0.5 block text-xs text-muted-foreground">
             {sent ? (
               <span className="flex items-start gap-1">
                 <TriangleAlert className="mt-0.5 size-3 shrink-0" />
-                Already sent to Meta — this can no longer be changed.
+                {t("alreadySent")}
               </span>
             ) : (
-              "For a personal, internal or test order."
+              t("dontReportHint")
             )}
           </span>
         </span>

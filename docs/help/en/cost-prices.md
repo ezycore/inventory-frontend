@@ -10,6 +10,7 @@ ui_labels:
   - products:products.costs.onlyMissing
   - products:products.costs.fillApply
   - products:products.costs.columns.margin
+  - products:products.costs.columns.price
 ---
 
 # Set your cost prices
@@ -30,7 +31,10 @@ every product.
 5. Change the few that cost more or less.
 6. Do the next category, then press **Save**.
 
-The **Margin** column shows how much of the price you keep, so a wrong number stands out.
+The **Margin** column shows how much of the price you keep, so a wrong number stands out. When your
+online shop sells a product for less than its list price — a campaign, or a separate online price —
+**Sells at** shows that price with the list price under it, and the margin is worked out at the price
+customers actually pay.
 
 ## What changes when you save
 

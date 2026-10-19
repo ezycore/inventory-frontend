@@ -142,6 +142,42 @@ describe('gross profit tile', () => {
     expect(tile?.description).toBe('costsMissing')
     expect(tile?.href).toBe('/products/cost-prices')
   })
+
+  it('says no sales yet, with no link, on a costed shop with nothing sold (shadow test S36)', () => {
+    // Today on a shop with cost prices, before the first order: nothing is missing.
+    const tile = profitTile({
+      netRevenue: 0,
+      grossProfit: 0,
+      costCoverage: {
+        knownRevenue: 0,
+        unknownRevenue: 0,
+        unknownLines: 0,
+        uncommittedOrders: 0,
+        costsSet: true,
+      },
+    } as never)
+
+    expect(tile?.value).toBe('—')
+    expect(tile?.description).toBe('noSalesYet')
+    expect(tile?.href).toBeUndefined()
+    expect(tile?.variant).toBeUndefined()
+  })
+
+  it('still asks for cost prices on an empty day when the shop has none at all', () => {
+    const tile = profitTile({
+      netRevenue: 0,
+      grossProfit: 0,
+      costCoverage: {
+        knownRevenue: 0,
+        unknownRevenue: 0,
+        unknownLines: 0,
+        uncommittedOrders: 0,
+        costsSet: false,
+      },
+    } as never)
+
+    expect(tile?.description).toBe('costsMissing')
+  })
 })
 
 describe('delivery margin tile', () => {

@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 
@@ -23,10 +24,11 @@ export function ReturnLinesPicker({
   value: Record<string, number>;
   onChange: (next: Record<string, number>) => void;
 }) {
+  const t = useTranslations("ecommerce.returnLines");
   if (items.length === 0) return null;
   return (
     <div className="space-y-2">
-      <Label>Items that came back</Label>
+      <Label>{t("title")}</Label>
       <div className="space-y-1.5 rounded-md border p-3">
         {items.map((item) => {
           const key = returnLineKey(item);
@@ -43,7 +45,7 @@ export function ReturnLinesPicker({
                 value={value[key] ?? 0}
                 onChange={(v) => onChange({ ...value, [key]: v ?? 0 })}
                 className="h-8 w-24"
-                aria-label={`Return ${item.productName}`}
+                aria-label={t("line", { product: item.productName })}
               />
             </div>
           );

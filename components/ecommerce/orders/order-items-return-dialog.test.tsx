@@ -1,6 +1,6 @@
 // coding-standard: maintained
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { renderWithProviders as render, screen, waitFor } from "@/tests/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";

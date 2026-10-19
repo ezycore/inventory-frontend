@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/ui/components/button";
@@ -22,8 +23,8 @@ import { copyText } from "@/utils/clipboard";
  *
  * The sentence is composed on the FRONTEND, not taken from a backend notification
  * template: those are English-only with no locale axis today, and this must not
- * wait on that work. It is plain English here because the rest of the ecommerce
- * admin is — when that surface gets a message namespace, this string moves with it.
+ * wait on that work. It follows the merchant's language (`ecommerce.trackLink`) —
+ * a Bangla-speaking merchant pastes it to a Bangla-speaking buyer.
  */
 export function CopyTrackLink({
   trackUrl,
@@ -35,6 +36,7 @@ export function CopyTrackLink({
   orderNumber: string;
   className?: string;
 }) {
+  const t = useTranslations("ecommerce.trackLink");
   const [copied, setCopied] = useState(false);
 
   // Orders placed before tracking existed have no link. Rendering a dead button
@@ -45,14 +47,14 @@ export function CopyTrackLink({
     // The row opens the order on click; copying must not also navigate away.
     event.stopPropagation();
     try {
-      await copyText(`Your order ${orderNumber} - track it here: ${trackUrl}`);
+      await copyText(t("message", { orderNumber, url: trackUrl }));
       setCopied(true);
-      toast.success("Tracking link copied");
+      toast.success(t("copied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard access is denied over plain HTTP and in some embedded views.
       // Say so, rather than silently doing nothing.
-      toast.error("Could not copy - copy the link manually");
+      toast.error(t("copyFailed"));
     }
   };
 
@@ -63,8 +65,8 @@ export function CopyTrackLink({
       size="sm"
       onClick={copy}
       className={className}
-      aria-label="Copy tracking link"
-      title="Copy tracking link"
+      aria-label={t("copy")}
+      title={t("copy")}
     >
       {copied ? (
         <Check className="h-4 w-4 text-green-600" />

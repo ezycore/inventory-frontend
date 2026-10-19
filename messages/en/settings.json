@@ -59,7 +59,7 @@
       "cancel": "Keep it on",
       "cascade": "This also switches off: {features}. Turning it back on restores them exactly as you had them.",
       "inventoryTracking": "Your stock figures stop being used — nothing is deleted, and turning this back on brings them back.",
-      "courierPayouts": "Each courier's balance stops here. If you turn this back on later, the count starts again from ৳0 on that day — parcels delivered while it is off, and parcels still open now, will not be included. Any shortfall from earlier payments stays on the card. Record any payment a courier still owes you before switching off.",
+      "courierPayouts": "Courier balances are hidden while this is off. If you turn it back on, they pick up where they left off — parcels still open now, and parcels delivered while it is off, are counted, and any shortfall stays on the card.",
       "courierPayoutsKept": "Payments you have already recorded are kept, and show again when you turn it back on."
     },
     "needsParent": "Needs {parent}",

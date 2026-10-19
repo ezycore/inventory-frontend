@@ -1,6 +1,6 @@
 // coding-standard: maintained
 
-import { render, screen } from "@testing-library/react";
+import { renderWithProviders as render, screen } from "@/tests/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OrderCourierMoney } from "./order-courier-money";
@@ -162,6 +162,23 @@ describe("OrderCourierMoney", () => {
       />,
     );
     expect(screen.getByText(/will take its charge \(৳60\)/)).toBeInTheDocument();
+  });
+
+  // S33: paid out, then returned — the money goes back; the charge was settled already.
+  it("says a paid-out parcel that came back is taken back from a later payment", () => {
+    render(
+      <OrderCourierMoney
+        order={order({
+          provider: "steadfast",
+          integration: "api",
+          charges: { actual: { deliveryFee: 60, totalFee: 60 }, source: "webhook" },
+          remittance: { status: "with_courier", clearingAmount: 0, clawbackAmount: 570 },
+        })}
+      />,
+    );
+    expect(screen.getByText(/paid you for this parcel before it came back/)).toBeInTheDocument();
+    expect(screen.getByText("৳570")).toBeInTheDocument();
+    expect(screen.queryByText(/will take its charge/)).not.toBeInTheDocument();
   });
 
   it("flags a partial delivery for the merchant to resolve", () => {

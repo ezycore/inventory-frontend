@@ -313,6 +313,7 @@
     "liabilities": "Liabilities",
     "cash": "Cash & bank",
     "withCourier": "With courier (COD collected)",
+    "withCourierBeforePayouts": "Of this, {amount} is from parcels before Courier Payouts started counting, so it is not on that page. Record it there when the courier pays, or write it off.",
     "stockValue": "Stock value",
     "receivables": "Owed to you",
     "totalAssets": "Total assets",

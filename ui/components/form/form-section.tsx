@@ -29,6 +29,7 @@ export const FormSectionComponent: FC<{
   formState: any;
   watch: any;
   setValue: any;
+  resetField?: any;
   onFieldChange?: (fieldName: string, value: any) => void;
   maxColumns: number;
   viewMode?: boolean;
@@ -42,6 +43,7 @@ export const FormSectionComponent: FC<{
   formState,
   watch,
   setValue,
+  resetField,
   onFieldChange,
   viewMode = false,
   disabledFieldsInEdit,
@@ -146,6 +148,7 @@ export const FormSectionComponent: FC<{
               formState={formState}
               watch={watch}
               setValue={setValue}
+              resetField={resetField}
               onFieldChange={onFieldChange}
               viewMode={viewMode}
               disabledFieldsInEdit={disabledFieldsInEdit}
@@ -251,6 +254,7 @@ export const FormSectionComponent: FC<{
                 formState={formState}
                 watch={watch}
                 setValue={setValue}
+                resetField={resetField}
                 onFieldChange={onFieldChange}
                 viewMode={viewMode}
                 disabledFieldsInEdit={disabledFieldsInEdit}

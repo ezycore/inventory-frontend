@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useCourierPrice,
   useCreateConsignment,
@@ -27,6 +28,7 @@ export function CourierDispatchForm({
   reDispatch: boolean;
   onDispatched: () => void;
 }) {
+  const t = useTranslations("ecommerce.dispatch");
   const createConsignment = useCreateConsignment();
   const courierPrice = useCourierPrice();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
@@ -57,7 +59,7 @@ export function CourierDispatchForm({
             )
           }
         >
-          {courierPrice.isPending ? "…" : "Get price"}
+          {courierPrice.isPending ? "…" : t("getPrice")}
         </Button>
         <Button
           disabled={createConsignment.isPending}
@@ -68,9 +70,7 @@ export function CourierDispatchForm({
             )
           }
         >
-          {reDispatch
-            ? "Re-dispatch — create consignment"
-            : "Ship — create consignment"}
+          {reDispatch ? t("reDispatch") : t("ship")}
         </Button>
       </div>
 
@@ -87,14 +87,13 @@ export function CourierDispatchForm({
 
       {quote !== null ? (
         <p className="text-xs font-medium text-primary">
-          Estimated delivery price: {formatMoney(quote, currency)}
+          {t("estimate", { price: formatMoney(quote, currency) })}
         </p>
       ) : null}
 
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
-          Pathao/eCourier match the address to a delivery zone automatically; if it
-          can&apos;t, a matcher appears. Steadfast ships off the address line.
+          {t("zoneHint")}
         </p>
         {isLocationProvider && !showResolver ? (
           <button
@@ -102,7 +101,7 @@ export function CourierDispatchForm({
             className="flex-none text-xs font-medium text-primary underline"
             onClick={() => setShowResolver(true)}
           >
-            Set location
+            {t("setLocation")}
           </button>
         ) : null}
       </div>

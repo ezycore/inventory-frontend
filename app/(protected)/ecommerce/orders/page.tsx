@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { invalidate } from "@/services/api/invalidation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,7 +34,7 @@ import {
   getOrderStats,
   isTabActive,
   orderDetailHref,
-  REJECTION_REASON_OPTIONS,
+  rejectionReasonOptions,
   rejectableOrders,
 } from "@/components/ecommerce/orders/helpers";
 import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
@@ -50,8 +51,8 @@ import StatsCard from "@/ui/components/StatsCard";
 // Tab labels come from the org's step wording at render time (merchants may
 // rename the pipeline steps); "All" and the terminal states are never renameable,
 // so they carry their own fixed label.
-const TABS: { label?: string; value: string }[] = [
-  { label: "All", value: "" },
+const TABS: { labelKey?: string; value: string }[] = [
+  { labelKey: "all", value: "" },
   { value: "pending" },
   { value: "confirmed" },
   { value: "processing" },
@@ -63,29 +64,33 @@ const TABS: { label?: string; value: string }[] = [
   // Was three tabs. A merchant scanning the strip is asking "what needs me?",
   // and three separate ways to say "nothing" pushed the answer off the end of a
   // laptop screen on the workspaces that reject the most.
-  { label: "Closed", value: "closed" },
+  { labelKey: "closed", value: "closed" },
 ];
 
 // Radix Select forbids an empty-string item value, so "all" is the clear-filter
 // sentinel and maps to `undefined` (no filter) when the query is built.
 /** Custom couriers are namespaced so an id can never collide with a provider name. */
 const CUSTOM_PREFIX = "custom:";
+/** Each option's key under `ecommerce.ordersPage`. */
 const FULFILLMENT_OPTIONS = [
-  { label: "All fulfillment", value: "all" },
-  { label: "Delivery", value: "delivery" },
-  { label: "Pickup", value: "pickup" },
+  { key: "allFulfillment", value: "all" },
+  { key: "delivery", value: "delivery" },
+  { key: "pickup", value: "pickup" },
 ];
 
-/** Mirrors the backend enum; "all" is the clear-filter sentinel like the others. */
-const CHANNEL_OPTIONS = [
-  { label: "All channels", value: "all" },
-  { label: "Website", value: "website" },
-  { label: "Messenger", value: "messenger" },
-  { label: "WhatsApp", value: "whatsapp" },
-  { label: "Instagram", value: "instagram" },
-  { label: "Post comment", value: "comment" },
-  { label: "Phone call", value: "phone" },
-  { label: "Other", value: "manual" },
+/**
+ * Mirrors the backend enum; "all" is the clear-filter sentinel like the others. Brand names
+ * stay as they are; the rest are keys (`ordersPage.*` or `createOrder.*`, shared with the dialog).
+ */
+const CHANNEL_OPTIONS: { value: string; name?: string; key?: string }[] = [
+  { key: "ordersPage.allChannels", value: "all" },
+  { key: "ordersPage.website", value: "website" },
+  { name: "Messenger", value: "messenger" },
+  { name: "WhatsApp", value: "whatsapp" },
+  { name: "Instagram", value: "instagram" },
+  { key: "createOrder.channelComment", value: "comment" },
+  { key: "createOrder.channelPhone", value: "phone" },
+  { key: "createOrder.channelOther", value: "manual" },
 ];
 
 export default function EcommerceOrdersPage() {
@@ -174,7 +179,7 @@ function OrdersList() {
   // providers first, then the merchant's own.
   const carrierOptions = [
     ...enabledCouriers.map((c) => ({
-      label: `${c.provider[0].toUpperCase()}${c.provider.slice(1)} Courier`,
+      label: t("courierOption", { provider: `${c.provider[0].toUpperCase()}${c.provider.slice(1)}` }),
       value: c.provider,
     })),
     ...customCouriers.map((c) => ({
@@ -247,6 +252,18 @@ function OrdersList() {
   };
 
   const { labelFor } = useOrderStatusLabels();
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.ordersPage");
+  const tStatus = useTranslations("ecommerce.orderStatus");
+  const reasonOptions = useMemo(() => rejectionReasonOptions(tAll), [tAll]);
+  const fulfillmentOptions = useMemo(
+    () => FULFILLMENT_OPTIONS.map((o) => ({ value: o.value, label: t(o.key) })),
+    [t],
+  );
+  const channelOptions = useMemo(
+    () => CHANNEL_OPTIONS.map((o) => ({ value: o.value, label: o.name ?? tAll(o.key!) })),
+    [tAll],
+  );
 
   // A half-picked custom range is not a filter yet — the server demands both
   // dates for `period=custom` and 400s on one, so it only goes on the wire once
@@ -320,11 +337,8 @@ function OrdersList() {
     );
     const ok = results.filter((r) => r.status === "fulfilled").length;
     const fail = results.length - ok;
-    if (ok) toast.success(`${ok} order${ok === 1 ? "" : "s"} confirmed`);
-    if (fail)
-      toast.error(
-        `${fail} order${fail === 1 ? "" : "s"} could not be confirmed`,
-      );
+    if (ok) toast.success(t("confirmedOk", { count: ok }));
+    if (fail) toast.error(t("confirmedFail", { count: fail }));
     invalidate(qc, "order.confirmed");
     setSelected(new Set());
     setBulkBusy(false);
@@ -340,11 +354,8 @@ function OrdersList() {
     );
     const ok = results.filter((r) => r.status === "fulfilled").length;
     const fail = results.length - ok;
-    if (ok) toast.success(`${ok} order${ok === 1 ? "" : "s"} rejected`);
-    if (fail)
-      toast.error(
-        `${fail} order${fail === 1 ? "" : "s"} could not be rejected`,
-      );
+    if (ok) toast.success(t("rejectedOk", { count: ok }));
+    if (fail) toast.error(t("rejectedFail", { count: fail }));
     // Same event the single-order path fires (`useCancelOrder`): a reject
     // releases the stock hold and gives the coupon back, so STOCK and MONEY
     // both move — `order.changed` alone would leave sellable stock stale.
@@ -362,14 +373,11 @@ function OrdersList() {
     );
     const ok = results.filter((r) => r.status === "fulfilled").length;
     const fail = results.length - ok;
-    if (ok) toast.success(`${ok} order${ok === 1 ? "" : "s"} deleted`);
+    if (ok) toast.success(t("deletedOk", { count: ok }));
     // A refusal here is the server catching what the client-side filter could
     // not see — a row that moved since the page loaded. Worth naming rather
     // than reporting a bare count.
-    if (fail)
-      toast.error(
-        `${fail} order${fail === 1 ? "" : "s"} could not be deleted — open ${fail === 1 ? "it" : "them"} to see why`,
-      );
+    if (fail) toast.error(t("deletedFail", { count: fail }));
     invalidate(qc, "order.changed");
     setSelected(new Set());
     setBulkReason("");
@@ -390,14 +398,8 @@ function OrdersList() {
       {
         onSuccess: (res) => {
           const { successful, failed } = res.data;
-          if (successful)
-            toast.success(
-              `${successful} order${successful === 1 ? "" : "s"} dispatched`,
-            );
-          if (failed)
-            toast.error(
-              `${failed} order${failed === 1 ? "" : "s"} could not be dispatched`,
-            );
+          if (successful) toast.success(t("dispatchedOk", { count: successful }));
+          if (failed) toast.error(t("dispatchedFail", { count: failed }));
           setSelected(new Set());
           setBulkProvider("");
         },
@@ -409,18 +411,15 @@ function OrdersList() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Orders from your storefront, and the ones you took in chat or by
-            phone.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         {/* Most of an f-commerce merchant's volume never touches the website, so
             this is not a secondary action — it is how the majority of orders get
             onto the courier/COD pipeline at all. */}
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" />
-          Create order
+          {t("create")}
         </Button>
       </div>
       <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
@@ -428,7 +427,7 @@ function OrdersList() {
       {/* COD-cash stat cards */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <h2 className="text-base font-semibold">Right now</h2>
+          <h2 className="text-base font-semibold">{t("rightNow")}</h2>
           {/* Only once a date filter is actually applied. These tiles are live
               pipeline BALANCES ("what is sitting unshipped") plus today's door
               outcomes — neither is a figure a date range can narrow, so they
@@ -437,14 +436,11 @@ function OrdersList() {
               the obvious conclusion is that the page is broken. Said only when it
               can be misread, so it is not permanent furniture. */}
           {period !== ALL_TIME && (
-            <span className="text-xs text-muted-foreground">
-              Live balances and today&apos;s outcomes — not affected by the date
-              filter
-            </span>
+            <span className="text-xs text-muted-foreground">{t("liveHint")}</span>
           )}
         </div>
         <StatsCard
-          data={getOrderStats(stats, currency)}
+          data={getOrderStats(stats, currency, tAll)}
           isLoading={statsLoading}
           minCardWidth={280}
         />
@@ -453,7 +449,7 @@ function OrdersList() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-base font-semibold">
-            All Orders{" "}
+            {t("allOrders")}{" "}
             <span className="font-normal text-muted-foreground">
               ({counts.all ?? pagination?.total ?? 0})
             </span>
@@ -467,7 +463,7 @@ function OrdersList() {
               variant={returned === "1" ? "default" : "outline"}
               onClick={toggleReturned}
             >
-              Courier says returned ({stats?.courierReturned.count ?? 0})
+              {t("courierReturned", { count: stats?.courierReturned.count ?? 0 })}
             </Button>
           ) : null}
           {/* Every order a return was taken against, partial or full — the home of online
@@ -477,7 +473,7 @@ function OrdersList() {
             variant={returns === "1" ? "default" : "outline"}
             onClick={toggleReturns}
           >
-            Returns
+            {t("returns")}
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -487,25 +483,25 @@ function OrdersList() {
             options={[
               // "all" is the clear-filter sentinel (Radix Select forbids an empty
               // value); "none" means never dispatched — pickup + not-yet-shipped.
-              { label: "All couriers", value: "all" },
+              { label: t("allCouriers"), value: "all" },
               ...carrierOptions,
-              { label: "No courier", value: "none" },
+              { label: t("noCourier"), value: "none" },
               // Delivery orders the customer collected from you (`handedOverAt`) — counted
               // here and under no courier, even one whose cancelled booking they carry.
-              { label: "Handed over in person", value: "in_person" },
+              { label: t("inPerson"), value: "in_person" },
             ]}
             className="h-9 w-40"
           />
           <SimpleSelect
             value={fulfillment}
             onValueChange={changeFulfillment}
-            options={FULFILLMENT_OPTIONS}
+            options={fulfillmentOptions}
             className="h-9 w-40"
           />
           <SimpleSelect
             value={channel}
             onValueChange={changeChannel}
-            options={CHANNEL_OPTIONS}
+            options={channelOptions}
             className="h-9 w-40"
           />
           {/* The dropdown rendering, not the pills: this row already carries
@@ -527,7 +523,7 @@ function OrdersList() {
             // it is what a buyer quotes on a follow-up call and the only handle a
             // guest order has — so the most useful thing this box does was the
             // one thing a merchant had no way to discover.
-            placeholder="Search order #, customer or phone"
+            placeholder={t("search")}
             // The URL's search, after Back from an order; remounted on an
             // outside URL change so the box shows what the list is filtered by.
             key={`${list.revision}-${searchSeed}`}
@@ -539,17 +535,17 @@ function OrdersList() {
 
       {/* Status tabs */}
       <div className="flex gap-1 overflow-x-auto border-b">
-        {TABS.map((t) => {
-          const active = isTabActive(t.value, status);
+        {TABS.map((tab) => {
+          const active = isTabActive(tab.value, status);
           // Straight off the server, which emits a total per TAB alongside the
           // per-status ones. This used to sum a client-side copy of the closed
           // set — a second definition of the grouping, and the one that goes
           // stale the day a status is added.
-          const count = counts[t.value || "all"];
+          const count = counts[tab.value || "all"];
           return (
             <button
-              key={t.value || "all"}
-              onClick={() => changeStatus(t.value)}
+              key={tab.value || "all"}
+              onClick={() => changeStatus(tab.value)}
               className={cn(
                 "flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 pb-2.5 pt-1 text-sm font-medium transition-colors",
                 active
@@ -557,7 +553,7 @@ function OrdersList() {
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
-              {t.label ?? labelFor(t.value)}
+              {tab.labelKey ? tStatus(tab.labelKey) : labelFor(tab.value)}
               {count != null && (
                 <span className="text-xs text-muted-foreground/70">
                   {count}
@@ -577,7 +573,7 @@ function OrdersList() {
       {selected.size > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary bg-primary/5 px-3.5 py-2.5">
           <span className="text-sm font-semibold text-primary">
-            {selected.size} selected
+            {t("selected", { count: selected.size })}
           </span>
           <div className="flex-1" />
           {/* Every action here is HIDDEN when its own count is zero, never shown
@@ -588,7 +584,7 @@ function OrdersList() {
               view is teaching them to stop reading the bar. */}
           {confirmable.length > 0 && (
             <Button size="sm" disabled={bulkBusy} onClick={onBulkConfirm}>
-              Confirm ({confirmable.length})
+              {t("confirm", { count: confirmable.length })}
             </Button>
           )}
           {/* The other half of triage. Rejecting mails the shopper, so the count
@@ -601,9 +597,7 @@ function OrdersList() {
               inside the dialog that cannot open, so it has to be said out here. */}
           {rejectable.length === 0 && prepaidSkipped > 0 && (
             <span className="text-xs text-muted-foreground">
-              {prepaidSkipped === 1
-                ? "The selected order has a prepayment — reject it from the row to decide about the money."
-                : `All ${prepaidSkipped} selected orders have prepayments — reject them from the row to decide about the money.`}
+              {prepaidSkipped === 1 ? t("prepaidOne") : t("prepaidMany", { count: prepaidSkipped })}
             </span>
           )}
           {rejectable.length > 0 && (
@@ -618,24 +612,20 @@ function OrdersList() {
               }}
               trigger={
                 <Button variant="outline" size="sm" disabled={bulkBusy}>
-                  Reject ({rejectable.length})
+                  {t("reject", { count: rejectable.length })}
                 </Button>
               }
-              title={`Reject ${rejectable.length} order${rejectable.length === 1 ? "" : "s"}?`}
+              title={t("rejectTitle", { count: rejectable.length })}
               // No stock clause here, unlike the single-order dialog: this button
               // only ever acts on `pending` orders, and a pending order has never
               // reserved anything — `confirmOrder` is what reserves. Promising a
               // release that cannot happen is what put a wrong line in the QA doc.
-              description={`Each shopper is notified their order was rejected. This can't be undone.${
+              description={
                 prepaidSkipped
-                  ? ` ${prepaidSkipped} selected order${
-                      prepaidSkipped === 1
-                        ? " has a prepayment and is"
-                        : "s have prepayments and are"
-                    } skipped — reject ${prepaidSkipped === 1 ? "it" : "them"} from the row to decide about the money.`
-                  : ""
-              }`}
-              actionLabel={`Reject ${rejectable.length} order${rejectable.length === 1 ? "" : "s"}`}
+                  ? t("rejectBodySkipped", { skipped: prepaidSkipped })
+                  : t("rejectBody")
+              }
+              actionLabel={t("rejectAction", { count: rejectable.length })}
               onConfirm={onBulkReject}
               actionDisabled={!bulkReason}
             >
@@ -644,14 +634,13 @@ function OrdersList() {
                   order would make the bulk action slower than doing them singly. */}
               <div className="space-y-1.5">
                 <Label htmlFor="bulk-reject-reason">
-                  Why are you rejecting{" "}
-                  {rejectable.length === 1 ? "it" : "them"}?
+                  {t("whyReject", { count: rejectable.length })}
                 </Label>
                 <SimpleSelect
                   value={bulkReason}
                   onValueChange={setBulkReason}
-                  options={REJECTION_REASON_OPTIONS}
-                  placeholder="Pick a reason"
+                  options={reasonOptions}
+                  placeholder={t("pickReason")}
                   className="w-full"
                 />
               </div>
@@ -663,7 +652,7 @@ function OrdersList() {
                 value={bulkProvider}
                 onValueChange={setBulkProvider}
                 options={carrierOptions}
-                placeholder="Courier"
+                placeholder={t("courier")}
                 className="h-9 w-40"
               />
               <Button
@@ -671,7 +660,7 @@ function OrdersList() {
                 disabled={!bulkProvider || bulkConsign.isPending}
                 onClick={onBulkDispatch}
               >
-                Send to courier ({dispatchable.length})
+                {t("send", { count: dispatchable.length })}
               </Button>
             </div>
           ) : null}
@@ -686,12 +675,12 @@ function OrdersList() {
               destructive
               trigger={
                 <Button variant="outline" size="sm" disabled={bulkBusy}>
-                  Delete ({deletable.length})
+                  {t("delete", { count: deletable.length })}
                 </Button>
               }
-              title={`Delete ${deletable.length} order${deletable.length === 1 ? "" : "s"} permanently?`}
-              description={`${deletable.length === 1 ? "It is" : "They are"} removed for good — this can't be undone. A record of each order number, customer and total is kept in case a customer asks later.`}
-              actionLabel={`Delete ${deletable.length} order${deletable.length === 1 ? "" : "s"}`}
+              title={t("deleteTitle", { count: deletable.length })}
+              description={t("deleteBody", { count: deletable.length })}
+              actionLabel={t("deleteAction", { count: deletable.length })}
               onConfirm={onBulkDelete}
             />
           )}
@@ -708,19 +697,19 @@ function OrdersList() {
                   <Checkbox
                     checked={allChecked}
                     onCheckedChange={(c) => toggleAll(c === true)}
-                    aria-label="Select all"
+                    aria-label={t("selectAll")}
                   />
                 </th>
-                <th className="px-3 py-3">Order</th>
+                <th className="px-3 py-3">{t("colOrder")}</th>
                 {/* Age, not Date — see `orderAge`. The exact timestamp is the
                     cell's `title`. */}
-                <th className="px-3 py-3">Age</th>
-                <th className="px-3 py-3">Customer</th>
-                <th className="px-3 py-3">Total</th>
-                <th className="px-3 py-3">Payment</th>
+                <th className="px-3 py-3">{t("colAge")}</th>
+                <th className="px-3 py-3">{t("colCustomer")}</th>
+                <th className="px-3 py-3">{t("colTotal")}</th>
+                <th className="px-3 py-3">{t("colPayment")}</th>
                 {/* Courier is no longer its own column: it printed `—` on every
                     order not yet dispatched and now rides under Status. */}
-                <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3">{t("colStatus")}</th>
                 {/* Copy-tracking-link column — deliberately unlabelled, like the
                     chevron: the icon and its tooltip carry the meaning. */}
                 <th className="w-10" />
@@ -739,10 +728,8 @@ function OrdersList() {
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-16 text-center">
-                    <div className="text-sm font-semibold">No orders found</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Try adjusting your search or filters.
-                    </div>
+                    <div className="text-sm font-semibold">{t("empty")}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{t("emptyHint")}</div>
                   </td>
                 </tr>
               ) : (

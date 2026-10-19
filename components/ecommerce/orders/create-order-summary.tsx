@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/currency";
 import type { OrderQuote } from "@/services/api/modules/storefront-orders/api";
 
@@ -34,6 +35,7 @@ export function CreateOrderSummary({
   rejected: OrderQuote["rejected"];
   currency?: string;
 }) {
+  const t = useTranslations("ecommerce.createOrder");
   return (
     <>
       {/* Every line the order path would refuse, named. Submit stays disabled
@@ -45,13 +47,10 @@ export function CreateOrderSummary({
           <div>
             <p className="font-medium">
               {rejected.length === 1
-                ? "One product can't be ordered online"
-                : `${rejected.length} products can't be ordered online`}
+                ? t("rejectedOne")
+                : t("rejectedMany", { count: rejected.length })}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Remove them, or list them on your store first. Everything else is
-              priced below.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("rejectedHint")}</p>
           </div>
         </div>
       ) : null}
@@ -59,35 +58,35 @@ export function CreateOrderSummary({
       {quote ? (
         <div className="space-y-1.5 border-t pt-3 text-sm">
           <SummaryRow
-            label="Subtotal"
+            label={t("subtotal")}
             value={formatCurrency(quote.subtotal, currency)}
           />
           {quote.couponDiscount > 0 ? (
             <SummaryRow
-              label={`Coupon${quote.couponCode ? ` · ${quote.couponCode}` : ""}`}
+              label={quote.couponCode ? t("couponLineCode", { code: quote.couponCode }) : t("couponLine")}
               value={`− ${formatCurrency(quote.couponDiscount, currency)}`}
             />
           ) : null}
           {quote.manualDiscount > 0 ? (
             <SummaryRow
-              label="Discount"
+              label={t("discount")}
               value={`− ${formatCurrency(quote.manualDiscount, currency)}`}
             />
           ) : null}
           {quote.fulfillmentType === "delivery" ? (
             <SummaryRow
-              label="Delivery"
+              label={t("delivery")}
               value={formatCurrency(quote.shippingCharged, currency)}
             />
           ) : null}
           <div className="flex justify-between border-t pt-1.5 font-semibold">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <span>{formatCurrency(quote.totalAmount, currency)}</span>
           </div>
           {/* The previous total stays on screen while the next loads, so say when
               it is not settled yet rather than letting it read as final. */}
           {quoting ? (
-            <p className="text-xs text-muted-foreground">Updating…</p>
+            <p className="text-xs text-muted-foreground">{t("updating")}</p>
           ) : null}
         </div>
       ) : null}

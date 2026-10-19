@@ -50,6 +50,7 @@ export const FormField: FC<{
   formState: any;
   watch: any;
   setValue: any;
+  resetField?: any;
   onFieldChange?: (fieldName: string, value: any, allValues: any) => void;
   viewMode?: boolean;
   disabledFieldsInEdit?: string[];
@@ -60,6 +61,7 @@ export const FormField: FC<{
   control,
   watch,
   setValue,
+  resetField,
   onFieldChange,
   viewMode = false,
   disabledFieldsInEdit,
@@ -212,6 +214,7 @@ export const FormField: FC<{
     control,
     watch,
     setValue,
+    resetField,
     onFieldChange,
     error,
     effectiveDisabled,

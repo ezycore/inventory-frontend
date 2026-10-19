@@ -76,4 +76,21 @@ describe("PositionReport", () => {
     render(<PositionReport />);
     expect(screen.queryByText("courierCharges")).not.toBeInTheDocument();
   });
+
+  // S34: the part of with-courier that Courier Payouts does not count is named, as a note
+  // inside the row rather than a row of its own, so the asset rows still sum to the total.
+  it("names courier money from before Courier Payouts started, without adding a row (S34)", () => {
+    const report = position(26063.5, 267.65);
+    mockReport.current = { ...report, assets: { ...report.assets, withCourierBeforePayouts: 22658 } };
+    render(<PositionReport />);
+    expect(screen.getByText("withCourierBeforePayouts")).toBeInTheDocument();
+    expect(screen.getByText("BDT 26063.5")).toBeInTheDocument();
+    expect(screen.queryByText("BDT 22658")).not.toBeInTheDocument();
+  });
+
+  it("says nothing about older courier money when there is none", () => {
+    mockReport.current = position(6000);
+    render(<PositionReport />);
+    expect(screen.queryByText("withCourierBeforePayouts")).not.toBeInTheDocument();
+  });
 });

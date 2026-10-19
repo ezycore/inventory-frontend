@@ -30,6 +30,7 @@
     "bothChannels": "Counter sales + orders placed",
     "costsMissing": "Set cost prices to see profit",
     "costsPending": "Shows once orders are dispatched",
+    "noSalesYet": "No sales in this period yet",
     "receivable": "Receivable",
     "owedByCustomers": "Owed by customers · all time",
     "marginOfKnown": "{margin}% margin on {known} · {unknown} not costed yet",

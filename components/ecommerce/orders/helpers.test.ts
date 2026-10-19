@@ -16,6 +16,9 @@ import {
   rejectionReasonLabel,
   rejectableOrders,
 } from "./helpers";
+import { testTranslator } from "@/tests/test-utils";
+
+const t = testTranslator("ecommerce");
 
 /**
  * The order-list stat cards.
@@ -53,9 +56,9 @@ describe("getOrderStats", () => {
   // G3 (inventory-backend/docs/features/business-modes.md): a to-do, so it appears only when
   // there is one — and it is a count of orders, not money.
   it("shows the courier-returned queue only when something is waiting", () => {
-    expect(tile(getOrderStats(stats(), "BDT"), "Courier says returned")).toBeUndefined();
+    expect(tile(getOrderStats(stats(), "BDT", t), "Courier says returned")).toBeUndefined();
 
-    const data = getOrderStats(stats({ courierReturned: { count: 3, value: 1560 } }), "BDT");
+    const data = getOrderStats(stats({ courierReturned: { count: 3, value: 1560 } }), "BDT", t);
     expect(tile(data, "Courier says returned")?.value).toBe(3);
   });
 
@@ -66,6 +69,7 @@ describe("getOrderStats", () => {
         partlyReturnedToday: { count: 2, value: 4800 },
       }),
       "BDT",
+      t,
     );
 
     // A full RTO and a sale that merely shrank are different problems with
@@ -77,7 +81,7 @@ describe("getOrderStats", () => {
   });
 
   it("renders the return tiles even at zero", () => {
-    const data = getOrderStats(stats(), "BDT");
+    const data = getOrderStats(stats(), "BDT", t);
     // "Nothing came back today" is real news on a COD business — unlike a
     // pickup tile on a delivery-only shop, which is a zero that means
     // "inapplicable" and is dropped below.
@@ -86,7 +90,7 @@ describe("getOrderStats", () => {
   });
 
   it("keeps alarm colours for tiles that actually hold money", () => {
-    const quiet = getOrderStats(stats(), "BDT");
+    const quiet = getOrderStats(stats(), "BDT", t);
     expect(tile(quiet, "Delivered · uncollected")?.variant).toBe("default");
     expect(tile(quiet, "Returned today")?.variant).toBe("default");
 
@@ -97,6 +101,7 @@ describe("getOrderStats", () => {
         partlyReturnedToday: { count: 1, value: 3000 },
       }),
       "BDT",
+      t,
     );
     expect(tile(loud, "Delivered · uncollected")?.variant).toBe("danger");
     expect(tile(loud, "Returned today")?.variant).toBe("danger");
@@ -104,7 +109,7 @@ describe("getOrderStats", () => {
   });
 
   it("drops the pickup tile for a store that never takes pickups", () => {
-    expect(tile(getOrderStats(stats(), "BDT"), "Awaiting pickup")).toBeUndefined();
+    expect(tile(getOrderStats(stats(), "BDT", t), "Awaiting pickup")).toBeUndefined();
     expect(
       tile(
         getOrderStats(
@@ -115,6 +120,7 @@ describe("getOrderStats", () => {
             ],
           }),
           "BDT",
+          t,
         ),
         "Awaiting pickup",
       ),
@@ -124,7 +130,7 @@ describe("getOrderStats", () => {
   it("renders a full row of zeroes while the stats are still loading", () => {
     // `undefined` is the pre-fetch state, and the row must not throw on it —
     // `byFulfillment` is read for the pickup decision before any data exists.
-    const data = getOrderStats(undefined, "BDT");
+    const data = getOrderStats(undefined, "BDT", t);
     expect(data.every((d) => d.value === "৳0")).toBe(true);
     expect(tile(data, "Awaiting pickup")).toBeUndefined();
   });
@@ -396,7 +402,7 @@ describe("orderAge", () => {
   const now = new Date("2026-09-10T12:00:00.000Z");
   const ago = (ms: number) => new Date(now.getTime() - ms).toISOString();
   const TZ = "Asia/Dhaka";
-  const orderAge = (iso: string, at: Date) => orderAgeIn(iso, at, TZ);
+  const orderAge = (iso: string, at: Date) => orderAgeIn(iso, at, TZ, t);
 
   it("reads in the unit that matters for a COD queue", () => {
     expect(orderAge(ago(30 * 1000), now)).toBe("now");
@@ -442,39 +448,39 @@ describe("orderItemCount", () => {
 
 describe("rejectionReasonLabel", () => {
   it("spells the stored value the way the dialog offered it", () => {
-    expect(rejectionReasonLabel("fake_number")).toBe("Fake number");
+    expect(rejectionReasonLabel("fake_number", t)).toBe("Fake number");
   });
 
   it("is absent for an order that was never rejected", () => {
-    expect(rejectionReasonLabel(undefined)).toBeUndefined();
+    expect(rejectionReasonLabel(undefined, t)).toBeUndefined();
   });
 
   it("passes an unmapped value through readable", () => {
     // Rejections predating the field, or a bucket the server adds first.
-    expect(rejectionReasonLabel("wrong_address")).toBe("wrong address");
+    expect(rejectionReasonLabel("wrong_address", t)).toBe("wrong address");
   });
 });
 
 describe("buyerHistoryLabel", () => {
   it("says nothing about a first-time buyer", () => {
     // A chip on every row is a chip nobody reads.
-    expect(buyerHistoryLabel({ orders: 1, rejected: 0, returned: 0 })).toBeUndefined();
-    expect(buyerHistoryLabel({ orders: 1, rejected: 1, returned: 0 })).toBeUndefined();
-    expect(buyerHistoryLabel(undefined)).toBeUndefined();
+    expect(buyerHistoryLabel({ orders: 1, rejected: 0, returned: 0 }, t)).toBeUndefined();
+    expect(buyerHistoryLabel({ orders: 1, rejected: 1, returned: 0 }, t)).toBeUndefined();
+    expect(buyerHistoryLabel(undefined, t)).toBeUndefined();
   });
 
   it("leads with returns, and names rejections only when there are any", () => {
     // Live, UriiBaba: this buyer read "4 orders · 0 rejected" with two parcels back.
-    expect(buyerHistoryLabel({ orders: 4, rejected: 0, returned: 2 })).toBe("4 orders · 2 returned");
-    expect(buyerHistoryLabel({ orders: 5, rejected: 1, returned: 2 })).toBe(
+    expect(buyerHistoryLabel({ orders: 4, rejected: 0, returned: 2 }, t)).toBe("4 orders · 2 returned");
+    expect(buyerHistoryLabel({ orders: 5, rejected: 1, returned: 2 }, t)).toBe(
       "5 orders · 2 returned · 1 rejected",
     );
     // The loyal-customer case the chip must also be able to say.
-    expect(buyerHistoryLabel({ orders: 7, rejected: 0, returned: 0 })).toBe("7 orders · 0 returned");
+    expect(buyerHistoryLabel({ orders: 7, rejected: 0, returned: 0 }, t)).toBe("7 orders · 0 returned");
   });
 
   it("reads an older backend's record (no returned count) as zero returns", () => {
-    expect(buyerHistoryLabel({ orders: 3, rejected: 0 })).toBe("3 orders · 0 returned");
+    expect(buyerHistoryLabel({ orders: 3, rejected: 0 }, t)).toBe("3 orders · 0 returned");
   });
 
   it("warns once returns and rejections together make a pattern", () => {
