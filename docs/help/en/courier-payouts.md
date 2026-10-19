@@ -34,9 +34,13 @@ paid, so the card does not open with months of money the courier has long since 
 day, record every payment you receive here — one you skip makes the courier look like they still owe
 it.
 
-**Think before switching it off.** Turning it off and on again starts every balance from ৳0 again:
-parcels delivered while it was off, and parcels still open when you switched off, are not counted.
-A shortfall from earlier payments stays. Payments you recorded are kept. You are asked to confirm.
+**Switching it off only hides it.** Turn it back on and every balance picks up where it left off:
+parcels still open, and parcels delivered while it was off, are counted, and a shortfall from earlier
+payments stays. Payments you recorded are kept. The day it counts from is the first day you turned it
+on, not the last.
+
+Business Position shows the courier's money too. If any of it is from before that first day, it
+says how much, so the two pages agree.
 
 ## What happens when a parcel is delivered
 
@@ -61,6 +65,9 @@ One card per courier:
 - **Owed to you** — for every parcel the courier has not paid you for yet: what they collected, less
   their charge. A returned parcel still costs its delivery charge, so it lowers the figure. If the
   number is negative, you owe the courier.
+- **A parcel the courier paid you for, then returned** comes back on the card as a minus line. The
+  courier takes that money out of a later payment, so when you return the order you are not asked
+  where to refund it. Tick it with the next payment and the payment matches.
 - **Oldest** — how long the oldest parcel has been waiting. Most couriers pay within two to seven
   days, so anything older than a week is worth a phone call.
 - **Short from earlier payments** — if a payment came in lower than expected, the difference stays
@@ -74,7 +81,9 @@ really billed) and your payment history.
 **Delivery margin** is what customers paid for delivery, less what the courier billed. A parcel that
 came back still costs you the courier's charge, but the customer usually paid nothing for it — so it
 counts as ৳0 paid, marked **(came back)**. Only money you actually took counts: the delivery charge a
-customer paid at the door when refusing the goods, or a delivery advance you kept. Many returns mean
+customer paid at the door when refusing the goods, or a delivery advance you kept. With your own
+delivery partner, type what they collected in **Collected at door** when you return the order: it
+counts here, and the partner owes it to you until they pay. Many returns mean
 a negative margin even when your delivery fee looks right on every order.
 
 The card opens on **this month**; pick another period above it, or **All time** for every parcel.

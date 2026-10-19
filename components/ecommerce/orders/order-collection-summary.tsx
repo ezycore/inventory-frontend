@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useLocale, useTranslations } from "next-intl";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
@@ -25,6 +26,8 @@ export function OrderCollectionSummary({
 }: {
   order: AdminStorefrontOrder;
 }) {
+  const t = useTranslations("ecommerce.collectionSummary");
+  const locale = useLocale();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const collections = order.collections ?? [];
   if (collections.length === 0) return null;
@@ -34,14 +37,12 @@ export function OrderCollectionSummary({
   // shows — a product renamed since is still the product that came back.
   const nameOf = (productId: string) =>
     (order.items ?? []).find((item) => String(item.productId) === String(productId))
-      ?.productName ?? "Item";
+      ?.productName ?? t("item");
 
   return (
     <Card className="gap-0 p-5 shadow-none">
-      <h3 className="mb-1 text-sm font-semibold">Collection</h3>
-      <p className="mb-4 text-xs text-muted-foreground">
-        What the courier handed over, and what accounts for the rest.
-      </p>
+      <h3 className="mb-1 text-sm font-semibold">{t("title")}</h3>
+      <p className="mb-4 text-xs text-muted-foreground">{t("subtitle")}</p>
 
       <div className="space-y-5">
         {collections.map((entry, index) => {
@@ -54,14 +55,14 @@ export function OrderCollectionSummary({
               className="space-y-1.5 text-sm [&:not(:first-child)]:border-t [&:not(:first-child)]:pt-5"
             >
               <Row
-                label="Expected at the door"
+                label={t("expected")}
                 value={money(entry.expected)}
                 muted
               />
               {returned > 0 && (
                 <>
                   <Row
-                    label="Goods returned"
+                    label={t("goodsReturned")}
                     value={`−${money(returned)}`}
                     muted
                   />
@@ -81,21 +82,21 @@ export function OrderCollectionSummary({
               )}
               {discount > 0 && (
                 <Row
-                  label="Discount given"
+                  label={t("discount")}
                   value={`−${money(discount)}`}
                   muted
                 />
               )}
               {owed > 0 && (
-                <Row label="Left owing" value={`−${money(owed)}`} muted />
+                <Row label={t("owing")} value={`−${money(owed)}`} muted />
               )}
               <div className="flex items-center justify-between border-t pt-1.5 font-semibold">
-                <span>Collected</span>
+                <span>{t("collected")}</span>
                 <span className="tabular-nums">{money(entry.collected)}</span>
               </div>
               {entry.at ? (
                 <p className="pt-1 text-xs text-muted-foreground">
-                  Recorded {longDate(entry.at)}
+                  {t("recorded", { date: longDate(entry.at, locale) })}
                 </p>
               ) : null}
             </div>
@@ -108,7 +109,7 @@ export function OrderCollectionSummary({
           dialog refuses to submit without it. */}
       {order.collectionDiscountNote ? (
         <p className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Why the discount: </span>
+          <span className="font-medium text-foreground">{t("whyDiscount")}</span>
           {order.collectionDiscountNote}
         </p>
       ) : null}

@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/ui/lib/utils";
 import { copyText } from "@/utils/clipboard";
@@ -35,6 +36,7 @@ export function CustomerPhone({
   phone?: string;
   className?: string;
 }) {
+  const t = useTranslations("ecommerce.phone");
   const [copied, setCopied] = useState(false);
 
   // A guest order always carries one, but an order edited down to nothing, or an
@@ -48,12 +50,12 @@ export function CustomerPhone({
     try {
       await copyText(phone);
       setCopied(true);
-      toast.success("Phone number copied");
+      toast.success(t("copied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard access is denied over plain HTTP and in some embedded views.
       // Say so, rather than silently doing nothing.
-      toast.error("Could not copy - copy the number manually");
+      toast.error(t("copyFailed"));
     }
   };
 
@@ -61,7 +63,7 @@ export function CustomerPhone({
     <button
       type="button"
       onClick={copy}
-      title="Copy phone number"
+      title={t("copy")}
       className={cn(
         // `tabular-nums` so a column of numbers lines up digit for digit, which
         // is what makes two similar numbers distinguishable at a glance.
@@ -69,7 +71,7 @@ export function CustomerPhone({
         className,
       )}
     >
-      {copied ? "Copied" : phone}
+      {copied ? t("copiedShort") : phone}
     </button>
   );
 }

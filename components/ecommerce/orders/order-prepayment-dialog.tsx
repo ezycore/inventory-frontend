@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRecordPrepayment, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -39,6 +40,7 @@ export function OrderPrepaymentDialog({
   order: AdminStorefrontOrder;
   trigger: React.ReactNode;
 }) {
+  const t = useTranslations("ecommerce.prepayment");
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const recordPrepayment = useRecordPrepayment();
   const {
@@ -86,17 +88,13 @@ export function OrderPrepaymentDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record prepayment</DialogTitle>
-          <DialogDescription>
-            Money collected before shipping — a delivery-charge advance, or a bank
-            transfer for the whole order. It is deducted from what the courier
-            collects at the door.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("body")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Amount received</Label>
+            <Label>{t("amount")}</Label>
             <NumberField
               value={amount}
               onChange={setAmount}
@@ -106,38 +104,38 @@ export function OrderPrepaymentDialog({
               placeholder="0.00"
             />
             <p className="text-xs text-muted-foreground">
-              Up to the order total of {money(total)}.
+              {t("upTo", { amount: money(total) })}
             </p>
             {overCap && (
               <p className="text-xs font-medium text-red-600">
-                Can&apos;t exceed the order total ({money(total)}).
+                {t("overCap", { amount: money(total) })}
               </p>
             )}
           </div>
 
           {accountsEnabled && accountOptions.length > 0 && (
             <div className="space-y-1.5">
-              <Label>Receiving account</Label>
+              <Label>{t("account")}</Label>
               <SimpleSelect
                 value={accountId}
                 onValueChange={setAccountId}
                 options={accountOptions}
-                placeholder="Receiving account (default)"
+                placeholder={t("accountPlaceholder")}
               />
             </div>
           )}
 
           <div className="rounded-lg bg-muted p-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Order total</span>
+              <span className="text-muted-foreground">{t("orderTotal")}</span>
               <span className="tabular-nums">{money(total)}</span>
             </div>
             <div className="mt-1 flex justify-between">
-              <span className="text-muted-foreground">Received now</span>
+              <span className="text-muted-foreground">{t("receivedNow")}</span>
               <span className="tabular-nums">−{money(entered)}</span>
             </div>
             <div className="mt-1.5 flex justify-between border-t pt-1.5 font-semibold">
-              <span>COD to collect at door</span>
+              <span>{t("codAtDoor")}</span>
               <span className="tabular-nums">{money(codToCollect)}</span>
             </div>
             {/* How the ledger will file it. Shown only once the amount runs past the
@@ -145,8 +143,7 @@ export function OrderPrepaymentDialog({
                 a two-line split would be noise. */}
             {goodsLeg > 0 && (
               <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
-                Booked as {money(shippingLeg)} delivery charge and{" "}
-                {money(goodsLeg)} toward the goods.
+                {t("split", { shipping: money(shippingLeg), goods: money(goodsLeg) })}
               </p>
             )}
           </div>
@@ -154,7 +151,7 @@ export function OrderPrepaymentDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             disabled={
@@ -162,7 +159,7 @@ export function OrderPrepaymentDialog({
             }
             onClick={submit}
           >
-            {recordPrepayment.isPending ? "Recording…" : "Record prepayment"}
+            {recordPrepayment.isPending ? t("recording") : t("title")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -19,9 +19,9 @@ import { describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 
-import { renderWithProviders, screen } from "@/tests/test-utils";
+import { renderWithProviders, screen, testTranslator } from "@/tests/test-utils";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
-import { REJECTION_REASON_OPTIONS } from "@/components/ecommerce/orders/helpers";
+import { rejectionReasonOptions } from "@/components/ecommerce/orders/helpers";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Button } from "@/ui/components/button";
 
@@ -41,7 +41,7 @@ function BulkReject({ onConfirm }: { onConfirm: (reason: string) => void }) {
       <SimpleSelect
         value={reason}
         onValueChange={setReason}
-        options={REJECTION_REASON_OPTIONS}
+        options={rejectionReasonOptions(testTranslator("ecommerce"))}
         placeholder="Pick a reason"
         className="w-full"
       />

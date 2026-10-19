@@ -30,6 +30,7 @@
     "bothChannels": "কাউন্টার বিক্রি + অনলাইন অর্ডার",
     "costsMissing": "লাভ দেখতে ক্রয়মূল্য দিন",
     "costsPending": "অর্ডার পাঠানোর পর লাভ দেখা যাবে",
+    "noSalesYet": "এই সময়ে এখনো কোনো বিক্রি হয়নি",
     "receivable": "পাওনা",
     "owedByCustomers": "ক্রেতাদের কাছে পাওনা · সর্বমোট",
     "marginOfKnown": "{known} এ {margin}% মার্জিন · {unknown} এর খরচ এখনো জানা নেই",

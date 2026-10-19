@@ -1,6 +1,6 @@
 // coding-standard: maintained
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, renderWithProviders as render, screen } from "@/tests/test-utils";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SectionTree } from "../section-tree";

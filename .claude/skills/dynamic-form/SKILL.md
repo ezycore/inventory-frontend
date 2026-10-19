@@ -148,6 +148,11 @@ When the section's `dependsOn` condition is not met, the **entire section render
 - **View (read-only):** `viewMode={true}`. Inputs render as text, no asterisks/errors, modal shows "Close".
 - **Edit:** `isEditMode={true}` + `disabledFieldsInEdit={["email","slug"]}` to lock immutable fields.
 - **Skeleton while fetching entity:** `contentLoading={isLoading}`.
+- **Discard prompt:** Cancel on a dirty, editable form asks "Discard your changes?" before calling
+  `onCancel` — in **every** mode, inline included (shadow test S38: the prompt used to render only in
+  the modal/drawer branches, so Cancel on an edited inline form did nothing). Inline, only the Cancel
+  button is guarded: a caller-owned `Dialog`'s Esc / X / backdrop still close without asking.
+  Test: `ui/components/form/__tests__/inline-discard.test.tsx`.
 
 ## Critical Conventions (DO / DON'T)
 

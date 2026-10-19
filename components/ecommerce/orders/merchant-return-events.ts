@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { Translator } from "@/i18n/config";
 import type { AdminStorefrontOrder } from "@/services/api";
 
 type CourierEvent = NonNullable<
@@ -19,7 +20,11 @@ type CourierEvent = NonNullable<
  * The last return of an order now `returned` is the whole (or the rest of the) order; any other is
  * part of it. A legacy order with no `returns[]` falls back to its `returned` status change.
  */
-export function withMerchantReturns(order: AdminStorefrontOrder): CourierEvent[] {
+export function withMerchantReturns(
+  order: AdminStorefrontOrder,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
+): CourierEvent[] {
   const history = order.courier?.history ?? [];
   const returns = (order.returns ?? []).filter((entry) => entry.at);
   const whole = order.status === "returned";
@@ -31,9 +36,9 @@ export function withMerchantReturns(order: AdminStorefrontOrder): CourierEvent[]
     label:
       whole && index === returns.length - 1
         ? returns.length > 1
-          ? "Rest of the order received back — returned by you"
-          : "Parcel received back — returned by you"
-        : "Items received back — part of the order returned by you",
+          ? t("returnEvents.rest")
+          : t("returnEvents.parcel")
+        : t("returnEvents.items"),
   }));
 
   if (!rows.length && whole) {
@@ -43,7 +48,7 @@ export function withMerchantReturns(order: AdminStorefrontOrder): CourierEvent[]
         status: "returned",
         returnStage: "back",
         at: changed.at,
-        label: "Parcel received back — returned by you",
+        label: t("returnEvents.parcel"),
       });
     }
   }

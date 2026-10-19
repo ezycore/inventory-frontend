@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMarkOrderPaid, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -8,7 +9,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
-import { paymentMethodLabel } from "./helpers";
+import { paymentMethodText, paymentStatusText } from "./helpers";
 import { OrderPrepaymentDialog } from "./order-prepayment-dialog";
 import { OrderCollectionDialog } from "./order-collection-dialog";
 import { awaitsCourierReport, codToCollect, collectionLabels } from "./order-detail-helpers";
@@ -31,6 +32,8 @@ import { awaitsCourierReport, codToCollect, collectionLabels } from "./order-det
  * Pickup carries no shipping, so none of this shows.
  */
 export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.paymentPanel");
   const markPaid = useMarkOrderPaid();
   const [pickedAccountId, setAccountId] = useState("");
   const {
@@ -56,7 +59,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       order.status,
     );
   const money = (n: number) => formatMoney(n, currency);
-  const labels = collectionLabels(order, money(codToCollect(order)));
+  const labels = collectionLabels(order, money(codToCollect(order)), tAll);
   const waitingForCourier = awaitsCourierReport(order);
   // Reported refused or returned: no delivery report will ever come, so "waiting" would mislead.
   const reportedReturned = order.courier?.normalizedStatus === "returned";
@@ -79,15 +82,13 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
 
   return (
     <Card className="gap-0 p-5 shadow-none">
-      <h3 className="mb-3 text-sm font-semibold">Payment</h3>
+      <h3 className="mb-3 text-sm font-semibold">{t("title")}</h3>
       <div className="mb-2 flex justify-between text-sm">
-        <span className="text-muted-foreground">Method</span>
-        <span className="font-semibold">
-          {paymentMethodLabel(order.paymentMethod, undefined, order.paymentMethodTitle)}
-        </span>
+        <span className="text-muted-foreground">{t("method")}</span>
+        <span className="font-semibold">{paymentMethodText(order, tAll)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Status</span>
+        <span className="text-muted-foreground">{t("status")}</span>
         <PaymentBadge
           status={order.paymentStatus}
           // An unpaid order out with a courier is COD the courier collects — never a debt.
@@ -99,14 +100,14 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       {!isPickup && hasPrepayment && (
         <div className="mt-3 space-y-1.5 rounded-lg bg-muted p-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Prepaid</span>
+            <span className="text-muted-foreground">{t("prepaid")}</span>
             <span className="font-semibold tabular-nums text-green-700">
               {money(prepaid)}
             </span>
           </div>
           {!isPaid && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">COD to collect</span>
+              <span className="text-muted-foreground">{t("codToCollect")}</span>
               <span className="font-semibold tabular-nums">
                 {money(toCollect)}
               </span>
@@ -121,7 +122,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
             order={order}
             trigger={
               <Button variant="outline" className="w-full">
-                Record prepayment
+                {t("recordPrepayment")}
               </Button>
             }
           />
@@ -133,17 +134,9 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
           said the parcel arrived. Items that came back go through Return items. */}
       {collectable && !isPaid && waitingForCourier && (
         <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
-          {reportedReturned ? (
-            <>
-              The courier reported this parcel returned — nothing to collect for the goods. Use{" "}
-              <b>Return whole order</b> once it is back with you.
-            </>
-          ) : (
-            <>
-              Recorded automatically when the courier reports the delivery. If items came back,
-              use <b>Return items</b>.
-            </>
-          )}
+          {t.rich(reportedReturned ? "courierReturned" : "awaitingCourier", {
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </p>
       )}
       {collectable && !isPaid && !waitingForCourier && (
@@ -153,7 +146,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
               value={accountId}
               onValueChange={setAccountId}
               options={accountOptions}
-              placeholder="Receiving account (default)"
+              placeholder={t("receivingAccount")}
             />
           )}
           <Button
@@ -200,22 +193,24 @@ function PaymentBadge({
   /** Returned / cancelled / rejected: an unpaid order owes nothing. */
   closed?: boolean;
 }) {
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.paymentPanel");
   const map: Record<string, { cls: string; label: string }> = {
-    paid: { cls: "border-green-200 bg-green-50 text-green-800", label: "Paid" },
+    paid: { cls: "border-green-200 bg-green-50 text-green-800", label: paymentStatusText("paid", tAll) },
     pending: {
       cls: "border-yellow-200 bg-yellow-50 text-yellow-800",
-      label: "Pending",
+      label: paymentStatusText("pending", tAll),
     },
     refunded: {
       cls: "border-gray-200 bg-gray-50 text-gray-600",
-      label: "Refunded",
+      label: paymentStatusText("refunded", tAll),
     },
   };
   const m =
     status === "pending" && closed
-      ? { ...map.refunded, label: "Nothing due" }
+      ? { ...map.refunded, label: t("nothingDue") }
       : status === "pending" && codPending
-        ? { ...map.pending, label: "COD pending" }
+        ? { ...map.pending, label: t("codPending") }
         : (map[status] ?? map.pending);
   return (
     <span

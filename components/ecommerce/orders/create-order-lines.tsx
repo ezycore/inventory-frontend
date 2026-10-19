@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { ProductSearch } from "@/components/sales/product-search";
 import type { ExtractedProduct } from "@/components/sales/types";
@@ -72,15 +73,16 @@ export function CreateOrderLines({
   quoting: boolean;
   currency?: string;
 }) {
+  const t = useTranslations("ecommerce.createOrder");
   const { data: orderable = [], isLoading } = useOrderableProducts(open);
   const pickerItems = useMemo(() => orderable.map(toPickerItem), [orderable]);
 
   return (
     <div className="space-y-2">
-      <Label>Products</Label>
+      <Label>{t("products")}</Label>
       <ProductSearch
         onSelect={onAdd}
-        placeholder="Search products…"
+        placeholder={t("searchProducts")}
         source={pickerItems}
         loading={isLoading}
       />
@@ -89,7 +91,7 @@ export function CreateOrderLines({
           columns={[
             {
               key: "item",
-              header: "Item",
+              header: t("colItem"),
               cell: (l: Line) => l.label,
               // Item takes whatever width is left and wraps into it; the other
               // columns are sized to their content, so the table fits a phone
@@ -99,7 +101,7 @@ export function CreateOrderLines({
             },
             {
               key: "qty",
-              header: "Qty",
+              header: t("colQty"),
               align: "right",
               cell: (l: Line) => (
                 <NumberField
@@ -114,7 +116,7 @@ export function CreateOrderLines({
             },
             {
               key: "total",
-              header: "Total",
+              header: t("colTotal"),
               align: "right",
               cell: (l: Line) => {
                 const bad = rejectedFor(l);
@@ -143,7 +145,7 @@ export function CreateOrderLines({
                         the merchant may already have quoted the old number. */}
                     {quoted.price !== l.price ? (
                       <span className="block text-xs text-muted-foreground">
-                        online {formatCurrency(quoted.price, currency)} ea
+                        {t("onlineEach", { price: formatCurrency(quoted.price, currency) })}
                       </span>
                     ) : null}
                   </span>
@@ -161,7 +163,7 @@ export function CreateOrderLines({
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => onRemove(l)}
-                  aria-label={`Remove ${l.label}`}
+                  aria-label={t("remove", { product: l.label })}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

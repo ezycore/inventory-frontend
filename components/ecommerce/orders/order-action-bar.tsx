@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import {
   useConfirmOrder,
   useMarkOrderPaid,
@@ -30,6 +31,8 @@ import { codToCollect, collectionLabels, confirmOrderPrompt } from "./order-deta
  * the sale exists (`!saleId`) and releases the reservation.
  */
 export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.actionBar");
   const confirm = useConfirmOrder();
   const updateStatus = useUpdateOrderStatus();
   const markPaid = useMarkOrderPaid();
@@ -48,6 +51,11 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
     !order.saleId &&
     ["pending", "confirmed", "processing"].includes(order.status);
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
+  const returnItemsButton = (
+    <Button variant="outline" size="sm">
+      {t("returnItems")}
+    </Button>
+  );
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -63,7 +71,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             reject
             trigger={
               <Button variant="outline" size="sm">
-                Reject
+                {t("reject")}
               </Button>
             }
           />
@@ -71,9 +79,9 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
               Without stock it just moves the order on, cancellable until it ships — one click. */}
           {stockTracked ? (
             <OrderConfirmDialog
-              trigger={<Button size="sm">Confirm order</Button>}
-              {...confirmOrderPrompt(itemCount, isPickup)}
-              cancelLabel="Not yet"
+              trigger={<Button size="sm">{t("confirm")}</Button>}
+              {...confirmOrderPrompt(itemCount, isPickup, tAll)}
+              cancelLabel={t("notYet")}
               onConfirm={() => confirm.mutate(order._id)}
             />
           ) : (
@@ -82,7 +90,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
               disabled={confirm.isPending}
               onClick={() => confirm.mutate(order._id)}
             >
-              Confirm order
+              {t("confirm")}
             </Button>
           )}
         </>
@@ -96,7 +104,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           order={order}
           trigger={
             <Button variant="outline" size="sm">
-              Cancel order
+              {t("cancel")}
             </Button>
           }
         />
@@ -108,7 +116,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "processing" })
           }
         >
-          Mark as {labelFor("processing")}
+          {t("markAs", { status: labelFor("processing") })}
         </Button>
       )}
       {order.status === "confirmed" && isPickup && (
@@ -118,7 +126,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "ready_for_pickup" })
           }
         >
-          Mark as {labelFor("ready_for_pickup")}
+          {t("markAs", { status: labelFor("ready_for_pickup") })}
         </Button>
       )}
       {order.status === "ready_for_pickup" && (
@@ -128,7 +136,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "picked_up" })
           }
         >
-          Mark as {labelFor("picked_up")}
+          {t("markAs", { status: labelFor("picked_up") })}
         </Button>
       )}
       {/* The customer collected it from you — no courier booked, or the courier cancelled.
@@ -137,7 +145,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
       {/* Not over a booking the courier cancelled: it never carried the parcel, and the
           backend refuses (`COURIER_BOOKING_CANCELLED`) — Handed over in person is the path. */}
       {order.status === "shipped" && !courierBookingCancelled(order) && (
-        <OrderMarkDelivered order={order} label={`Mark as ${labelFor("delivered")}`} />
+        <OrderMarkDelivered order={order} label={t("markAs", { status: labelFor("delivered") })} />
       )}
       {/* Only when the merchant has no account to choose. With `accounts` on,
           `OrderPaymentPanel` owns this action because it carries the receiving-
@@ -155,7 +163,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             disabled={markPaid.isPending}
             onClick={() => markPaid.mutate({ id: order._id })}
           >
-            {collectionLabels(order, formatMoney(codToCollect(order), currency)).full}
+            {collectionLabels(order, formatMoney(codToCollect(order), currency), tAll).full}
           </Button>
         )}
 
@@ -175,7 +183,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             order={order}
             trigger={
               <Button variant="outline" size="sm">
-                Return whole order
+                {t("returnWhole")}
               </Button>
             }
           />
@@ -198,8 +206,3 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
   );
 }
 
-const returnItemsButton = (
-  <Button variant="outline" size="sm">
-    Return items
-  </Button>
-);

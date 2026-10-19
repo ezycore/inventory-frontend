@@ -130,6 +130,18 @@ function renderAdvancedSelect(
               handleChange(value);
               if (field.onValueChange) field.onValueChange(value);
             }}
+            // A pre-filled default is not the user's edit. It becomes the field's DEFAULT value
+            // (`resetField`), so Cancel on an untouched create form closes at once (S37 + S38).
+            // `setValue` with `shouldDirty: false` is not enough: React Hook Form recomputes
+            // `isDirty` against the defaults on any later event, and the pre-fill differed. The
+            // side effects — dependent clears, cross-field rules — still run, as for a pick.
+            onDefaultValue={(value) => {
+              if (ctx.resetField) ctx.resetField(field.name, { defaultValue: value });
+              else ctx.setValue(field.name, value, { shouldDirty: false });
+              handleClear();
+              handleChange(value);
+              if (field.onValueChange) field.onValueChange(value);
+            }}
             className={error ? "border-red-500" : ""}
             {...selectProps}
             optionsApi={resolvedOptionsApi}

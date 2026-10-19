@@ -29,6 +29,8 @@ interface UseFuseSelectValueParams {
   onMount?: (value: FuseSelectValue | undefined) => void;
   defaultFlag?: string;
   defaultFallbackLabel?: string;
+  /** Receives the pre-filled default instead of `onValueChange` — see `FuseSelectProps`. */
+  onDefaultValue?: (value: FuseSelectValue) => void;
 }
 
 interface UseFuseSelectValueResult {
@@ -54,6 +56,7 @@ export function useFuseSelectValue({
   onMount,
   defaultFlag,
   defaultFallbackLabel,
+  onDefaultValue,
 }: UseFuseSelectValueParams): UseFuseSelectValueResult {
   // Guards the one-time default auto-select so we never override the user.
   const defaultAppliedRef = useRef(false);
@@ -124,7 +127,8 @@ export function useFuseSelectValue({
     const defaultOption = findDefaultOption(finalOptions, defaultFlag, defaultFallbackLabel);
     if (defaultOption) {
       defaultAppliedRef.current = true;
-      handleValueChange(defaultOption.value);
+      if (onDefaultValue) onDefaultValue(formatValue(defaultOption.value));
+      else handleValueChange(defaultOption.value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalOptions, value, defaultFlag, defaultFallbackLabel]);

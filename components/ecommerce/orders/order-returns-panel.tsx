@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import { useSalesReturn, type AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -20,6 +21,8 @@ import { longDate } from "./order-detail-helpers";
  * counter at all, and which a storefront-only shop no longer sees.
  */
 export function OrderReturnsPanel({ order }: { order: AdminStorefrontOrder }) {
+  const t = useTranslations("ecommerce.returnsPanel");
+  const locale = useLocale();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const [openId, setOpenId] = useState<string | null>(null);
   const { data, isLoading } = useSalesReturn(openId ?? "");
@@ -32,7 +35,7 @@ export function OrderReturnsPanel({ order }: { order: AdminStorefrontOrder }) {
     <Card className="p-5">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
         <RotateCcw className="h-4 w-4" />
-        Returns
+        {t("title")}
       </h2>
       <ul className="divide-y">
         {returns.map((entry, index) => (
@@ -43,9 +46,9 @@ export function OrderReturnsPanel({ order }: { order: AdminStorefrontOrder }) {
               className="flex w-full items-center justify-between gap-3 py-2.5 text-left text-sm hover:text-primary"
             >
               <span>
-                Return {index + 1}
+                {t("entry", { number: index + 1 })}
                 {entry.at ? (
-                  <span className="ml-2 text-xs text-muted-foreground">{longDate(entry.at)}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{longDate(entry.at, locale)}</span>
                 ) : null}
               </span>
               <span className="flex items-center gap-1 tabular-nums">

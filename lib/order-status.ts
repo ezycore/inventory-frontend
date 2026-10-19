@@ -81,9 +81,11 @@ export const RENAMEABLE_ORDER_STATUSES: {
  */
 export const resolveOrderStatusLabels = (
   overrides: Partial<Record<string, string>> | undefined,
+  /** The built-in wording in the viewer's language (S29); English when omitted. */
+  defaults: Record<string, string> = DEFAULT_ORDER_STATUS_LABELS,
 ): Record<string, string> => {
-  if (!overrides) return DEFAULT_ORDER_STATUS_LABELS;
-  const merged = { ...DEFAULT_ORDER_STATUS_LABELS };
+  if (!overrides) return defaults;
+  const merged = { ...defaults };
   for (const [status, label] of Object.entries(overrides)) {
     const trimmed = label?.trim();
     if (trimmed) merged[status] = trimmed;

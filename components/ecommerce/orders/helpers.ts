@@ -10,9 +10,12 @@ import {
   Wallet,
 } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
+import type { Locale } from "date-fns";
+import type { Translator } from "@/i18n/config";
 import type { StatData } from "@/ui/components/StatsCard";
 import type { AdminStorefrontOrder, OrderStats } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
+import { adminPaymentMethodLabel } from "@/lib/storefront-payment-methods";
 
 /**
  * Which of the selected orders each bulk action may actually act on.
@@ -50,11 +53,14 @@ export interface BuyerHistory {
  * information, in both directions — a number with returns behind it is the signal this exists
  * for, and one with seven clean orders is a customer worth recognising.
  */
-export const buyerHistoryLabel = (h?: BuyerHistory): string | undefined => {
+export const buyerHistoryLabel = (
+  h: BuyerHistory | undefined,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
+): string | undefined => {
   if (!h || h.orders < 2) return undefined;
-  const parts = [`${h.orders} orders`, `${h.returned ?? 0} returned`];
-  if (h.rejected > 0) parts.push(`${h.rejected} rejected`);
-  return parts.join(" · ");
+  const values = { orders: h.orders, returned: h.returned ?? 0, rejected: h.rejected };
+  return t(h.rejected > 0 ? "orders.buyerHistoryRejected" : "orders.buyerHistory", values);
 };
 
 /** Whether that history should read as a warning: two or more orders that went nowhere. */
@@ -72,23 +78,29 @@ export const buyerHistoryIsWarning = (h?: BuyerHistory): boolean =>
  *
  * `now` is injectable so the tests are not tied to the wall clock.
  */
-export const orderAge = (iso: string, now: Date, timezone: string): string => {
+export const orderAge = (
+  iso: string,
+  now: Date,
+  timezone: string,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
+): string => {
   const then = new Date(iso);
   const mins = Math.floor((now.getTime() - then.getTime()) / 60000);
   // A clock skew between server and browser must not print "-3m".
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
+  if (mins < 1) return t("orders.ageNow");
+  if (mins < 60) return t("orders.ageMinutes", { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return t("orders.ageHours", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 28) return `${days}d`;
+  if (days < 28) return t("orders.ageDays", { count: days });
   // The date on the ORGANIZATION's calendar, not the browser's.
   return formatInTimeZone(then, timezone, "dd-MM-yyyy");
 };
 
 /** The full timestamp, for the row's `title` — the age never hides the date. */
-export const orderPlacedAt = (iso: string, timezone: string): string =>
-  formatInTimeZone(new Date(iso), timezone, "dd MMM yyyy, hh:mm a");
+export const orderPlacedAt = (iso: string, timezone: string, locale?: Locale): string =>
+  formatInTimeZone(new Date(iso), timezone, "dd MMM yyyy, hh:mm a", { locale });
 
 /** Total units on the order, which the row shows so a merchant need not open it. */
 export const orderItemCount = (items: { quantity: number }[]): number =>
@@ -129,26 +141,29 @@ export const REJECTION_REASONS = [
   "other",
 ] as const satisfies readonly RejectionReason[];
 
-const REJECTION_REASON_LABELS: Record<RejectionReason, string> = {
-  fake_number: "Fake number",
-  no_answer: "No answer",
-  out_of_stock: "Out of stock",
-  price_dispute: "Price dispute",
-  duplicate: "Duplicate order",
-  other: "Other",
+/** Each reason's message key under `ecommerce.rejectReasons`. */
+const REJECTION_REASON_KEYS: Record<RejectionReason, string> = {
+  fake_number: "fakeNumber",
+  no_answer: "noAnswer",
+  out_of_stock: "outOfStock",
+  price_dispute: "priceDispute",
+  duplicate: "duplicate",
+  other: "other",
 };
 
-export const REJECTION_REASON_OPTIONS = REJECTION_REASONS.map((value) => ({
-  value,
-  label: REJECTION_REASON_LABELS[value],
-}));
+/** The reject reasons as select options; `t` is bound to the `ecommerce` namespace. */
+export const rejectionReasonOptions = (t: Translator) =>
+  REJECTION_REASONS.map((value) => ({
+    value,
+    label: t(`rejectReasons.${REJECTION_REASON_KEYS[value]}`),
+  }));
 
 /** Unmapped values fall through readable — an older order, or a new server bucket. */
-export const rejectionReasonLabel = (reason?: string): string | undefined =>
-  reason
-    ? (REJECTION_REASON_LABELS[reason as RejectionReason] ??
-      reason.replace(/_/g, " "))
-    : undefined;
+export const rejectionReasonLabel = (reason: string | undefined, t: Translator): string | undefined => {
+  if (!reason) return undefined;
+  const key = REJECTION_REASON_KEYS[reason as RejectionReason];
+  return key ? t(`rejectReasons.${key}`) : reason.replace(/_/g, " ");
+};
 
 /**
  * How a payment method is spelled to the merchant.
@@ -169,6 +184,26 @@ export const rejectionReasonLabel = (reason?: string): string | undefined =>
  * back office cannot drift apart again.
  */
 export { adminPaymentMethodLabel as paymentMethodLabel } from "@/lib/storefront-payment-methods";
+
+/**
+ * The method on an admin order screen: the merchant's own title when the order carries one, else
+ * the built-in word in the viewer's language. `COD` stays COD in every language.
+ * `t` is bound to the `ecommerce` namespace.
+ */
+export const paymentMethodText = (
+  order: { paymentMethod: string; paymentMethodTitle?: string },
+  t: Translator,
+): string => {
+  if (!order.paymentMethodTitle?.trim()) {
+    if (order.paymentMethod === "manual") return t("paymentStatus.methodManual");
+    if (order.paymentMethod === "bank") return t("paymentStatus.methodBank");
+  }
+  return adminPaymentMethodLabel(order.paymentMethod, undefined, order.paymentMethodTitle);
+};
+
+/** Pending / Paid / Refunded; an unknown value reads as itself. */
+export const paymentStatusText = (status: string | undefined, t: Translator): string =>
+  status && ["pending", "paid", "refunded"].includes(status) ? t(`paymentStatus.${status}`) : (status ?? "");
 
 /**
  * Which statuses each tab stands for — a mirror of the server's `ORDER_TABS`,
@@ -274,13 +309,14 @@ export const deletableOrders = (
  * today" looked like a shortfall rather than a settlement, and it was in fact reporting the
  * expected figure instead of the collected one.
  */
-const orders = (n: number) => `${n} order${n === 1 ? "" : "s"}`;
-
 export const getOrderStats = (
   stats: OrderStats | undefined,
-  currency?: string,
+  currency: string | undefined,
+  /** Bound to the `ecommerce` namespace. */
+  t: Translator,
 ): StatData[] => {
   const money = (n: number | undefined) => formatMoney(n ?? 0, currency);
+  const orders = (count: number) => t("orderStats.orderCount", { count });
   /**
    * Pickup is a per-store choice, not a stage every merchant passes through. A delivery-only shop
    * had a permanent ৳0 tile taking a slot on the row — a zero that means "not applicable", which
@@ -292,21 +328,21 @@ export const getOrderStats = (
   );
   return [
     {
-      label: "Pending",
+      label: t("orderStats.pending"),
       value: money(stats?.pending.value),
       description: orders(stats?.pending.count ?? 0),
       icon: Inbox,
       variant: "warning",
     },
     {
-      label: "Awaiting dispatch",
+      label: t("orderStats.awaitingDispatch"),
       value: money(stats?.confirmedProcessing.value),
       description: orders(stats?.confirmedProcessing.count ?? 0),
       icon: PackageCheck,
       variant: "default",
     },
     {
-      label: "In transit (COD)",
+      label: t("orderStats.inTransitCod"),
       value: money(stats?.inTransitCod.value),
       description: orders(stats?.inTransitCod.count ?? 0),
       icon: Truck,
@@ -315,7 +351,7 @@ export const getOrderStats = (
     ...(hasPickup
       ? ([
           {
-            label: "Awaiting pickup",
+            label: t("orderStats.awaitingPickup"),
             value: money(stats?.awaitingPickup.value),
             description: orders(stats?.awaitingPickup.count ?? 0),
             icon: Store,
@@ -328,16 +364,16 @@ export const getOrderStats = (
     ...((stats?.courierReturned?.count ?? 0) > 0
       ? ([
           {
-            label: "Courier says returned",
+            label: t("orderStats.courierReturned"),
             value: stats?.courierReturned.count ?? 0,
-            description: "to process — open each and return the order",
+            description: t("orderStats.courierReturnedHint"),
             icon: PackageX,
             variant: "warning",
           },
         ] as StatData[])
       : []),
     {
-      label: "Delivered · uncollected",
+      label: t("orderStats.deliveredUncollected"),
       value: money(stats?.deliveredUncollected.value),
       description: orders(stats?.deliveredUncollected.count ?? 0),
       icon: CircleAlert,
@@ -346,7 +382,7 @@ export const getOrderStats = (
       variant: stats?.deliveredUncollected.value ? "danger" : "default",
     },
     {
-      label: "Collected today",
+      label: t("orderStats.collectedToday"),
       value: money(stats?.collectedToday.value),
       description: orders(stats?.collectedToday.count ?? 0),
       icon: Wallet,
@@ -363,14 +399,14 @@ export const getOrderStats = (
      * last week and refused this morning belongs to this morning.
      */
     {
-      label: "Returned today",
+      label: t("orderStats.returnedToday"),
       value: money(stats?.fullyReturnedToday.value),
       description: orders(stats?.fullyReturnedToday.count ?? 0),
       icon: PackageX,
       variant: stats?.fullyReturnedToday.value ? "danger" : "default",
     },
     {
-      label: "Partly returned today",
+      label: t("orderStats.partlyReturnedToday"),
       value: money(stats?.partlyReturnedToday.value),
       description: orders(stats?.partlyReturnedToday.count ?? 0),
       icon: RotateCcw,

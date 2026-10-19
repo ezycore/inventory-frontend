@@ -77,6 +77,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   onMount,
   defaultFlag,
   defaultFallbackLabel,
+  onDefaultValue,
   clearOptionLabel,
   alwaysShowClear,
 }) => {
@@ -133,6 +134,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     onMount,
     defaultFlag,
     defaultFallbackLabel,
+    onDefaultValue,
   });
 
   // ── Filtering ─────────────────────────────────────────────────────────────
