@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useOrderReturnPreview,
   useReturnOrder,
@@ -27,12 +28,13 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { OrderRefundDestination, type RefundMode } from "./order-refund-destination";
 
 /** Why items come back after delivery — the reasons that are knowable by asking (G10). */
+/** Each reason's key under `ecommerce.itemsReturn`. */
 const ITEM_RETURN_REASONS = [
-  { value: "customer_changed_mind", label: "Customer changed mind" },
-  { value: "wrong_item", label: "Wrong item / size" },
-  { value: "damaged", label: "Damaged" },
-  { value: "defective", label: "Defective" },
-  { value: "other", label: "Other" },
+  { value: "customer_changed_mind", key: "reasonChangedMind" },
+  { value: "wrong_item", key: "reasonWrongItem" },
+  { value: "damaged", key: "reasonDamaged" },
+  { value: "defective", key: "reasonDefective" },
+  { value: "other", key: "reasonOther" },
 ] as const;
 type ItemReturnReason = (typeof ITEM_RETURN_REASONS)[number]["value"];
 
@@ -57,6 +59,11 @@ export function OrderItemsReturnDialog({
   order: AdminStorefrontOrder;
   trigger: React.ReactNode;
 }) {
+  const t = useTranslations("ecommerce.itemsReturn");
+  const reasonOptions = useMemo(
+    () => ITEM_RETURN_REASONS.map((r) => ({ value: r.value, label: t(r.key) })),
+    [t],
+  );
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const returnOrder = useReturnOrder();
@@ -137,22 +144,16 @@ export function OrderItemsReturnDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Return items</DialogTitle>
-          <DialogDescription>
-            For items the customer sends back after delivery.{" "}
-            {stockTracked
-              ? "They go back into stock and the sale is reduced by their value."
-              : "The sale is reduced by their value."}{" "}
-            The delivery charge is not refunded. This can&apos;t be undone.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t(stockTracked ? "bodyStock" : "body")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Items coming back</Label>
+            <Label>{t("itemsComing")}</Label>
             <div className="space-y-1.5 rounded-md border p-3">
               {lines.length === 0 && (
-                <p className="text-sm text-muted-foreground">Loading items…</p>
+                <p className="text-sm text-muted-foreground">{t("loading")}</p>
               )}
               {lines.map((line) => (
                 <div key={lineKey(line)} className="flex items-center justify-between gap-3">
@@ -160,8 +161,8 @@ export function OrderItemsReturnDialog({
                     <span className="block truncate">{line.productName}</span>
                     <span className="text-xs text-muted-foreground">
                       {line.returned > 0
-                        ? `${line.sold} sold · ${line.returned} already returned`
-                        : `${line.sold} sold`}
+                        ? t("soldReturned", { sold: line.sold, returned: line.returned })
+                        : t("sold", { sold: line.sold })}
                     </span>
                   </span>
                   <NumberField
@@ -174,7 +175,7 @@ export function OrderItemsReturnDialog({
                     }
                     disabled={line.returnable === 0}
                     className="h-8 w-24"
-                    aria-label={`Return ${line.productName}`}
+                    aria-label={t("line", { product: line.productName })}
                   />
                 </div>
               ))}
@@ -182,12 +183,12 @@ export function OrderItemsReturnDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Why did they come back?</Label>
+            <Label>{t("why")}</Label>
             <SimpleSelect
               value={reason}
               onValueChange={(v) => setReason(v as ItemReturnReason)}
-              options={[...ITEM_RETURN_REASONS]}
-              placeholder="Pick a reason"
+              options={reasonOptions}
+              placeholder={t("pickReason")}
               className="w-full"
             />
           </div>
@@ -195,25 +196,21 @@ export function OrderItemsReturnDialog({
           {priced && (
             <div className="rounded-lg bg-muted p-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Goods refund (net)</span>
+                <span className="text-muted-foreground">{t("goodsRefund")}</span>
                 <span className="font-semibold tabular-nums">
                   {money(priced.goodsRefund)}
                 </span>
               </div>
               {priced.deduction > 0 && (
                 <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                  <span>Order discount taken off</span>
+                  <span>{t("discountOff")}</span>
                   <span className="tabular-nums">−{money(priced.deduction)}</span>
                 </div>
               )}
               <p className="mt-2 text-xs text-muted-foreground">
                 {needsRefundMode
-                  ? `${money(priced.refundRemainder)} is money the customer already paid — choose where it goes below.`
-                  : priced.refundToClearing
-                    ? "The courier still holds this money, so it comes back out of their account — no cash moves."
-                    : accountsEnabled
-                    ? "This reduces what was still owed; no cash moves."
-                    : "Money is not tracked in your accounts, so pay the customer back yourself."}
+                  ? t("refundRequired", { amount: money(priced.refundRemainder) })
+                  : t(priced.refundToClearing ? "toClearing" : accountsEnabled ? "reducesOwed" : "notTracked")}
               </p>
             </div>
           )}
@@ -232,7 +229,7 @@ export function OrderItemsReturnDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => reset(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -241,7 +238,7 @@ export function OrderItemsReturnDialog({
             }
             onClick={submit}
           >
-            {returnOrder.isPending ? "Processing…" : "Return items"}
+            {returnOrder.isPending ? t("processing") : t("title")}
           </Button>
         </DialogFooter>
       </DialogContent>

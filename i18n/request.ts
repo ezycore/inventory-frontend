@@ -25,6 +25,7 @@ const NAMESPACES = [
   "accounts",
   "reports",
   "settings",
+  "ecommerce",
 ] as const;
 
 async function loadMessages(locale: AppLocale) {

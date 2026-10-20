@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useOrderFraudScore } from "@/services/api";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
@@ -17,13 +18,14 @@ import { Button } from "@/ui/components/button";
  * on screen would turn swapping provider into a visible change for them.
  */
 export function OrderFraudPanel({ orderId }: { orderId: string }) {
+  const t = useTranslations("ecommerce.fraud");
   const fraud = useOrderFraudScore();
   const result = fraud.data?.data;
 
   if (fraud.isPending) {
     return (
       <div className="flex h-9 items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Checking delivery history…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("checking")}
       </div>
     );
   }
@@ -36,10 +38,10 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/40 dark:bg-amber-500/10">
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-amber-900">
-          <AlertTriangle className="h-3.5 w-3.5" /> Delivery check unavailable
+          <AlertTriangle className="h-3.5 w-3.5" /> {t("unavailable")}
         </div>
         <p className="text-[11px] leading-snug text-amber-900">
-          Something went wrong. Please contact EzyCore.
+          {t("error")}
         </p>
         <Button
           variant="outline"
@@ -47,7 +49,7 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
           className="mt-2"
           onClick={() => fraud.mutate(orderId)}
         >
-          Try again
+          {t("retry")}
         </Button>
       </div>
     );
@@ -60,27 +62,25 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
         className="w-full"
         onClick={() => fraud.mutate(orderId)}
       >
-        <ShieldCheck className="mr-2 h-4 w-4" /> Courier fraud-score check
+        <ShieldCheck className="mr-2 h-4 w-4" /> {t("check")}
       </Button>
     );
   }
 
   const riskMap = {
-    low: { cls: "border-green-200 bg-green-50 text-green-800", label: "Low risk" },
+    low: { cls: "border-green-200 bg-green-50 text-green-800", label: t("low") },
     medium: {
       cls: "border-yellow-200 bg-yellow-50 text-yellow-800",
-      label: "Medium risk",
+      label: t("medium"),
     },
-    high: { cls: "border-red-200 bg-red-50 text-red-800", label: "High risk" },
+    high: { cls: "border-red-200 bg-red-50 text-red-800", label: t("high") },
   } as const;
   const m = riskMap[result.risk];
 
   return (
     <div className="rounded-lg bg-muted p-3">
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground">
-          Delivery risk
-        </span>
+        <span className="text-xs font-semibold text-muted-foreground">{t("risk")}</span>
         <span
           className={cn(
             "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
@@ -93,12 +93,12 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
       {result.available ? (
         <>
           <div className="flex gap-5 text-sm">
-            <Stat value={result.deliveredParcels} label="delivered" tone="text-green-700" />
-            <Stat value={result.cancelledParcels} label="cancelled" tone="text-red-700" />
-            <Stat value={result.totalParcels} label="total parcels" />
+            <Stat value={result.deliveredParcels} label={t("delivered")} tone="text-green-700" />
+            <Stat value={result.cancelledParcels} label={t("cancelled")} tone="text-red-700" />
+            <Stat value={result.totalParcels} label={t("total")} />
             <Stat
               value={`${Math.round((result.successRatio ?? 0) * 100)}%`}
-              label="success"
+              label={t("success")}
             />
           </div>
 
@@ -109,14 +109,13 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
             <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-2.5 dark:border-red-500/40 dark:bg-red-500/10">
               <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-red-800">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                {result.reports.length} fraud report
-                {result.reports.length > 1 ? "s" : ""} from other merchants
+                {t("reports", { count: result.reports.length })}
               </div>
               <ul className="space-y-1">
                 {result.reports.slice(0, 3).map((r, i) => (
                   <li key={i} className="text-[11px] leading-snug text-red-900">
                     {r.courierName ? `${r.courierName}: ` : ""}
-                    {r.details || "No details given"}
+                    {r.details || t("noDetails")}
                   </li>
                 ))}
               </ul>
@@ -146,11 +145,11 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
         </>
       ) : (
         <p className="text-xs text-muted-foreground">
-          No delivery history for this number — treat as a new customer.
+          {t("noHistory")}
         </p>
       )}
       <p className="mt-2.5 text-[11px] text-muted-foreground">
-        Delivery history for this customer&apos;s phone number.
+        {t("source")}
       </p>
     </div>
   );

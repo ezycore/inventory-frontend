@@ -9,6 +9,59 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-10-20
+
+### Fixed
+- Add Product no longer asks "Discard your changes?" when nothing was typed (S45, found in the
+  1.11.0 staging smoke test). Two causes, both fixed in the shared form engine: the default unit was
+  copied into the sale unit as if the merchant had picked it, and the prompt read React Hook Form's
+  whole-form `isDirty`, which counts a field with no default as changed. The prompt now asks only
+  when a field the merchant touched differs from where it started; every form still saves all its
+  values, and editing a field still asks before throwing it away.
+
+## [1.11.0] - 2026-10-20
+
+### Fixed
+- Business Position says how much of "With courier" is from before Courier Payouts started counting,
+  so it reconciles with Courier Payouts. The switch-off warning and the help guide now say that turning
+  payouts back on picks up where it left off, instead of restarting at ৳0 (shadow test S34).
+- An order paid out by the courier and then returned says the courier takes the money back from a
+  later payment, instead of "will take its charge" (shadow test S33). Help guide updated.
+- The return dialog asks for money **Collected at door** in every mode, for any parcel that left with a
+  courier, and no longer offers an account for it — it goes on the courier's balance (shadow test
+  S22). The account picker is now only for the return charge.
+- Dashboard gross profit on a period with no sales says "No sales in this period yet" instead of
+  "Set cost prices to see profit" (shadow test S36). A shop with no cost prices at all still gets the
+  cost prompt.
+- Record Expense, Record Income and Transfer (the "from" account) open on the default account, like
+  the payment forms (shadow test S37).
+- Cancel on an edited form shown inside a page or someone else's dialog (Record Expense, locations,
+  users, supplier, purchase edit, POS customer panel and others) asks "Discard your changes?" instead
+  of doing nothing (shadow test S38).
+- Cost prices: "Sells at" shows the price the online shop actually charges when a live campaign or an
+  online price differs from the list price, with the list price under it, and the margin is taken at
+  that price — a ৳599 cushion selling at ৳450 read 65% instead of 53% (shadow test S39). Help guide
+  updated.
+- A test fixture was missing the `limits` every plan now carries, which failed `pnpm typecheck`.
+- The online order screens speak Bangla (shadow test S29): the order list, the order page and every
+  dialog and panel on it — confirm, reject, cancel, collection, returns, hand-over, advance,
+  dispatch, courier money, fraud check — now read from a new `ecommerce` message namespace, in the
+  owner-approved terms (Pending অপেক্ষমাণ, Delivered ডেলিভারি হয়েছে, Rejected প্রত্যাখ্যাত,
+  collect আদায়, advance অ্যাডভান্স). Dates on those screens use Bangla month names with Western
+  digits. A merchant's own step names still win over the built-in ones in both languages. A test
+  fails on any English written straight into those screens.
+- A pre-filled default (the default account, a default category or unit) no longer counts as an
+  edit: Cancel on an untouched create form closes it instead of asking "Discard your changes?".
+
+### Deploy notes
+- Needs **inventory-backend ≥ 1.12.0** for the full release (cost prices selling price, Position note, door money without Cash & Bank); against older backends each degrades as described below.
+- Cost prices "Sells at" needs inventory-backend with `onlinePrice` on `GET /products/costs`
+  (older backends: the field is absent and the list price shows, as before).
+- Needs inventory-backend with `assets.withCourierBeforePayouts` on `GET /reports/position`
+  (older backends: the note does not show; nothing breaks).
+- The door-money field relies on inventory-backend recording it without Cash & Bank (S22). Against an
+  older backend it is accepted and, with the ledger off, dropped as before.
+
 ## [1.10.0] - 2026-10-18
 
 ### Deploy notes

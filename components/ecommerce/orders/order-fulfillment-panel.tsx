@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { HandHelping, Store } from "lucide-react";
 import { useCouriers, type AdminStorefrontOrder } from "@/services/api";
@@ -31,6 +32,8 @@ const CUSTOM_PREFIX = "custom:";
  * carrier, not a "mode" — and the selection decides which form renders.
  */
 export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }) {
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.fulfillment");
   const { labelFor } = useOrderStatusLabels();
   const { data: couriersData } = useCouriers();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
@@ -66,17 +69,14 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   if (order.fulfillmentType === "pickup") {
     return (
       <Card className="gap-3 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Fulfillment</h3>
+        <h3 className="text-sm font-semibold">{t("title")}</h3>
         <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
             <Store className="h-4 w-4" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold">In-store pickup</div>
-            <div className="text-xs text-muted-foreground">
-              No courier — the customer collects from your store. Mark it ready for
-              pickup with the status button above.
-            </div>
+            <div className="text-sm font-semibold">{t("pickup")}</div>
+            <div className="text-xs text-muted-foreground">{t("pickupHint")}</div>
           </div>
         </div>
       </Card>
@@ -90,16 +90,14 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
     const reason = [...(order.statusHistory ?? [])].reverse().find((h) => h.status === "delivered")?.note;
     return (
       <Card className="gap-3 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Fulfillment</h3>
+        <h3 className="text-sm font-semibold">{t("title")}</h3>
         <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
             <HandHelping className="h-4 w-4" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold">Handed over in person</div>
-            <div className="text-xs text-muted-foreground">
-              {reason ?? "The customer got this order from you, not from a courier."}
-            </div>
+            <div className="text-sm font-semibold">{t("handedOver")}</div>
+            <div className="text-xs text-muted-foreground">{reason ?? t("handedOverHint")}</div>
           </div>
         </div>
         {order.courier?.consignmentId && <CourierTrackingSummary order={order} />}
@@ -109,7 +107,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
 
   return (
     <Card className="gap-3 p-5 shadow-none">
-      <h3 className="text-sm font-semibold">Fulfillment</h3>
+      <h3 className="text-sm font-semibold">{t("title")}</h3>
 
       {isDispatched && !reDispatch ? (
         <>
@@ -132,39 +130,28 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
             <ManualStatusPanel order={order} />
           ) : (
             <div className="space-y-2 rounded-lg border p-3">
-              <div className="text-xs font-medium text-muted-foreground">
-                Parcel progress
-              </div>
-              <CourierTimeline
-                history={withMerchantReturns(order)}
-                emptyHint="No updates from the courier yet. Statuses refresh automatically every 30 minutes, or use Refresh above."
-              />
+              <div className="text-xs font-medium text-muted-foreground">{t("progress")}</div>
+              <CourierTimeline history={withMerchantReturns(order, tAll)} emptyHint={t("noUpdates")} />
             </div>
           )}
         </>
       ) : canShip ? (
         !hasCourier ? (
           <p className="text-sm text-muted-foreground">
-            No courier set up. Add one in{" "}
-            <Link
-              href="/ecommerce/settings"
-              className="font-medium text-primary underline"
-            >
-              Store Settings → Couriers
-            </Link>
-            .
+            {t.rich("noCourier", {
+              link: (chunks) => (
+                <Link href="/ecommerce/settings" className="font-medium text-primary underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         ) : (
           <>
             <p className="text-xs text-muted-foreground">
-              {reDispatch
-                ? "The previous consignment was cancelled. Re-dispatching books a fresh consignment with the same courier or another."
-                : stockTracked
-                  ? "Sending it to the courier marks the order shipped and takes the held items out of stock."
-                  // Nothing was reserved at confirm on a stock-free workspace,
-                  // so there is nothing to consume here either (QA-N6). The
-                  // sale and the status change are real at both tiers.
-                  : "Sending it to the courier marks the order shipped."}
+              {/* Nothing was reserved at confirm on a stock-free workspace, so there is nothing to
+                  consume here either (QA-N6); the sale and the status change are real at both tiers. */}
+              {t(reDispatch ? "reDispatchHint" : stockTracked ? "shipHintStock" : "shipHint")}
             </p>
             {reDispatch ? (
               <button
@@ -172,15 +159,14 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                 className="self-start text-xs font-medium text-muted-foreground underline"
                 onClick={() => setReDispatch(false)}
               >
-                Cancel re-dispatch
+                {t("cancelReDispatch")}
               </button>
             ) : null}
 
             {prepaid > 0 && (
               <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-xs">
                 <span className="text-muted-foreground">
-                  Courier collects (COD, after{" "}
-                  {formatMoney(prepaid, currency)} prepaid)
+                  {t("collectsAfterPrepaid", { amount: formatMoney(prepaid, currency) })}
                 </span>
                 <span className="font-semibold tabular-nums">
                   {formatMoney(toCollect, currency)}
@@ -193,7 +179,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
               onValueChange={setSelected}
               options={[
                 ...enabledCouriers.map((c) => ({
-                  label: `${cap(c.provider)} Courier`,
+                  label: t("courierOption", { provider: cap(c.provider) }),
                   value: c.provider,
                 })),
                 ...customCouriers.map((c) => ({
@@ -201,7 +187,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                   value: `${CUSTOM_PREFIX}${c._id}`,
                 })),
               ]}
-              placeholder="Select courier"
+              placeholder={t("selectCourier")}
             />
 
             {selectedCustom ? (
@@ -223,7 +209,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
         )
       ) : (
         <p className="text-sm text-muted-foreground">
-          Available once the order reaches <b>{labelFor("processing")}</b>.
+          {t.rich("available", { status: labelFor("processing"), b: (chunks) => <b>{chunks}</b> })}
         </p>
       )}
     </Card>

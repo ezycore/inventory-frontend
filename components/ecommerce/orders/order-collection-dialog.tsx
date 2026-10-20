@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRecordCollection, type AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
@@ -56,6 +57,7 @@ export function OrderCollectionDialog({
   trigger: React.ReactNode;
   mode?: "collection" | "returnItems";
 }) {
+  const t = useTranslations("ecommerce.collectionDialog");
   const [open, setOpen] = useState(false);
   const record = useRecordCollection();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
@@ -146,11 +148,9 @@ export function OrderCollectionDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{mode === "returnItems" ? "Return items" : "Record collection"}</DialogTitle>
+          <DialogTitle>{t(mode === "returnItems" ? "returnItemsTitle" : "collectionTitle")}</DialogTitle>
           <DialogDescription>
-            {mode === "returnItems"
-              ? `Pick what came back. The rest is what was collected — anything short of ${money(expected)} has to be accounted for below.`
-              : `What was collected at the door. Anything short of ${money(expected)} has to be accounted for below.`}
+            {t(mode === "returnItems" ? "returnItemsBody" : "collectionBody", { amount: money(expected) })}
           </DialogDescription>
         </DialogHeader>
 
@@ -159,19 +159,19 @@ export function OrderCollectionDialog({
             {prepaid > 0 && (
               <>
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Order total</span>
+                  <span>{t("orderTotal")}</span>
                   <span className="tabular-nums">
                     {money(order.totalAmount ?? 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Already prepaid</span>
+                  <span>{t("prepaid")}</span>
                   <span className="tabular-nums">−{money(prepaid)}</span>
                 </div>
               </>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Expected</span>
+              <span className="text-muted-foreground">{t("expected")}</span>
               <span className="font-semibold tabular-nums">
                 {money(expected)}
               </span>
@@ -183,7 +183,7 @@ export function OrderCollectionDialog({
           <ReturnLinesPicker items={order.items ?? []} value={returning} onChange={setReturning} />
 
           <div className="space-y-1.5">
-            <Label htmlFor="collected">Collected</Label>
+            <Label htmlFor="collected">{t("collected")}</Label>
             <NumberField
               id="collected"
               precision={2}
@@ -194,14 +194,14 @@ export function OrderCollectionDialog({
             />
             {courierFigure !== undefined && (
               <p className="text-xs text-muted-foreground">
-                The courier reported collecting {money(courierFigure)}.
+                {t("courierReported", { amount: money(courierFigure) })}
               </p>
             )}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="discount">Discount given</Label>
+              <Label htmlFor="discount">{t("discount")}</Label>
               <NumberField
                 id="discount"
                 precision={2}
@@ -211,7 +211,7 @@ export function OrderCollectionDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="stillOwed">Still owed</Label>
+              <Label htmlFor="stillOwed">{t("stillOwed")}</Label>
               <NumberField
                 id="stillOwed"
                 precision={2}
@@ -224,32 +224,30 @@ export function OrderCollectionDialog({
 
           {discount > 0 && (
             <div className="space-y-1.5">
-              <Label htmlFor="discountNote">Why the discount was given</Label>
+              <Label htmlFor="discountNote">{t("discountWhy")}</Label>
               <Input
                 id="discountNote"
                 value={discountNote}
                 onChange={(e) => setDiscountNote(e.target.value)}
-                placeholder="Customer negotiated at the door"
+                placeholder={t("discountPlaceholder")}
               />
               {/* Required, following the rule that a reversal's note is the
                   entire value of the entry. An unexplained margin hole is worse
                   than no record at all. */}
               {needsNote && (
-                <p className="text-xs text-destructive">
-                  A reason is required — it is the only record of the concession.
-                </p>
+                <p className="text-xs text-destructive">{t("discountRequired")}</p>
               )}
             </div>
           )}
 
           {accountsEnabled && (
             <div className="space-y-1.5">
-              <Label>Into which account</Label>
+              <Label>{t("account")}</Label>
               <SimpleSelect
                 value={accountId}
                 onValueChange={setAccountId}
                 options={accountOptions}
-                placeholder="Use the store default"
+                placeholder={t("accountDefault")}
               />
             </div>
           )}
@@ -259,7 +257,7 @@ export function OrderCollectionDialog({
               reconciles ? "bg-muted" : "bg-destructive/10 text-destructive"
             }`}
           >
-            <span>{reconciles ? "Accounted for" : "Unaccounted"}</span>
+            <span>{t(reconciles ? "accounted" : "unaccounted")}</span>
             <span className="font-semibold tabular-nums">
               {reconciles ? money(expected) : money(difference)}
             </span>
@@ -268,17 +266,15 @@ export function OrderCollectionDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={submit}
             disabled={!reconciles || needsNote || record.isPending}
           >
             {record.isPending
-              ? "Recording…"
-              : mode === "returnItems"
-                ? "Return items"
-                : "Record collection"}
+              ? t("recording")
+              : t(mode === "returnItems" ? "returnItemsTitle" : "collectionTitle")}
           </Button>
         </DialogFooter>
       </DialogContent>

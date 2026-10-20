@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import {
   AlertDialog,
@@ -31,7 +32,7 @@ export function OrderConfirmDialog({
   onOpenChange,
   children,
   actionDisabled,
-  cancelLabel = "Keep",
+  cancelLabel,
 }: {
   trigger?: React.ReactNode;
   title: string;
@@ -51,6 +52,7 @@ export function OrderConfirmDialog({
   /** The dismiss button. "Keep" fits a delete or a reject; a forward step reads "Not yet". */
   cancelLabel?: string;
 }) {
+  const t = useTranslations("ecommerce.markDelivered");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
@@ -61,7 +63,7 @@ export function OrderConfirmDialog({
         </AlertDialogHeader>
         {children}
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t("keep")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={actionDisabled}
             onClick={onConfirm}

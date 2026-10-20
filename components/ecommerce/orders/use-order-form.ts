@@ -2,6 +2,7 @@
 // coding-standard: maintained
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   useCreateStorefrontOrder,
   useEditStorefrontOrder,
@@ -77,6 +78,8 @@ const lineKey = (l: { productId: string; variantId?: string | null }) =>
   `${l.productId}:${l.variantId ?? ""}`;
 
 export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
+  const t = useTranslations("ecommerce.orderForm");
+  const fieldLabel = (field: string) => t(`field${field[0].toUpperCase()}${field.slice(1)}`);
   const isEdit = !!initial;
   const createOrder = useCreateStorefrontOrder();
   const editOrder = useEditStorefrontOrder();
@@ -178,7 +181,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
     }
 
     if (!filled.length) {
-      toast.info("Nothing new to fill in — check the pasted text");
+      toast.info(t("nothingToFill"));
       return;
     }
     // Name what was filled AND what was not: a silent partial parse is how a
@@ -188,10 +191,11 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
         !filled.includes(f) &&
         !{ name, phone, district }[f as "name" | "phone" | "district"].trim(),
     );
+    const fields = filled.map(fieldLabel).join(", ");
     toast.success(
       missing.length
-        ? `Filled ${filled.join(", ")} — still needed: ${missing.join(", ")}`
-        : `Filled ${filled.join(", ")}`,
+        ? t("filledMissing", { fields, missing: missing.map(fieldLabel).join(", ") })
+        : t("filled", { fields }),
     );
   };
 
@@ -337,9 +341,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
           // pending rather than losing it, so say which actually happened rather
           // than claiming stock is held when it may not be.
           if (confirmImmediately && res.data?.status === "pending") {
-            toast.warning(
-              "Order created, but stock could not be reserved — confirm it manually",
-            );
+            toast.warning(t("notReserved"));
           }
           reset();
           onDone();

@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { useLocale, useTranslations } from "next-intl";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { actorLabel, longDate } from "./order-detail-helpers";
@@ -23,19 +24,21 @@ import { actorLabel, longDate } from "./order-detail-helpers";
  */
 export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
   const { labelFor } = useOrderStatusLabels();
+  const t = useTranslations("ecommerce");
+  const locale = useLocale();
 
   const events = [
     ...(order.statusHistory ?? []).map((e) => ({
-      text: `Moved to ${labelFor(e.status)}`,
+      text: t("activity.movedTo", { status: labelFor(e.status) }),
       at: e.at,
       by: e.by,
       note: e.note,
     })),
-    { text: "Order placed", at: order.createdAt, by: "shopper", note: undefined },
+    { text: t("activity.placed"), at: order.createdAt, by: "shopper", note: undefined },
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   if (events.length === 0) {
-    return <p className="text-sm text-muted-foreground">No activity yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("activity.empty")}</p>;
   }
 
   return (
@@ -49,7 +52,7 @@ export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
           <div className="pb-4">
             <div className="text-sm font-medium">{ev.text}</div>
             <div className="text-xs text-muted-foreground">
-              {longDate(String(ev.at))} · {actorLabel(ev.by)}
+              {longDate(String(ev.at), locale)} · {actorLabel(ev.by, t)}
             </div>
             {ev.note && (
               <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{ev.note}</p>

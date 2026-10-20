@@ -1,15 +1,10 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 
 import { CLOSED_STATUSES } from "./helpers";
-
-const LABELS: Record<(typeof CLOSED_STATUSES)[number], string> = {
-  cancelled: "Cancelled",
-  rejected: "Rejected",
-  returned: "Returned",
-};
 
 /**
  * The split inside the Closed tab — All · Cancelled · Rejected · Returned.
@@ -30,13 +25,14 @@ export function ClosedStatusChips({
   counts: Record<string, number | undefined>;
   onChange: (status: string) => void;
 }) {
+  const t = useTranslations("ecommerce.orderStatus");
   const chips = [
-    { value: "closed", label: "All", count: counts.closed },
-    ...CLOSED_STATUSES.map((value) => ({ value, label: LABELS[value], count: counts[value] })),
+    { value: "closed", label: t("all"), count: counts.closed },
+    ...CLOSED_STATUSES.map((value) => ({ value, label: t(value), count: counts[value] })),
   ];
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Closed orders by status">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t("closedByStatus")}>
       {chips.map((chip) => {
         const active = status === chip.value;
         return (

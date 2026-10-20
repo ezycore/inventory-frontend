@@ -21,6 +21,7 @@ import { Skeleton } from '../skeleton'
 import { Button } from '../button'
 import { FC, useCallback, useState } from 'react'
 import { FormContent } from './form-content'
+import { hasUserEdits } from './form-utils'
 import { cn } from '@/ui/lib/utils';
 import { Spinner } from '../spinner';
 import { toast } from 'sonner';
@@ -130,11 +131,13 @@ const DynamicForm: FC<DynamicFormProps> = ({
     isEditMode = false,
     ...props
 }) => {
-    const { control, formState, setValue, watch, handleSubmit } = form as any;
+    const { control, formState, setValue, resetField, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
     const [confirmDiscard, setConfirmDiscard] = useState(false)
+    // Read during render so React Hook Form tracks it; see `hasUserEdits` for why not `isDirty` (S45).
+    const userEdited = hasUserEdits(formState?.dirtyFields)
 
     // Form submission handler that works with React Hook Form
     const handleFormSubmit = useCallback((data: any) => {
@@ -187,7 +190,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     }
 
     const handleContainerCancel = () => {
-        if (form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+        if (userEdited && !isActuallySubmitting && !viewMode) {
             setConfirmDiscard(true)
             return
         }
@@ -216,7 +219,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
      * discarding), and view mode has nothing to lose.
      */
     const handleContainerOpenChange = (next: boolean) => {
-        if (!next && form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+        if (!next && userEdited && !isActuallySubmitting && !viewMode) {
             setConfirmDiscard(true)
             return
         }
@@ -270,6 +273,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
             formState={formState}
             watch={watch}
             setValue={setValue}
+            resetField={resetField}
             onFieldChange={onFieldChange}
             className={className}
             viewMode={viewMode}
@@ -410,7 +414,9 @@ const DynamicForm: FC<DynamicFormProps> = ({
         )
     }
 
-    // Regular form mode
+    // Regular form mode. The caller owns the dialog or page around it, but the Cancel button is
+    // still ours, and it waits on this prompt once the form is dirty — without the prompt in the
+    // tree, Cancel on an edited inline form did nothing at all (shadow test S38, 12 forms).
     return (
         <div>
             <form
@@ -423,7 +429,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 {formContent}
                 {actionsPlacement === 'bottom' && formActions}
             </form>
-
+            {discardDialog}
         </div>
     )
 }

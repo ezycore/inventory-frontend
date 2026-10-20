@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useUpdateOrderStatus, type AdminStorefrontOrder } from "@/services/api";
 import { courierDisplayName } from "@/components/ecommerce/payouts/helpers";
 import { Button } from "@/ui/components/button";
@@ -24,6 +25,7 @@ export function OrderMarkDelivered({
   order: AdminStorefrontOrder;
   label: string;
 }) {
+  const t = useTranslations("ecommerce.markDelivered");
   const updateStatus = useUpdateOrderStatus();
   const [open, setOpen] = useState(false);
   const deliver = (confirmCourierReturned?: boolean) =>
@@ -46,10 +48,10 @@ export function OrderMarkDelivered({
       <OrderConfirmDialog
         open={open}
         onOpenChange={setOpen}
-        title={`${courier} says this parcel came back`}
-        description={`${courier} reports it returned to you. If you have the parcel, close this and use Return whole order (or record what the customer kept). Mark it delivered only if the customer really received it.`}
-        actionLabel="Mark delivered anyway"
-        cancelLabel="Go back"
+        title={t("title", { courier })}
+        description={t("body", { courier })}
+        actionLabel={t("action")}
+        cancelLabel={t("back")}
         destructive
         actionDisabled={updateStatus.isPending}
         onConfirm={() => deliver(true)}

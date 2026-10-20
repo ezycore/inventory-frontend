@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useManualConsignment,
   type AdminStorefrontOrder,
@@ -30,6 +31,7 @@ export function ManualDispatchForm({
   reDispatch: boolean;
   onDispatched: () => void;
 }) {
+  const t = useTranslations("ecommerce.manualDispatch");
   const manualConsignment = useManualConsignment();
 
   const [trackingCode, setTrackingCode] = useState("");
@@ -44,24 +46,24 @@ export function ManualDispatchForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="md-tracking" className="text-xs text-muted-foreground">
-            Tracking number (optional)
+            {t("tracking")}
           </Label>
           <Input
             id="md-tracking"
             value={trackingCode}
             maxLength={100}
-            placeholder="Whatever the courier gave you"
+            placeholder={t("trackingPlaceholder")}
             onChange={(e) => setTrackingCode(e.target.value)}
           />
           {courier.trackingUrlTemplate ? (
             <p className="text-xs text-muted-foreground">
-              Your customer gets a clickable tracking link.
+              {t("trackingLink")}
             </p>
           ) : null}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="md-charge" className="text-xs text-muted-foreground">
-            Delivery charge you pay
+            {t("charge")}
           </Label>
           <NumberField
             id="md-charge"
@@ -74,17 +76,17 @@ export function ManualDispatchForm({
         </div>
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <Label htmlFor="md-note" className="text-xs text-muted-foreground">
-            Note (optional)
+            {t("note")}
           </Label>
           <Input
             id="md-note"
             value={note}
             maxLength={280}
-            placeholder="Handed to rider, Mirpur hub"
+            placeholder={t("notePlaceholder")}
             onChange={(e) => setNote(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Shown to your customer on their order tracking.
+            {t("noteHint")}
           </p>
         </div>
       </div>
@@ -106,9 +108,7 @@ export function ManualDispatchForm({
             )
           }
         >
-          {reDispatch
-            ? `Re-dispatch with ${courier.name}`
-            : `Ship with ${courier.name}`}
+          {t(reDispatch ? "reDispatch" : "ship", { courier: courier.name })}
         </Button>
       </div>
     </>

@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useOrderReturnPreview,
   useReturnOrder,
@@ -60,6 +61,8 @@ export function OrderReturnDialog({
     defaultAccountId: defaultOrderAccountId,
   } = useOrderAccountOptions(order.paymentMethod);
 
+  const t = useTranslations("ecommerce.wholeReturn");
+  const bold = (chunks: React.ReactNode) => <b>{chunks}</b>;
   const [open, setOpen] = useState(false);
   const [returnCharge, setReturnCharge] = useState<number | null>(null);
   // Starts from what the courier reported collecting on a refused parcel (a paid return), so the
@@ -91,7 +94,10 @@ export function OrderReturnDialog({
   // charge and nothing collected at a door — the server refuses both.
   const neverDispatched = order.status === "processing";
   const showLegs = accountsEnabled && !neverDispatched;
-  const hasLegs = !!returnCharge || !!collectedAmount;
+  // Money paid at the door is recorded in every mode (shadow test S22): it is a figure on
+  // the order and on the courier's card, not only a ledger entry, so a custom courier's paid
+  // return reaches the delivery margin with Cash & Bank off too.
+  const showDoor = !neverDispatched && !!order.courier;
 
   const submit = () => {
     returnOrder.mutate(
@@ -101,7 +107,7 @@ export function OrderReturnDialog({
         // feature was switched off mid-session, and the API accepts and drops
         // it silently rather than rejecting it.
         returnCharge: showLegs ? returnCharge ?? undefined : undefined,
-        collectedAmount: showLegs ? collectedAmount ?? undefined : undefined,
+        collectedAmount: showDoor ? collectedAmount ?? undefined : undefined,
         accountId: accountId || undefined,
         // Sent when the SERVER says money needs a destination, which is the
         // same test it will apply. Keyed off `paymentStatus` it was absent on
@@ -125,21 +131,13 @@ export function OrderReturnDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Return the whole order</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            {stockTracked
-              ? "Reverses the sale with a full return — stock is restocked and the goods refund is processed."
-              // A return on a stock-free workspace moves money and nothing else:
-              // there is no quantity to put back (QA-L3).
-              : "Reverses the sale with a full return — the goods refund is processed."}{" "}
-            This can&apos;t be undone.
+            {/* A return on a stock-free workspace moves money and nothing else: there is no
+                quantity to put back (QA-L3). */}
+            {t(stockTracked ? "bodyStock" : "body")}
             {/* Return items sits beside this button on every dispatched order. */}
-            {!neverDispatched ? (
-              <>
-                {" "}
-                If only part of the parcel came back, use <b>Return items</b> instead.
-              </>
-            ) : null}
+            {!neverDispatched ? <> {t.rich("partHint", { b: bold })}</> : null}
           </DialogDescription>
         </DialogHeader>
 
@@ -148,13 +146,12 @@ export function OrderReturnDialog({
               goods that were sold and paid for — found live on three UriiBaba orders. */}
           {order.courier?.partialDelivery && (
             <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-              The courier reported a <b>partial delivery</b> — the customer kept some items. Use{" "}
-              <b>Return items</b> for the ones that came back.
+              {t.rich("partialDelivery", { b: bold })}
             </p>
           )}
           <div className="rounded-lg bg-muted p-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Goods refund (net)</span>
+              <span className="text-muted-foreground">{t("goodsRefund")}</span>
               <span className="font-semibold tabular-nums">
                 {money(netRefund)}
               </span>
@@ -168,9 +165,7 @@ export function OrderReturnDialog({
             */}
             {!!preview?.shippingRetained && (
               <div className="mt-1 flex justify-between text-xs">
-                <span className="text-muted-foreground">
-                  Delivery kept (not refunded)
-                </span>
+                <span className="text-muted-foreground">{t("deliveryKept")}</span>
                 <span className="tabular-nums text-muted-foreground">
                   {money(preview.shippingRetained)}
                 </span>
@@ -178,18 +173,18 @@ export function OrderReturnDialog({
             )}
             <p className="mt-2 text-xs text-muted-foreground">
               {previewLoading
-                ? "Working out what this return moves…"
+                ? t("working")
                 : needsRefundMode
                   ? // Says what is true of the MONEY rather than of the order.
                     // "The order is paid" was the old line, and it was wrong for
                     // the case that needs this most: a COD order with an advance
                     // is not paid, and the advance is exactly what needs routing.
-                    `${money(preview?.refundRemainder ?? 0)} of this is money the shopper has already parted with — choose where it goes below.`
+                    t("refundRequired", { amount: money(preview?.refundRemainder ?? 0) })
                   : preview?.refundToClearing
                     ? // Settled into the courier's account at delivery, then reported
                       // returned: the courier never collected it, so it comes back out.
-                      "The courier reported this parcel returned, so this comes back out of their account — no shopper paid it and no cash moves."
-                    : "This cancels what was unpaid; no cash moves."}
+                      t("toClearing")
+                    : t("cancelsUnpaid")}
             </p>
           </div>
 
@@ -205,21 +200,21 @@ export function OrderReturnDialog({
           )}
 
           {/*
-            Both of these become Transactions, and the service writes neither
-            without `accounts` — `storefront-order-money.service.ts` wraps the
-            whole money step in `if (accountsOn)`. The order model holds only
-            `rtoChargeTxnId`, a pointer to that Transaction, and no amount field
-            of its own, so with accounts off the figure has nowhere to land.
+            The return charge becomes a Transaction and nothing else — the order
+            holds only `rtoChargeTxnId` — so it is shown only with `accounts`;
+            typed with the ledger off it would be saved nowhere.
 
-            Rendering the inputs anyway meant the merchant typed what they paid
-            the courier, saved, and lost it: no transaction, no field, no
-            warning. The refund-account picker below was already gated for the
-            same reason; these two were simply missed.
+            Money collected at the door is different since S22: the server keeps it
+            on the order (`courier.collectedAmount`, `paidReturn`) and on the
+            courier's card in every mode, and with the ledger on posts it to the
+            courier's clearing account, never to a picked one. So it shows for any
+            parcel that left with a courier, and the account picker is the charge's.
           */}
-          {showLegs && (
+          {(showLegs || showDoor) && (
           <div className="grid grid-cols-2 gap-3">
+            {showLegs && (
             <div className="space-y-1.5">
-              <Label>Return courier charge</Label>
+              <Label>{t("returnCharge")}</Label>
               <NumberField
                 value={returnCharge}
                 onChange={setReturnCharge}
@@ -228,8 +223,10 @@ export function OrderReturnDialog({
                 placeholder="0.00"
               />
             </div>
+            )}
+            {showDoor && (
             <div className="space-y-1.5">
-              <Label>Collected at door</Label>
+              <Label>{t("collectedAtDoor")}</Label>
               <NumberField
                 value={collectedAmount}
                 onChange={setCollectedAmount}
@@ -238,28 +235,21 @@ export function OrderReturnDialog({
                 placeholder="0.00"
               />
             </div>
+            )}
           </div>
           )}
-          {/* Without accounts there is no box to put it in, but the merchant should still see
-              that the courier collected something on this refused parcel. */}
-          {!showLegs && order.courier?.paidReturn && (
-            <p className="text-xs text-muted-foreground">
-              The customer paid{" "}
-              {order.courier.collectedAmount !== undefined
-                ? money(order.courier.collectedAmount)
-                : "the delivery charge"}{" "}
-              at the door. The courier holds it until they pay you.
-            </p>
+          {showDoor && !!collectedAmount && (
+            <p className="text-xs text-muted-foreground">{t("doorHint")}</p>
           )}
 
-          {showLegs && accountOptions.length > 0 && hasLegs ? (
+          {showLegs && accountOptions.length > 0 && !!returnCharge ? (
             <div className="space-y-1.5">
-              <Label>Account for the return charge / collection</Label>
+              <Label>{t("chargeAccount")}</Label>
               <SimpleSelect
                 value={accountId}
                 onValueChange={setAccountId}
                 options={accountOptions}
-                placeholder="Account (default)"
+                placeholder={t("accountDefault")}
               />
             </div>
           ) : null}
@@ -267,14 +257,14 @@ export function OrderReturnDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
             disabled={returnOrder.isPending}
             onClick={submit}
           >
-            {returnOrder.isPending ? "Processing…" : "Process return"}
+            {returnOrder.isPending ? t("processing") : t("process")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, renderWithProviders as render, screen } from "@/tests/test-utils";
 import { describe, expect, it, vi } from "vitest";
 
 import { ClosedStatusChips } from "./closed-status-chips";

@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   useRefreshTracking,
   type AdminStorefrontOrder,
@@ -25,6 +26,8 @@ export function CourierTrackingSummary({
   /** Present only when the consignment is cancelled (a dead end worth re-sending). */
   onReDispatch?: () => void;
 }) {
+  const t = useTranslations("ecommerce.tracking");
+  const tBadge = useTranslations("ecommerce.courierBadge");
   const refreshTracking = useRefreshTracking();
 
   const courier = order.courier;
@@ -32,7 +35,9 @@ export function CourierTrackingSummary({
   // Manual dispatches snapshot a display name; API ones fall back to the provider.
   const carrier = courier?.name
     ? cap(courier.name)
-    : cap(courier?.provider ?? "Courier");
+    : courier?.provider
+      ? cap(courier.provider)
+      : t("courier");
   const tracking = courier?.trackingCode || courier?.consignmentId;
   // A paid return or part-delivery outranks the courier's own "delivered", and the merchant's
   // own return outranks a courier that never reports the hand-back (Steadfast stops at
@@ -53,14 +58,14 @@ export function CourierTrackingSummary({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="text-sm font-semibold">
           {/* Was "consignment created" for the parcel's whole life, delivered or returned. */}
-          {carrier} · {isManual ? "sent by hand" : "booked through the courier"}
+          {t(isManual ? "sentByHand" : "booked", { carrier })}
         </div>
 
         {/* Consignment ids are long and unbroken — without `break-all` one
             widens the card past a phone viewport. */}
         {tracking ? (
           <div className="break-all text-xs text-muted-foreground">
-            Tracking{" "}
+            {t("tracking")}{" "}
             {courier?.trackingUrl ? (
               <a
                 href={courier.trackingUrl}
@@ -76,7 +81,7 @@ export function CourierTrackingSummary({
           </div>
         ) : (
           <div className="text-xs text-muted-foreground">
-            No tracking number recorded.
+            {t("noTracking")}
           </div>
         )}
 
@@ -94,13 +99,13 @@ export function CourierTrackingSummary({
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ background: presentation.tone }}
               />
-              {presentation.admin}
+              {tBadge(presentation.key)}
             </span>
             {/* The raw provider string is ugly and provider-specific — admin-only,
                 and meaningless for a manual courier (we wrote it ourselves). */}
             {!isManual && courier?.status ? (
               <span className="text-[11px] text-muted-foreground">
-                Courier reports{" "}
+                {t("courierReports")}{" "}
                 <span className="font-mono">{courier.status}</span>
               </span>
             ) : null}
@@ -116,12 +121,12 @@ export function CourierTrackingSummary({
             disabled={refreshTracking.isPending}
             onClick={() => refreshTracking.mutate(order._id)}
           >
-            Refresh
+            {t("refresh")}
           </Button>
         )}
         {onReDispatch ? (
           <Button size="sm" onClick={onReDispatch}>
-            Re-dispatch
+            {t("reDispatch")}
           </Button>
         ) : null}
       </div>

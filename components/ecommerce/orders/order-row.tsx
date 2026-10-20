@@ -1,5 +1,7 @@
 // coding-standard: maintained
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { bn } from "date-fns/locale";
 import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
@@ -17,7 +19,8 @@ import {
   orderDetailHref,
   orderItemCount,
   orderPlacedAt,
-  paymentMethodLabel,
+  paymentMethodText,
+  paymentStatusText,
   rejectionReasonLabel,
 } from "@/components/ecommerce/orders/helpers";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
@@ -58,10 +61,12 @@ export function OrderRow({
   onShowBuyer?: () => void;
 }) {
   const { timezone } = useOrgCalendar();
+  const t = useTranslations("ecommerce");
+  const locale = useLocale();
   const provider = order.courier?.provider;
   const itemCount = orderItemCount(order.items);
-  const reasonLabel = rejectionReasonLabel(order.rejectionReason);
-  const historyLabel = buyerHistoryLabel(buyerHistory);
+  const reasonLabel = rejectionReasonLabel(order.rejectionReason, t);
+  const historyLabel = buyerHistoryLabel(buyerHistory, t);
   const historyWarns = buyerHistoryIsWarning(buyerHistory);
   return (
     <tr
@@ -75,7 +80,7 @@ export function OrderRow({
         <Checkbox
           checked={checked}
           onCheckedChange={(c) => onToggle(c === true)}
-          aria-label={`Select ${order.orderNumber}`}
+          aria-label={t("orderRow.select", { orderNumber: order.orderNumber })}
         />
       </td>
       {/* An anchor, not just text inside the clickable row: the row's onClick
@@ -97,9 +102,9 @@ export function OrderRow({
           still one hover away rather than gone. */}
       <td
         className="px-3 py-3 tabular-nums text-muted-foreground"
-        title={orderPlacedAt(order.createdAt, timezone)}
+        title={orderPlacedAt(order.createdAt, timezone, locale === "bn" ? bn : undefined)}
       >
-        {orderAge(order.createdAt, now, timezone)}
+        {orderAge(order.createdAt, now, timezone, t)}
       </td>
       {/* The buyer's record sits under their name, which is where the pattern
           was already hiding in plain text: the same customer on three rows, every
@@ -117,7 +122,7 @@ export function OrderRow({
             <button
               type="button"
               disabled={!onShowBuyer}
-              title="Show all orders from this customer"
+              title={t("orderRow.showBuyer")}
               onClick={(event) => {
                 // The row opens the order on click; this filters instead.
                 event.stopPropagation();
@@ -144,13 +149,13 @@ export function OrderRow({
               without opening the order. Rides under the total instead of taking
               a column, which the row could not spare. */}
           <span className="text-xs text-muted-foreground">
-            {itemCount} item{itemCount === 1 ? "" : "s"}
+            {t("orderRow.items", { count: itemCount })}
           </span>
         </div>
       </td>
       <td className="px-3 py-3 text-muted-foreground">
-        {paymentMethodLabel(order.paymentMethod, undefined, order.paymentMethodTitle)} ·{" "}
-        <span className="capitalize">{order.paymentStatus}</span>
+        {paymentMethodText(order, t)} ·{" "}
+        <span>{paymentStatusText(order.paymentStatus, t)}</span>
       </td>
       {/* Status, and everything that qualifies it: why it was rejected, and who
           is carrying it. The courier had its own column, which printed `—` on
@@ -181,7 +186,7 @@ export function OrderRow({
             </span>
           )}
           {!provider && order.fulfillmentType === "pickup" && (
-            <span className="text-xs text-muted-foreground/70">Pickup</span>
+            <span className="text-xs text-muted-foreground/70">{t("orderRow.pickup")}</span>
           )}
         </div>
       </td>

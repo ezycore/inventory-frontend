@@ -477,7 +477,8 @@
       "futureOnly": "A new cost applies to orders sent to the courier and sales made from now on. Past orders and sales keep the cost they had.",
       "costOwned": "Your cost prices come from your purchases — they update each time you receive stock, so they can't be edited here.",
       "empty": "No products match.",
-      "noCost": "No cost"
+      "noCost": "No cost",
+      "listPrice": "Online · list {price}"
     }
   },
   "brands": {

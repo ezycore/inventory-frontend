@@ -1,8 +1,10 @@
 // coding-standard: maintained
 
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useGetStorefrontSettings } from "@/services/api";
 import {
+  DEFAULT_ORDER_STATUS_LABELS,
   humanizeOrderStatus,
   resolveOrderStatusLabels,
 } from "@/lib/order-status";
@@ -22,10 +24,19 @@ import {
  */
 export const useOrderStatusLabels = () => {
   const { data: settings } = useGetStorefrontSettings();
+  // The built-in wording in the viewer's language; a merchant's own rename still wins (S29).
+  const t = useTranslations("ecommerce.orderStatus");
+  const defaults = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.keys(DEFAULT_ORDER_STATUS_LABELS).map((status) => [status, t(status)]),
+      ),
+    [t],
+  );
 
   const labels = useMemo(
-    () => resolveOrderStatusLabels(settings?.adminStatusLabels),
-    [settings?.adminStatusLabels],
+    () => resolveOrderStatusLabels(settings?.adminStatusLabels, defaults),
+    [settings?.adminStatusLabels, defaults],
   );
 
   /** Label for one status, falling back to a humanized form of an unknown key. */
