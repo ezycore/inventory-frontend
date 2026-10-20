@@ -118,6 +118,11 @@ function OrdersList() {
   // One clock for the whole page — the Age column is relative, and a hook per
   // row would set a timer per row to answer the same question.
   const now = useNow();
+  // Declared first: the carrier options below call `t` while rendering, and a `const` read
+  // before its line throws (it only ran for shops with a connected courier — v1.11.1 outage).
+  const tAll = useTranslations("ecommerce");
+  const t = useTranslations("ecommerce.ordersPage");
+  const tStatus = useTranslations("ecommerce.orderStatus");
 
   const [createOpen, setCreateOpen] = useState(false);
   // The view — tab, filters, search, page — lives in the URL, so opening an
@@ -252,9 +257,6 @@ function OrdersList() {
   };
 
   const { labelFor } = useOrderStatusLabels();
-  const tAll = useTranslations("ecommerce");
-  const t = useTranslations("ecommerce.ordersPage");
-  const tStatus = useTranslations("ecommerce.orderStatus");
   const reasonOptions = useMemo(() => rejectionReasonOptions(tAll), [tAll]);
   const fulfillmentOptions = useMemo(
     () => FULFILLMENT_OPTIONS.map((o) => ({ value: o.value, label: t(o.key) })),
