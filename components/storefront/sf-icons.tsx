@@ -26,6 +26,8 @@ const PATHS: Record<string, string> = {
   alert: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.6v5"/><path d="M12 16.1h.01"/>',
   // "Buy now" in the icon-CTA card layouts — the universal instant-purchase mark.
   bolt: '<path d="M13 2.5 4.8 13.6H11l-1 7.9 8.2-11.1H12z"/>',
+  // The sold chip's "popular" mark (docs/plan/social-proof.md §6.1).
+  fire: '<path d="M12 21a6 6 0 0 0 6-6c0-4.2-3.3-6.6-4.6-10.5-2.6 2-3.9 4.6-3.6 7.4-1.2-.6-2-1.7-2.2-3.1C6.4 10.4 6 12.4 6 15a6 6 0 0 0 6 6z"/>',
   truck: '<path d="M2.5 6.5h10v9h-10z"/><path d="M12.5 9.5h4l3 3v3h-7z"/><circle cx="6" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/>',
   shield: '<path d="M12 3 5 6v5c0 4.2 3 7.4 7 9 4-1.6 7-4.8 7-9V6l-7-3Z"/>',
   tag: '<path d="M3.5 11.5 11 4h7v7l-7.5 7.5a2 2 0 0 1-2.8 0l-4.2-4.2a2 2 0 0 1 0-2.8Z"/><circle cx="14.5" cy="7.5" r="1.2"/>',

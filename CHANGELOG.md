@@ -9,6 +9,46 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-10-20
+
+### Added
+- **Social proof for the online store**, both off until the merchant turns them on in Store
+  Settings → Social proof (new tab). A **sold chip** ("124 sold") on the product page, and
+  optionally under the name on product cards: the merchant's opening count, entered on the new
+  Products → Sold counts screen (`/products/sold-counts`, linked from the tab; search, a category
+  filter and "set all shown to"), plus online orders.
+- **Cost prices and Sold counts: filter by sub-category and tag**, beside the category filter. The
+  sub-category menu appears once a category with children is picked and lists only those; the
+  tag menu lists the tags your products carry. The category column now reads "Cushion › Cartoon".
+  Needs the backend change that adds the sub-category and tags to both lists.
+  The merchant picks when a sale counts (placed / confirmed / delivered), a minimum before it shows,
+  exact or rounded, and the wording in English and Bangla. A **recent-purchase popup** in a bottom
+  corner: real orders, the merchant's own entries, or both, with its timing, the parts of the
+  message and the position all configurable; never on cart, checkout or account pages, and closed
+  for the visit once a shopper closes it. Their look (style, colour, size, corners) is the new
+  Customize → Social proof part, with a contrast warning on custom popup colours. Help page:
+  "Show how much you sell".
+
+### Deploy notes
+- Needs **inventory-backend ≥ 1.13.0** deployed first: Customize saves the new
+  `templates.*` look keys, which an older backend refuses.
+
+### Changed
+- **Store Settings → Shipping: Dhaka zone pricing is now one of the shipping rules** ("By Dhaka
+  zone") instead of a separate switch further down the page. Zone fees replace any rule when they
+  are set, so a store could pick "No shipping charge" or a flat fee and still charge shoppers the
+  zone fees, and the only warning was one grey line. Now only the rule you pick is charged. With
+  By Dhaka zone, both fees are required, because a blank one fell back to the old rule for that
+  zone. Delivery estimates now come straight after pricing, and Default courier cost is marked as
+  the merchant's expense. Frontend only: stores that already use zones open on "By Dhaka zone",
+  and they charge the same as before.
+
+### Fixed
+- **Checkout notices can have line breaks again.** In Store Settings → Checkout → Extra checkout
+  fields, a notice was a one-line box, so two rules ran together in one paragraph. It is now a
+  multi-line box; press Enter for a new line, and the checkout shows the breaks. The old multi-line
+  branch had been left behind as dead code when the Payments tab got its own layout.
+
 ## [1.11.2] - 2026-10-20
 
 ### Fixed

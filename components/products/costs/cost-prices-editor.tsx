@@ -11,12 +11,12 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
-import { SimpleSelect } from "@/ui/components/simple-select";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
 import { Switch } from "@/ui/components/switch";
+import { CategoryPath } from "@/components/shared/category-path";
+import { TaxonomyFilterBar } from "@/components/products/catalog-filters/taxonomy-filter-bar";
+import { NO_TAXONOMY_FILTER, type TaxonomyFilter } from "@/components/products/catalog-filters/taxonomy-filter";
 import { costRowKey, costsToSave, filterCostRows, marginPercent } from "./cost-prices-helpers";
-
-const ALL = "all";
 
 /**
  * Every product's cost on one page, saved together.
@@ -44,19 +44,13 @@ export function CostPricesEditor({
   const save = useSetProductCosts();
   const [edits, setEdits] = useState<Record<string, number | null>>({});
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState(ALL);
+  const [taxonomy, setTaxonomy] = useState<TaxonomyFilter>(NO_TAXONOMY_FILTER);
   const [onlyMissing, setOnlyMissing] = useState(false);
   const [fill, setFill] = useState<number | null>(null);
 
-  const categories = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const row of rows) if (row.categoryId) seen.set(row.categoryId, row.categoryName ?? "");
-    return [...seen].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [rows]);
-
   const shown = useMemo(
-    () => filterCostRows(rows, { search, categoryId: category === ALL ? null : category, onlyMissing }),
-    [rows, search, category, onlyMissing],
+    () => filterCostRows(rows, { search, taxonomy, onlyMissing }),
+    [rows, search, taxonomy, onlyMissing],
   );
   const changes = costsToSave(rows, edits);
   const missing = rows.filter((row) => row.costPrice <= 0).length;
@@ -106,7 +100,14 @@ export function CostPricesEditor({
     {
       key: "category",
       header: t("columns.category"),
-      cell: (row) => <span className="text-muted-foreground">{row.categoryName ?? "—"}</span>,
+      cell: (row) => (
+        <CategoryPath
+          category={row.categoryName}
+          subcategory={row.subcategoryName}
+          fallback="—"
+          className="text-muted-foreground"
+        />
+      ),
     },
     {
       key: "price",
@@ -172,15 +173,7 @@ export function CostPricesEditor({
           placeholder={t("searchPlaceholder")}
           className="w-full sm:w-64"
         />
-        <SimpleSelect
-          value={category}
-          onValueChange={setCategory}
-          options={[
-            { value: ALL, label: t("allCategories") },
-            ...categories.map(([value, label]) => ({ value, label })),
-          ]}
-          className="w-full sm:w-52"
-        />
+        <TaxonomyFilterBar rows={rows} value={taxonomy} onChange={setTaxonomy} />
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={onlyMissing} onCheckedChange={setOnlyMissing} />
           {t("onlyMissing")}

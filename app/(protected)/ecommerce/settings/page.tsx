@@ -16,6 +16,7 @@ import { ShippingSettingsTab } from "@/components/ecommerce/settings/shipping-se
 import { CheckoutSettingsTab } from "@/components/ecommerce/settings/checkout-settings-tab";
 import { PaymentsSettingsTab, PublishSettingsTab } from "@/components/ecommerce/settings/publish-payment-tabs";
 import { MarketingSettingsTab } from "@/components/ecommerce/settings/marketing-settings-tab";
+import { SocialProofSettingsTab } from "@/components/ecommerce/settings/social-proof-settings-tab";
 
 const TABS = [
   { id: "general", label: "General" }, { id: "publish", label: "Publish" },
@@ -23,6 +24,9 @@ const TABS = [
   { id: "couriers", label: "Couriers" }, { id: "checkout", label: "Checkout" },
   { id: "orderSteps", label: "Order steps" }, { id: "seo", label: "SEO" },
   { id: "notifications", label: "Notifications" },
+  // The sold chip and the recent-purchase popup (docs/plan/social-proof.md). Behaviour only;
+  // their look is a Customize part.
+  { id: "socialProof", label: "Social proof" },
   // Meta Pixel, Google Analytics and Clarity together: every third-party measurement tool the
   // merchant pastes an id into, plus the cookie banner they share.
   { id: "marketing", label: "Marketing" },
@@ -55,6 +59,7 @@ function SettingsTab({ tab, settings }: { tab: TabId; settings: StorefrontSettin
     case "seo": return <SeoSettings settings={settings} />;
     case "notifications": return <NotificationsTab />;
     case "marketing": return <MarketingSettingsTab />;
+    case "socialProof": return <SocialProofSettingsTab settings={settings} />;
   }
 }
 
