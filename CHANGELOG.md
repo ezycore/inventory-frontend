@@ -9,6 +9,16 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Changed
+- **Store Settings → Shipping: Dhaka zone pricing is now one of the shipping rules** ("By Dhaka
+  zone") instead of a separate switch further down the page. Zone fees replace any rule when they
+  are set, so a store could pick "No shipping charge" or a flat fee and still charge shoppers the
+  zone fees, and the only warning was one grey line. Now only the rule you pick is charged. With
+  By Dhaka zone, both fees are required, because a blank one fell back to the old rule for that
+  zone. Delivery estimates now come straight after pricing, and Default courier cost is marked as
+  the merchant's expense. Frontend only: stores that already use zones open on "By Dhaka zone",
+  and they charge the same as before.
+
 ## [1.11.2] - 2026-10-20
 
 ### Fixed
