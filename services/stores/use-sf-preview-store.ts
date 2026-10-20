@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import type { SocialLookRaw } from "@/lib/storefront-social-proof";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type {
   DesktopHeaderConfig,
@@ -54,6 +55,12 @@ interface SfPreviewState {
   cardTagBadges: string | null;
   /** Raw card discount badge (percent | amount | off) the editor is drafting. */
   discountBadge: string | null;
+  /**
+   * The sold chip + toast look (Customize → Social proof), as ONE slot of raw keys: the editor
+   * always streams all of them, so a key missing from the draft means "back at its default", not
+   * "not drafted". `null` = nothing drafted, read the saved store.
+   */
+  socialLook: SocialLookRaw | null;
   /** Raw image fit (fit | crop) the editor is drafting. */
   imageFit: string | null;
   /** Raw product-photo frame (square | portrait | landscape | tall). */
@@ -204,6 +211,7 @@ interface SfPreviewState {
     cardActions?: string;
     cardTagBadges?: string;
     discountBadge?: string;
+    socialLook?: SocialLookRaw;
     imageFit?: string;
     imageRatio?: string;
     accountLayout?: string;
@@ -258,6 +266,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   cardActions: null,
   cardTagBadges: null,
   discountBadge: null,
+  socialLook: null,
   imageFit: null,
   imageRatio: null,
   accountLayout: null,
@@ -312,6 +321,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.cardTagBadges !== undefined ? patch.cardTagBadges : s.cardTagBadges,
       discountBadge:
         patch.discountBadge !== undefined ? patch.discountBadge : s.discountBadge,
+      socialLook: patch.socialLook !== undefined ? patch.socialLook : s.socialLook,
       imageFit: patch.imageFit !== undefined ? patch.imageFit : s.imageFit,
       imageRatio:
         patch.imageRatio !== undefined ? patch.imageRatio : s.imageRatio,

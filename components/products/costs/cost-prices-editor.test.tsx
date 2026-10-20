@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { renderWithProviders, screen } from "@/tests/test-utils";
 import type { ProductCostRow } from "@/types/api";
 import { costsToSave, filterCostRows, marginPercent } from "./cost-prices-helpers";
+import { NO_TAXONOMY_FILTER, type TaxonomyFilter } from "@/components/products/catalog-filters/taxonomy-filter";
 
 const mutateAsync = vi.fn().mockResolvedValue({ data: { updated: 2, failed: [] } });
 vi.mock("@/services/api", () => ({
@@ -21,6 +22,9 @@ const row = (over: Partial<ProductCostRow>): ProductCostRow =>
     variantName: null,
     categoryId: "mats",
     categoryName: "Floormat",
+    subcategoryId: null,
+    subcategoryName: null,
+    tagIds: [],
     status: "active",
     price: 450,
     onlinePrice: null,
@@ -42,9 +46,10 @@ describe("cost prices helpers", () => {
   });
 
   it("filters by category, missing cost and search", () => {
-    expect(filterCostRows(rows, { search: "", categoryId: "mats", onlyMissing: false })).toHaveLength(2);
-    expect(filterCostRows(rows, { search: "", categoryId: null, onlyMissing: true })).toHaveLength(2);
-    expect(filterCostRows(rows, { search: "jerry", categoryId: null, onlyMissing: false })).toHaveLength(1);
+    const taxonomy = (over: Partial<TaxonomyFilter> = {}) => ({ ...NO_TAXONOMY_FILTER, ...over });
+    expect(filterCostRows(rows, { search: "", taxonomy: taxonomy({ categoryId: "mats" }), onlyMissing: false })).toHaveLength(2);
+    expect(filterCostRows(rows, { search: "", taxonomy: taxonomy(), onlyMissing: true })).toHaveLength(2);
+    expect(filterCostRows(rows, { search: "jerry", taxonomy: taxonomy(), onlyMissing: false })).toHaveLength(1);
   });
 });
 

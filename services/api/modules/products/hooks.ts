@@ -62,6 +62,23 @@ export const useSetProductCosts = () => {
   })
 }
 
+/** The Sold counts screen's rows. */
+export const useProductSoldCounts = () =>
+  useQuery({
+    queryKey: queryKeys.products.soldCounts(),
+    queryFn: productsApi.listSoldCounts,
+    select: (res) => res.data,
+  })
+
+/** Save opening sold counts. The storefront's chip reads them on its next page build. */
+export const useSetProductSoldCounts = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: productsApi.setSoldCounts,
+    onSuccess: () => invalidate(qc, 'catalog.changed'),
+  })
+}
+
 export const useMatchProductList = () =>
   useMutation({ mutationFn: productsApi.matchList })
 

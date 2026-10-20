@@ -39,6 +39,10 @@ export type ProductCostResult = Schemas["ProductCostResult"];
 export type ProductCostList = Schemas["ProductCostList"];
 export type ProductCostRow = ProductCostList["items"][number];
 export type ProductCostBulkResult = Schemas["ProductCostBulkResult"];
+export type ProductSoldCountList = Schemas["ProductSoldCountList"];
+export type ProductSoldCountRow = ProductSoldCountList["items"][number];
+export type ProductSoldCountBulkResult = Schemas["ProductSoldCountBulkResult"];
+export type SocialProofSettings = Schemas["SocialProofSettings"];
 export type ApiVariant = Schemas["Variant"];
 // `GET /variants` returns attribute *templates* (name + values[]), NOT variant instances — the
 // instance shape (`ApiVariant`) comes from `/products/:id/variants`.

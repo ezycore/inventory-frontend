@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { isPreviewSession } from "@/lib/storefront-preview";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import { pickSocialLook } from "@/lib/storefront-social-proof";
 
 /**
  * Live-preview receiver. Active only when the storefront is loaded with
@@ -40,6 +41,7 @@ export function StorePreviewBridge() {
         cardActions: p.templates?.cardActions,
         cardTagBadges: p.templates?.cardTagBadges,
         discountBadge: p.templates?.discountBadge,
+        socialLook: p.templates ? pickSocialLook(p.templates) : undefined,
         pagination: p.templates?.pagination,
         imageFit: p.templates?.imageFit,
         imageRatio: p.templates?.imageRatio,
