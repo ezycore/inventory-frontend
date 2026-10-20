@@ -17,6 +17,7 @@ import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
 import { cardBadgeTags, discountBadgeText } from "@/components/storefront/card-badges";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
+import { SoldChip } from "@/components/storefront/social-proof/sold-chip";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
   CardCtaRow,
@@ -284,6 +285,15 @@ export function ProductCard({
         {product.unitLabel ? (
           <span style={{ fontSize: 11.5, color: "var(--muted)", margin: "0 0 7px", lineHeight: 1.2 }}>
             {product.unitLabel}
+          </span>
+        ) : null}
+
+        {/* "120 sold" — sent on a listing only when the merchant put the chip on cards too, so a
+            card never grows a line the store did not ask for. Under the name, never over the
+            photo: the top of the photo is the discount badge's and the tags'. */}
+        {product.soldCount != null ? (
+          <span style={{ display: "flex", justifyContent: editorial ? "center" : undefined, margin: "0 0 7px" }}>
+            <SoldChip count={product.soldCount} place="card" />
           </span>
         ) : null}
 

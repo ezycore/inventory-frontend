@@ -11,6 +11,8 @@ import type {
   ProductCostList,
   ProductCostResult,
   ProductMatchList,
+  ProductSoldCountBulkResult,
+  ProductSoldCountList,
   ProductTaxonomySheet,
 } from "@/types/api";
 import { buildQueryParams } from "../../utils";
@@ -71,6 +73,16 @@ export const productsApi = {
   setCosts: (
     items: Array<{ productId: string; variantId?: string | null; costPrice: number }>,
   ): Promise<ApiResponse<ProductCostBulkResult>> => apiClient.put("/products/costs", { items }),
+
+  /** Opening + online sold per product — the Sold counts screen (social proof). */
+  listSoldCounts: (): Promise<ApiResponse<ProductSoldCountList>> =>
+    apiClient.get("/products/sold-counts"),
+
+  /** Save opening sold counts — sales made before the online store. */
+  setSoldCounts: (
+    items: Array<{ productId: string; openingSold: number }>,
+  ): Promise<ApiResponse<ProductSoldCountBulkResult>> =>
+    apiClient.put("/products/sold-counts", { items }),
 
   /** Resolve a pasted list of product names / barcodes to products. */
   matchList: (lines: string[]): Promise<ApiResponse<ProductMatchList>> =>

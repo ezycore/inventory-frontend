@@ -479,6 +479,39 @@
       "empty": "No products match.",
       "noCost": "No cost",
       "listPrice": "Online · list {price}"
+    },
+    "soldCounts": {
+      "title": "Sold counts",
+      "subtitle": "How many of each product you sold before your online store. The shop's sold chip adds your online orders to this.",
+      "searchPlaceholder": "Search products",
+      "columns": {
+        "product": "Product",
+        "category": "Category",
+        "opening": "Sold before",
+        "online": "Sold online",
+        "total": "Shown"
+      },
+      "allVariants": "All sizes and colours together",
+      "hidden": "{total} · not shown yet",
+      "countFrom": {
+        "placed": "Online sales count as soon as an order is placed. Cancelled and rejected orders never count, and returned items are taken off.",
+        "confirmed": "Online sales count once you confirm the order. Cancelled and rejected orders never count, and returned items are taken off.",
+        "delivered": "Online sales count once the order is delivered. Returned items are taken off."
+      },
+      "minimum": "The chip shows from {min} sold.",
+      "settingsLink": "Change in Store settings → Social proof",
+      "save": "Save {count, plural, one {# change} other {# changes}}",
+      "nothingToSave": "No changes",
+      "saved": "{count, plural, one {# sold count saved} other {# sold counts saved}}",
+      "saveFailed": "Could not save the sold counts",
+      "empty": "No products match.",
+      "fillLabel": "Set the sold count of all {count} shown products to",
+      "fillApply": "Apply"
+    },
+    "catalogFilters": {
+      "allCategories": "All categories",
+      "allSubcategories": "All sub-categories",
+      "allTags": "All tags"
     }
   },
   "brands": {

@@ -57,6 +57,7 @@ import {
 } from "@/components/ecommerce/collections/collection-row";
 import { isValidHexColor } from "@/ui/components/color-field";
 import type { MarqueeSpeed } from "@/lib/storefront-strip-display";
+import { SOCIAL_LOOK_KEYS } from "@/lib/storefront-social-proof";
 import {
   resolveUtilityBar,
   type ResolvedUtilityBar,
@@ -273,6 +274,7 @@ export type PartId =
   | "menu"
   | "language"
   | "cards"
+  | "social"
   | "filters"
   | "contact"
   | "footer"
@@ -335,6 +337,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.templates.imageFit,
     d.templates.imageRatio,
   ],
+  // The sold chip + purchase toast look (docs/plan/social-proof.md §6).
+  social: (d) => SOCIAL_LOOK_KEYS.map((key) => d.templates[key]),
   filters: (d) => d.navFilters,
   contact: (d) => d.contactButton,
   footer: (d) => [

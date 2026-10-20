@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { ProductCostRow } from "@/types/api";
+import { matchesTaxonomy, type TaxonomyFilter } from "@/components/products/catalog-filters/taxonomy-filter";
 
 /** One row per single product and per variant — the key the edits are held under. */
 export const costRowKey = (row: Pick<ProductCostRow, "productId" | "variantId">): string =>
@@ -8,12 +9,12 @@ export const costRowKey = (row: Pick<ProductCostRow, "productId" | "variantId">)
 /** The rows the filters leave on screen — and the set "Set all shown" applies to. */
 export function filterCostRows(
   rows: ProductCostRow[],
-  filters: { search: string; categoryId: string | null; onlyMissing: boolean },
+  filters: { search: string; taxonomy: TaxonomyFilter; onlyMissing: boolean },
 ): ProductCostRow[] {
   const needle = filters.search.trim().toLowerCase();
   return rows.filter(
     (row) =>
-      (!filters.categoryId || row.categoryId === filters.categoryId) &&
+      matchesTaxonomy(row, filters.taxonomy) &&
       (!filters.onlyMissing || row.costPrice <= 0) &&
       (!needle ||
         row.productName.toLowerCase().includes(needle) ||

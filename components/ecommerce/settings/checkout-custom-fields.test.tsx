@@ -77,3 +77,23 @@ describe("choice-list options input", () => {
     expect(optionsInput().value).toBe("Morning, Evening");
   });
 });
+
+/**
+ * A notice was a one-line `<Input>`, so a merchant could not type a line break —
+ * two rules ran together in one paragraph. The checkout already renders it
+ * `pre-wrap`; only the editor was blocking it.
+ */
+describe("notice text", () => {
+  const notice: CheckoutField = { key: "n1", kind: "notice", label: "First rule" };
+
+  it("is a multi-line box that saves the line break", () => {
+    const onChange = vi.fn();
+    render(<CheckoutCustomFields fields={[notice]} onChange={onChange} />);
+    const box = screen.getByPlaceholderText(/The text the shopper reads/i);
+    expect(box.tagName).toBe("TEXTAREA");
+    fireEvent.change(box, { target: { value: "First rule\nSecond rule" } });
+    expect(onChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ key: "n1", label: "First rule\nSecond rule" }),
+    ]);
+  });
+});

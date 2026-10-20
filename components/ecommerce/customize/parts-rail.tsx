@@ -6,6 +6,7 @@ import {
   Columns2,
   CreditCard,
   FileText,
+  Flame,
   GalleryHorizontalEnd,
   Home,
   Languages,
@@ -42,6 +43,7 @@ import { LanguageThemePart } from "@/components/ecommerce/customize/parts/langua
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
 import { MenuPart } from "@/components/ecommerce/customize/parts/menu-part";
 import { ShellPart } from "@/components/ecommerce/customize/parts/shell-part";
+import { SocialProofPart } from "@/components/ecommerce/customize/parts/social-proof-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
@@ -118,6 +120,9 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
       { id: "announcement", title: "Announcement bar", icon: Megaphone },
       { id: "campaign", title: "Campaign strip", icon: Percent },
       { id: "cards", title: "Product cards", icon: LayoutGrid },
+      /* The sold chip and the purchase popup's LOOK. Whether they show is Store settings →
+         Social proof — behaviour, not design (docs/plan/social-proof.md §6). */
+      { id: "social", title: "Social proof", icon: Flame },
       /* Site-wide, beside Product cards, and not a collection-page setting:
          search draws the same filters and is not a builder page, so a setting
          on the collection section could never reach it (filter plan §1). */
@@ -137,6 +142,8 @@ const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)]
 /** Opening a part points the preview at a page that actually shows it. */
 const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
+  // The chip is on the product page; the popup floats over every page, that one included.
+  social: "product",
   filters: "collection",
   /* The tracking page is the one page this part's frame wraps that a merchant
      can reach nowhere else — a content page on the builder previews its own
@@ -362,6 +369,8 @@ export function PartsRail({
         <FooterPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
+      ) : part.id === "social" ? (
+        <SocialProofPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "filters" ? (
         <FiltersPart draft={draft} patch={patch} onPreviewDevice={onPreviewDevice} />
       ) : (

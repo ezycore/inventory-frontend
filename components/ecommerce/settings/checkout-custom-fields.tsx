@@ -409,30 +409,23 @@ export function CheckoutCustomFields({
             </div>
           </div>
 
-          {false ? (
-            // Instructions run to several lines — account name, number, branch —
-            // and a merchant typing them into a one-line box cannot see them.
+          {field.kind === "notice" ? (
+            // A notice runs to several lines — two rules, or account name, number
+            // and branch — and a one-line box cannot type a line break. The
+            // checkout and the preview below both render it `pre-wrap`.
             <Textarea
               value={field.label}
               maxLength={600}
               rows={3}
-              placeholder="How to pay. e.g. Send Money to 01XXXXXXXXX (Personal), then enter the TrxID below."
+              placeholder="The text the shopper reads. Press Enter for a new line."
               onChange={(e) => update(index, { label: e.target.value })}
             />
           ) : (
+            // An input's label is held to 200: a 600-character question is not a label.
             <Input
               value={field.label}
-              // A notice carries payment instructions now — account name, number,
-              // branch and a reference line do not fit in 200. An input's label is
-              // still held to 200: a 600-character question is not a label.
-              maxLength={field.kind === "notice" ? 600 : 200}
-              placeholder={
-                field.kind === "notice"
-                  ? "The text the shopper reads"
-                  : paymentMode
-                    ? "What to ask for, e.g. Transaction ID"
-                    : "Field label, e.g. Preferred delivery time"
-              }
+              maxLength={200}
+              placeholder="Field label, e.g. Preferred delivery time"
               onChange={(e) => update(index, { label: e.target.value })}
             />
           )}

@@ -35,6 +35,7 @@ import { useHasMobileTabs } from "@/components/storefront/mobile/mobile-chrome";
 import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
+import { PurchaseToast } from "@/components/storefront/social-proof/purchase-toast";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
 import { VisitSourceCapture } from "@/components/storefront/visit-source-capture";
@@ -233,6 +234,8 @@ export function StoreShell({
             return above, so an unpublished store never exposes its owner's
             phone number. */}
         <ContactLauncher base={base} store={store} />
+        {/* Recent-purchase popup — nothing unless Store settings → Social proof has it on. */}
+        <PurchaseToast slug={slug} base={base} store={store} />
         <CartDrawer />
         <OwnerAdminBar />
         <StorePreviewBridge />
