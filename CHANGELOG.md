@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-10-20
+
 ### Added
 - **Social proof for the online store**, both off until the merchant turns them on in Store
   Settings → Social proof (new tab). A **sold chip** ("124 sold") on the product page, and
@@ -28,7 +30,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   "Show how much you sell".
 
 ### Deploy notes
-- Needs **inventory-backend with social proof** deployed first: Customize saves the new
+- Needs **inventory-backend ≥ 1.13.0** deployed first: Customize saves the new
   `templates.*` look keys, which an older backend refuses.
 
 ### Changed
