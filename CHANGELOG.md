@@ -9,6 +9,15 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.11.2] - 2026-10-20
+
+### Fixed
+- **Online Orders crashed ("This page couldn't load") for every shop with a connected courier**
+  (Pathao, Steadfast, eCourier) since 1.11.0. The courier filter's labels were translated with `t`
+  before the line that declares it, which throws only when the courier list is not empty — the test
+  and staging shops had no connected courier, so it never ran there. The translators are now declared
+  first. A scan of the whole frontend found no other read-before-declaration.
+
 ## [1.11.1] - 2026-10-20
 
 ### Fixed
