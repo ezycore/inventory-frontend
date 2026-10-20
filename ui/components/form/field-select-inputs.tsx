@@ -35,10 +35,25 @@ function resolveOptionsApi(ctx: FieldRenderContext): string | undefined {
 
 // Autofill `autoFillFields` from the selected option's matching props and copy
 // the raw value to `copyValueTo` targets. Used by both onMount and onValueChange.
+//
+// `settle`: the value is not the user's edit (the select mounted with it, or it is a pre-filled
+// default), so a target the user has not touched takes it as its DEFAULT, the same way the source
+// field did (S45: Add Product's unit default copied into `saleUnit.unitId` made the untouched form
+// ask "Discard your changes?"). Every form submits all its values, so only the dirty flag changes.
+// A target often has no input of its own (`saleUnit.unitId` does not), and `resetField` silently
+// does nothing for an unregistered name, so it is registered first or the copy would be lost.
 function buildAutoFillHandler(ctx: FieldRenderContext) {
-  const { field, watch, setValue, onFieldChange } = ctx;
+  const { field, watch, setValue, resetField, control, onFieldChange } = ctx;
   const { autoFillFields, copyValueTo } = field;
-  return (value: any) => {
+  const write = (target: string, next: unknown, settle: boolean) => {
+    if (settle && resetField && !control.getFieldState(target).isDirty) {
+      control.register(target);
+      resetField(target, { defaultValue: next });
+    } else {
+      setValue(target, next, { shouldValidate: false, shouldDirty: true });
+    }
+  };
+  return (value: any, { settle = false }: { settle?: boolean } = {}) => {
     const allValues = watch();
     if (autoFillFields && Array.isArray(autoFillFields) && value) {
       const selectedOption =
@@ -47,7 +62,7 @@ function buildAutoFillHandler(ctx: FieldRenderContext) {
         autoFillFields.forEach((fieldName) => {
           const valueToSet = (selectedOption as Record<string, any>)[fieldName];
           if (valueToSet !== undefined) {
-            setValue(fieldName, valueToSet, { shouldValidate: false, shouldDirty: true });
+            write(fieldName, valueToSet, settle);
             if (onFieldChange) onFieldChange(fieldName, valueToSet, allValues);
           }
         });
@@ -55,7 +70,7 @@ function buildAutoFillHandler(ctx: FieldRenderContext) {
     }
     if (copyValueTo && Array.isArray(copyValueTo) && value !== undefined) {
       copyValueTo.forEach((targetField) => {
-        setValue(targetField, value, { shouldValidate: false, shouldDirty: true });
+        write(targetField, value, settle);
         if (onFieldChange) onFieldChange(targetField, value, allValues);
       });
     }
@@ -123,7 +138,13 @@ function renderAdvancedSelect(
           <Component
             id={fieldId}
             value={controllerField.value}
-            onMount={(mountedValue) => handleAutoFill(mountedValue)}
+            // Mounting with a value the user has not edited (a stored record, a pre-filled
+            // default) passes it on as a default too, not as an edit (S45).
+            onMount={(mountedValue) =>
+              handleAutoFill(mountedValue, {
+                settle: !control.getFieldState(field.name).isDirty,
+              })
+            }
             onValueChange={(value) => {
               controllerField.onChange(value);
               handleClear();

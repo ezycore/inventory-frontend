@@ -9,6 +9,16 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-10-20
+
+### Fixed
+- Add Product no longer asks "Discard your changes?" when nothing was typed (S45, found in the
+  1.11.0 staging smoke test). Two causes, both fixed in the shared form engine: the default unit was
+  copied into the sale unit as if the merchant had picked it, and the prompt read React Hook Form's
+  whole-form `isDirty`, which counts a field with no default as changed. The prompt now asks only
+  when a field the merchant touched differs from where it started; every form still saves all its
+  values, and editing a field still asks before throwing it away.
+
 ## [1.11.0] - 2026-10-20
 
 ### Fixed
