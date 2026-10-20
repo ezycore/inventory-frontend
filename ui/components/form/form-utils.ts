@@ -1,6 +1,22 @@
 // coding-standard: maintained
 import type { ColumnSpan } from "./type";
 
+/**
+ * Did the user change any field? Reads React Hook Form's per-field `dirtyFields`, never the
+ * whole-form `isDirty`: that one is `deepEqual(values, defaults)`, which also compares key COUNTS,
+ * so a registered field with no default holding `undefined` (brand, tags, images… on Add Product)
+ * read as an edit and an untouched form asked "Discard your changes?" (S45). `dirtyFields` is
+ * per field and nested (`{ saleUnit: { unitId: true } }`, arrays for field arrays).
+ */
+export const hasUserEdits = (dirtyFields: unknown): boolean => {
+  if (dirtyFields === true) return true;
+  if (Array.isArray(dirtyFields)) return dirtyFields.some(hasUserEdits);
+  if (dirtyFields && typeof dirtyFields === "object") {
+    return Object.values(dirtyFields).some(hasUserEdits);
+  }
+  return false;
+};
+
 // Read a nested value from an object by dot-separated path.
 export const getNestedValue = (obj: any, path: string): any => {
   const keys = path.split(".");
