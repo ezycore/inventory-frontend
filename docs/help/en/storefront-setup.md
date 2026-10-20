@@ -38,7 +38,13 @@ This is where you set how your store trades. Work through it before you tell any
   depend on what your plan and gateway support.
 - **Order rules** — minimum order value and anything else that governs what shoppers may place.
 
-Under Shipping, enter separate inside- and outside-Dhaka delivery windows. These are shown on the
+Under Shipping, pick **one** shipping rule: no charge, a flat fee, free over a threshold, or
+**By Dhaka zone** (separate inside- and outside-Dhaka fees, with an optional free-over amount). Only
+the rule you pick is charged. With By Dhaka zone, checkout asks the shopper for their district and
+area, because that decides the fee. **Default courier cost** is your own expense and is never added to
+the shopper's total.
+
+Below the rule, enter separate inside- and outside-Dhaka delivery windows. These are shown on the
 product page, cart, and after checkout identifies the shopper's zone. Leave them blank when you
 cannot promise a window; the shop then tells shoppers that delivery options appear at checkout.
 

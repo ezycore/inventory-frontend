@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
+import { SoldChip } from "@/components/storefront/social-proof/sold-chip";
 import { PromiseRows } from "@/components/storefront/home/promise-rows";
 import {
   canChoose,
@@ -76,6 +77,8 @@ export function ProductPartView({
             >
               {d.soldOut ? t.outOfStock : t.inStock}
             </span>
+            {/* "120 sold" — only when the backend sent a number (Store settings → Social proof). */}
+            {product.soldCount != null ? <SoldChip count={product.soldCount} /> : null}
             {/* Each chip links into the tag facet — a chip that only decorates is a wasted exit. */}
             <ProductTagChips tags={product.tags} base={base} />
           </div>

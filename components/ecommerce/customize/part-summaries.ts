@@ -14,6 +14,8 @@ import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import { FILTER_ENTRIES, FILTER_PLACEMENTS } from "@/lib/storefront-filters";
 import type { StorefrontWithLook } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
+import { socialLookLabel } from "@/components/ecommerce/customize/parts/social-look-options";
+import { pickSocialLook, resolveSocialLook } from "@/lib/storefront-social-proof";
 import type {
   CustomizeDraft,
   PartId,
@@ -169,6 +171,13 @@ export function partSummary(
         "cardActions",
         draft.templates.cardActions,
       )}`;
+    case "social": {
+      const look = resolveSocialLook(pickSocialLook(draft.templates));
+      return `Chip: ${socialLookLabel("soldChipStyle", look.chipStyle)} · popup: ${socialLookLabel(
+        "toastStyle",
+        look.toastStyle,
+      )}`;
+    }
     case "contact": {
       const c = draft.contactButton;
       if (!c.enabled) return "Off";

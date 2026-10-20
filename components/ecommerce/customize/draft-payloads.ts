@@ -19,6 +19,7 @@ import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { navActiveCustomColor, type StoreDesign } from "@/lib/storefront-theme";
 import { normalizeStoreLink } from "@/lib/storefront-links";
 import { mobileOverrides } from "@/lib/storefront-mobile";
+import { pickSocialLook } from "@/lib/storefront-social-proof";
 import { menuSettingsOverrides } from "@/lib/storefront-menu";
 import { filterSettingsOverrides } from "@/lib/storefront-filters";
 import {
@@ -455,6 +456,8 @@ export function toPreviewPayload(
       cardActions: draft.templates.cardActions,
       cardTagBadges: draft.templates.cardTagBadges,
       discountBadge: draft.templates.discountBadge,
+      // The sold chip + toast look, all keys at once — the preview store reads them as one slot.
+      ...pickSocialLook(draft.templates),
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
       imageRatio: draft.templates.imageRatio,

@@ -14,6 +14,7 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type { RecentPurchase, StoreSocialProof } from "@/lib/storefront-social-proof";
 import type {
   DesktopHeaderConfig,
   LanguageThemeConfig,
@@ -541,6 +542,8 @@ export interface StorefrontStore {
    * cookies. Present only when Clarity or GA4 is on. See `components/storefront/consent-bar.tsx`.
    */
   cookieBanner?: "off" | "eu" | "always";
+  /** Sold chip label + toast clock — see `lib/storefront-social-proof.ts`. Each half absent when off. */
+  socialProof?: StoreSocialProof;
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -655,6 +658,17 @@ export interface StoreTemplatesRaw {
   cardTagBadges?: string;
   /** "percent" | "amount" | "off" — the card's discount badge. Unset = "percent". */
   discountBadge?: string;
+  /** Sold chip + purchase toast look (`SOCIAL_LOOK_KEYS`); resolved by `resolveSocialLook`. */
+  soldChipStyle?: string;
+  soldChipColor?: string;
+  soldChipSize?: string;
+  soldChipIcon?: string;
+  toastStyle?: string;
+  toastBg?: string;
+  toastText?: string;
+  toastSize?: string;
+  toastRadius?: string;
+  toastImage?: string;
   headerMenu?: string;
   pagination?: string;
   imageFit?: string;
@@ -980,6 +994,11 @@ export interface CatalogProduct {
   seo?: { title?: string; description?: string };
   /** Present only on the product-detail payload of variable products. */
   variants?: CatalogVariant[];
+  /**
+   * The sold chip's number, already past the store's minimum and rounded. Absent when the chip is
+   * off, below the minimum, or (on a listing) not shown on cards.
+   */
+  soldCount?: number;
 }
 
 /** One purchasable option of a variable product (e.g. Size "1L"). */
@@ -1596,6 +1615,9 @@ export const storefrontApi = {
     sfFetch<StoreCampaignDetail>(slug, `/campaigns/${encodeURIComponent(campaignSlug)}`),
   listPages: (slug: string) =>
     sfFetch<ContentPageLink[]>(slug, "/pages"),
+  /** The purchase toast's entries, already masked server-side. Empty when the toast is off. */
+  recentPurchases: (slug: string) =>
+    sfFetch<{ entries: RecentPurchase[] }>(slug, "/recent-purchases"),
   /**
    * Builder section products, from the browser — the editor preview re-querying
    * a section whose products changed before the page was saved. At most

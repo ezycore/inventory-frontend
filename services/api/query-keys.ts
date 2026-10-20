@@ -100,6 +100,8 @@ export const queryKeys = {
     bySlug: (slug: string) => ["products", "slug", slug] as const,
     /** The Cost prices screen — under `products` so `catalog.changed` refreshes it. */
     costs: () => ["products", "costs"] as const,
+    /** The Sold counts screen — under `products` for the same reason. */
+    soldCounts: () => ["products", "sold-counts"] as const,
   },
 
   categories: {

@@ -3588,6 +3588,31 @@ cached entry on the `/sites` route (see "Cached store pages").
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
+## Social proof — sold chip + purchase toast (2026-10-20)
+
+Backend spec: `../inventory-backend/docs/features/social-proof.md`. Behaviour is Store settings →
+Social proof (`socialProof` on the settings); the look is Customize → Social proof (ten raw
+`templates.*` keys). Rules that are easy to break:
+
+- **Pure rules live in `lib/storefront-social-proof.ts`** — `soldChipText`, `toastText`,
+  `timeAgoText`, `resolveSocialLook`, the contrast helpers. Never format a sold count or a toast
+  sentence inline.
+- **`SoldChipView` and `PurchaseToastView` are the only renderers**
+  (`components/storefront/social-proof/`) — the storefront, the settings tab preview and the
+  Customize part all draw them, so the merchant tunes exactly what shoppers see. A look control
+  the views do not read is a dead control; `social-proof-views.test.tsx` checks each one changes
+  the render.
+- **The backend decides whether a number shows.** `product.soldCount` is present only past the
+  minimum (and on cards only with `showOnCards`). Render `SoldChip` only when it is set — it reads
+  `useStore`, so an unconditional render breaks every product-page test without a query client.
+- **The look is ONE preview slot, `socialLook`.** The bridge picks all ten keys off the payload's
+  templates; a key missing from the draft means "back at its default". The keys are deliberately
+  NOT in `TEMPLATE_OPTIONS` (no wireframes, not seeded) so an untouched store keeps following its
+  theme — their options are `parts/social-look-options.ts`.
+- **The toast clock** (`purchase-toast.tsx`) is per visit in `sessionStorage` (`ezy-sf-purchase-toast`):
+  shown count against `maxPerVisit`, and `closed` once a shopper closes it. It never runs on
+  `/cart`, `/checkout`, `/account`, `/orders`, `/t/`, and it lifts above the chat launcher.
+
 ## Measurement tools — Meta Pixel, GA4, Clarity (shared helpers, 2026-09-24)
 
 Three third-party tools, one set of helpers. **Reuse these; do not re-derive them in a fourth tool.**
