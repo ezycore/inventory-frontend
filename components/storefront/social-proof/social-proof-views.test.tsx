@@ -26,6 +26,17 @@ describe("sold chip look", () => {
     expect(chip(a).outerHTML).not.toBe(chip(b).outerHTML);
   });
 
+  it.each<[string, SocialLookRaw, SocialLookRaw]>([
+    ["colour", { stockChipColor: "orange" }, { stockChipColor: "green" }],
+    ["icon", { stockChipIcon: "clock" }, { stockChipIcon: "none" }],
+  ])("stock %s changes the stock chip", (_, a, b) => {
+    const stock = (raw: SocialLookRaw) =>
+      render(<SoldChipView text="Only 3 left" look={resolveSocialLook(raw)} kind="stock" />).container.querySelector(
+        "[data-stock-chip]",
+      )!;
+    expect(stock(a).outerHTML).not.toBe(stock(b).outerHTML);
+  });
+
   it("gives a solid fill readable text", () => {
     const el = chip({ soldChipStyle: "solid", soldChipColor: "#facc15" }) as HTMLElement;
     expect(el.style.color).toBe("rgb(17, 17, 17)");

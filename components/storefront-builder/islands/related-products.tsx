@@ -27,7 +27,7 @@ export function RelatedProductsIsland({
   imageRatio,
   currency,
 }: {
-  product: Pick<CatalogProduct, "slug" | "categoryId">;
+  product: Pick<CatalogProduct, "slug">;
   heading?: string;
   subheading?: string;
   limit?: number;

@@ -384,6 +384,8 @@ export const queryKeys = {
     collections: () => ["storefront-catalog", "collections"] as const,
     /** Per-variant storefront pricing rows for one product (the listing editor). */
     variants: (id: string) => ["storefront-catalog", "variants", id] as const,
+    /** One product's hand-picked related products (the listing editor). */
+    related: (id: string) => ["storefront-catalog", "related", id] as const,
     /**
      * Arranged product orders. Under the catalog root on purpose: a listing,
      * a featured flag or a deleted category changes what an arrangement holds,

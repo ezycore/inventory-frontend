@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import {
   keepPreviousData,
   useMutation,
@@ -37,6 +38,26 @@ export const useCatalogVariants = (id: string | null, enabled: boolean) =>
     select: (r) => r.data,
     enabled: !!id && enabled,
   });
+
+/** The product's hand-picked related products, for the listing editor. */
+export const useCatalogRelated = (id: string | null) =>
+  useQuery({
+    queryKey: queryKeys.storefrontCatalog.related(id ?? ""),
+    queryFn: () => storefrontCatalogApi.getRelated(id as string),
+    select: (r) => r.data,
+    enabled: !!id,
+  });
+
+/** Saved inside the listing editor's one Save, so it shows no toast of its own. */
+export const useSetCatalogRelated = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; productIds: string[]; pickedOnly: boolean }) =>
+      storefrontCatalogApi.setRelated(v.id, { productIds: v.productIds, pickedOnly: v.pickedOnly }),
+    onSuccess: () => invalidate(qc, "storefront.catalog.changed"),
+    onError: handleMutationError,
+  });
+};
 
 export const useUpdateCatalogListing = () => {
   const qc = useQueryClient();

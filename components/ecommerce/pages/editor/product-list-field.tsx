@@ -21,7 +21,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
 /**
  * A hand-picked, ordered list of products — a Manual product section's
  * `productIds` (docs/plan/storefront-product-order.md §8). The storefront shows
- * them in exactly this order.
+ * them in exactly this order. Also a product's hand-picked related products in the Catalog editor.
  *
  * The combobox only ADDS: a pick goes to the end of the list. The list below is
  * the selection, in order, and is where a product is moved (drag the handle, or
@@ -38,12 +38,18 @@ export function ProductListField({
   value,
   onChange,
   max,
+  exclude,
+  notes,
 }: {
   id: string;
   optionsApi: string;
   value: string[];
   onChange: (value: string[]) => void;
   max?: number;
+  /** Products that may not be added — a product's own id in its related list. */
+  exclude?: readonly string[];
+  /** A short note after a row's name, e.g. "Not shown in the store". */
+  notes?: Readonly<Record<string, string>>;
 }) {
   const { data: options } = useSelectOptions(optionsApi);
   const names = useMemo(
@@ -61,6 +67,7 @@ export function ProductListField({
   const full = max !== undefined && value.length >= max;
   const add = (picked: unknown) => {
     if (typeof picked !== "string" || !picked || value.includes(picked) || full) return;
+    if (exclude?.includes(picked)) return;
     onChange([...value, picked]);
     setAnnouncement(`${nameOf(picked)} added at position ${value.length + 1}.`);
   };
@@ -122,6 +129,9 @@ export function ProductListField({
                     >
                       {nameOf(productId)}
                     </span>
+                    {notes?.[productId] ? (
+                      <span className="shrink-0 text-xs text-amber-600 dark:text-amber-400">{notes[productId]}</span>
+                    ) : null}
                     <Button
                       type="button"
                       variant="ghost"

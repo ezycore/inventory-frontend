@@ -111,7 +111,7 @@ describe("related products on the product page", () => {
       section("rel", "related-products", { heading: "Pairs well with", limit: 6 }),
     ]);
     expect(islandProps(container, "related-products")).toEqual({
-      product: { slug: "nakshi-kantha", categoryId: "0000000000000000000000cc" },
+      product: { slug: "nakshi-kantha" },
       heading: "Pairs well with",
       limit: 6,
       currency: "BDT",
@@ -136,7 +136,7 @@ describe("related products on the product page", () => {
       }),
     ]);
     expect(islandProps(container, "related-products")).toEqual({
-      product: { slug: "nakshi-kantha", categoryId: "0000000000000000000000cc" },
+      product: { slug: "nakshi-kantha" },
       heading: "Pairs well with",
       subheading: "Chosen by hand.",
       limit: 6,

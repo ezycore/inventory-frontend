@@ -100,7 +100,7 @@ export function SoldCountSettingsCard({
             </Button>
           </div>
           <p className="-mt-2 text-xs text-muted-foreground">
-            Colours, size and icon: Online store → Customize → Social proof.
+            Colours, size and icon: Online store → Customize → Social proof. On the product page it shows in the “Stock badge and tags” row. If you hid that row (Online Store → Pages → Product), it shows on product cards only.
           </p>
         </>
       ) : null}

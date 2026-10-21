@@ -29,6 +29,7 @@ import { DetailActivity } from './detail/detail-activity'
 import { DetailPricing } from './detail/detail-pricing'
 import { DetailTimeline } from './detail/detail-timeline'
 import { DetailStorefront } from './detail/detail-storefront'
+import { DetailRelated } from './detail/detail-related'
 import type { InventoryItem } from './detail/utils'
 
 interface ProductDetailProps {
@@ -49,6 +50,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   const t = useTranslations('products.products.detail')
   const { format: formatCurrency } = useCurrency()
   const organization = useAuthStore((s) => s.user?.organization)
+  const canManageStore = useAuthStore((s) => s.user?.permissions?.includes('storefront.manage') ?? false)
   // Up here with the other hooks, NOT down beside the module gates it belongs
   // to: everything below the loading and not-found returns runs only once the
   // product has resolved, so a hook called there is skipped on the first render
@@ -239,6 +241,10 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
 
       {product.storefront && (
         <DetailStorefront storefront={product.storefront} formatCurrency={formatCurrency} />
+      )}
+
+      {isFeatureEnabled(organization?.features, 'storefront') && canManageStore && (
+        <DetailRelated productId={product._id} />
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

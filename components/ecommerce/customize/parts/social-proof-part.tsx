@@ -41,6 +41,40 @@ function Ramp({ lookKey, label, value, onChange }: {
 }
 
 /**
+ * A chip colour: the theme, four swatches, or a custom hex. The sold chip and the stock chip each
+ * have one, so a merchant can tell "124 sold" and "Only 3 left" apart at a glance.
+ */
+function ChipColorField({ label, value, brand, fallback, onChange }: {
+  label: string;
+  value: string;
+  brand: string;
+  fallback: string;
+  onChange: (value: string) => void;
+}) {
+  const custom = HEX.test(value) ? value : fallback;
+  return (
+    <>
+      <PartField label="Colour">
+        <SwatchField
+          label={label}
+          value={HEX.test(value) ? "custom" : value}
+          onChange={(v) => onChange(v === "custom" ? custom : v)}
+          options={[
+            { value: "accent", label: "Theme", colors: [brand], description: "Your theme colour" },
+            { value: "green", label: "Green", colors: [CHIP_SWATCHES.green] },
+            { value: "red", label: "Red", colors: [CHIP_SWATCHES.red] },
+            { value: "orange", label: "Orange", colors: [CHIP_SWATCHES.orange] },
+            { value: "neutral", label: "Grey", colors: [CHIP_SWATCHES.neutral] },
+            { value: "custom", label: "Custom", colors: [custom], description: "Any colour you choose" },
+          ]}
+        />
+      </PartField>
+      {HEX.test(value) ? <HexField label={label} value={value} fallback={fallback} onChange={onChange} /> : null}
+    </>
+  );
+}
+
+/**
  * A hex field that only writes a COMPLETE colour into the draft. The draft is saved wholesale and
  * the backend refuses a half-typed "#12", so the text lives here until it is a real colour.
  */
@@ -96,29 +130,27 @@ export function SocialProofPart({
         <PartField label="Style">
           <Ramp lookKey="soldChipStyle" label="Chip style" value={look.chipStyle} onChange={(v) => patchTemplate("soldChipStyle", v)} />
         </PartField>
-        <PartField label="Colour">
-          <SwatchField
-            label="Chip colour"
-            value={HEX.test(look.chipColor) ? "custom" : look.chipColor}
-            onChange={(v) => patchTemplate("soldChipColor", v === "custom" ? (HEX.test(look.chipColor) ? look.chipColor : "#7c3aed") : v)}
-            options={[
-              { value: "accent", label: "Theme", colors: [brand], description: "Your theme colour" },
-              { value: "green", label: "Green", colors: [CHIP_SWATCHES.green] },
-              { value: "red", label: "Red", colors: [CHIP_SWATCHES.red] },
-              { value: "orange", label: "Orange", colors: [CHIP_SWATCHES.orange] },
-              { value: "neutral", label: "Grey", colors: [CHIP_SWATCHES.neutral] },
-              { value: "custom", label: "Custom", colors: [HEX.test(look.chipColor) ? look.chipColor : "#7c3aed"], description: "Any colour you choose" },
-            ]}
-          />
-        </PartField>
-        {HEX.test(look.chipColor) ? (
-          <HexField label="Chip colour" value={look.chipColor} fallback="#7c3aed" onChange={(hex) => patchTemplate("soldChipColor", hex)} />
-        ) : null}
+        <ChipColorField label="Chip colour" value={look.chipColor} brand={brand} fallback="#7c3aed" onChange={(v) => patchTemplate("soldChipColor", v)} />
         <PartField label="Size">
           <Ramp lookKey="soldChipSize" label="Chip size" value={look.chipSize} onChange={(v) => patchTemplate("soldChipSize", v)} />
         </PartField>
         <PartField label="Icon">
           <Ramp lookKey="soldChipIcon" label="Chip icon" value={look.chipIcon} onChange={(v) => patchTemplate("soldChipIcon", v)} />
+        </PartField>
+      </PartBlock>
+
+      <PartBlock label="Low stock chip" hint="“Only 3 left” — the sold chip's style and size, with its own colour and icon.">
+        <div className="flex flex-wrap items-center gap-2 rounded-md border p-3" style={SHOP_PAGE}>
+          <span style={themed}>
+            <SoldChipView text="Only 3 left" look={look} kind="stock" />
+          </span>
+          <span style={themed}>
+            <SoldChipView text="124 sold" look={look} />
+          </span>
+        </div>
+        <ChipColorField label="Low stock colour" value={look.stockColor} brand={brand} fallback="#b45309" onChange={(v) => patchTemplate("stockChipColor", v)} />
+        <PartField label="Icon">
+          <Ramp lookKey="stockChipIcon" label="Low stock icon" value={look.stockIcon} onChange={(v) => patchTemplate("stockChipIcon", v)} />
         </PartField>
       </PartBlock>
 
