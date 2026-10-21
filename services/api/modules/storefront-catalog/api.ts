@@ -1,12 +1,14 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
 import type {
   BulkOperationResult,
   CatalogList,
+  CatalogRelated,
   CatalogVariant,
   StorefrontCollection,
 } from "@/types/api";
-export type { StorefrontCollection, CatalogVariant };
+export type { StorefrontCollection, CatalogVariant, CatalogRelated };
 
 // Response shapes generated from the backend catalog DTOs (`ecommerce.dto.ts`).
 // `CatalogProduct` is the list row (carries `availableQuantity`); the sub-shapes derive from it.
@@ -85,6 +87,14 @@ export const storefrontCatalogApi = {
   // overlay — read by the editor so it can show/edit each option's online price.
   listVariants: (id: string): Promise<ApiResponse<CatalogVariant[]>> =>
     apiClient.get(`${base}/${id}/variants`),
+  // The product's hand-picked "You may also like" products, in order. JSON, not the
+  // multipart PATCH: an ordered id list does not survive form-data well.
+  getRelated: (id: string): Promise<ApiResponse<CatalogRelated>> =>
+    apiClient.get(`${base}/${id}/related`),
+  setRelated: (
+    id: string,
+    dto: { productIds: string[]; pickedOnly: boolean },
+  ): Promise<ApiResponse<CatalogRelated>> => apiClient.put(`${base}/${id}/related`, dto),
   bulkUpdate: (
     dto: BulkStorefrontDto,
   ): Promise<ApiResponse<BulkStorefrontResult>> =>

@@ -3613,6 +3613,27 @@ Social proof (`socialProof` on the settings); the look is Customize → Social p
   shown count against `maxPerVisit`, and `closed` once a shopper closes it. It never runs on
   `/cart`, `/checkout`, `/account`, `/orders`, `/t/`, and it lifts above the chat launcher.
 
+### Low stock chip + related products (2026-10-21)
+
+Plan: `../inventory-backend/docs/plan/related-products-and-stock-left.md`.
+
+- **"Only 3 left" is `stockLeftText`** (`lib/storefront-social-proof.ts`) — one rule for the
+  product page and the cards: tracked stock only, `1 ≤ available ≤ threshold`. Draw it with
+  `StockChip` / `SoldChipView kind="stock"`; it shares the sold chip's style and size and has its own
+  `stockColor` / `stockIcon` (`stockChipColor`, `stockChipIcon`). On the product page it REPLACES the
+  "In stock" badge and follows the selected variant. Cards draw both chips through `CardChips`,
+  which renders its line only when one of them shows.
+- **The related row is the backend's** — `useRelatedProducts` calls
+  `GET …/products/:productSlug/related` (`useStoreRelated`, key `storefront.related`, under the
+  `products` prefix). Never rebuild the ranking in the browser.
+- **Picks are edited with `ProductListField`** (`exclude` keeps a product out of its own list,
+  `notes` flags a pick the store skips) in `components/ecommerce/catalog/related-products-card.tsx`,
+  saved inside the listing editor's one Save — and on the product page
+  (`components/products/detail/detail-related.tsx`, its own Save), because stock-free shops have no
+  Products → Online tab. Under it, `RelatedPreview` (`related-preview.tsx`) draws the admin read's
+  `preview` — the backend's own ranking with a reason per row. Never re-rank in the browser to
+  explain the row; extend the backend's `RelatedLevel` instead.
+
 ## Measurement tools — Meta Pixel, GA4, Clarity (shared helpers, 2026-09-24)
 
 Three third-party tools, one set of helpers. **Reuse these; do not re-derive them in a fourth tool.**

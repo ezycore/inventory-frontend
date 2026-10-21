@@ -8,6 +8,7 @@ import type { SocialProofSettings } from "@/types/api";
  */
 export type SoldCountDraft = NonNullable<SocialProofSettings["soldCount"]>;
 export type PurchaseToastDraft = NonNullable<SocialProofSettings["purchaseToast"]>;
+export type StockLeftDraft = NonNullable<SocialProofSettings["stockLeft"]>;
 export type ToastEntry = NonNullable<PurchaseToastDraft["entries"]>[number];
 
 export const SOLD_LABEL_DEFAULT = { en: "{count} sold", bn: "{count}টি বিক্রি হয়েছে" };
@@ -16,6 +17,8 @@ export const TOAST_TEMPLATE_DEFAULT = {
   bn: "{area} থেকে {name} কিনেছেন {product}",
 };
 export const MAX_TOAST_ENTRIES = 50;
+export const STOCK_LEFT_LABEL_DEFAULT = { en: "Only {count} left", bn: "মাত্র {count}টি বাকি" };
+export const STOCK_LEFT_VAGUE_DEFAULT = { en: "Almost gone", bn: "প্রায় শেষ" };
 
 export const soldCountDraft = (saved: SoldCountDraft | undefined): SoldCountDraft => ({
   enabled: saved?.enabled === true,
@@ -46,6 +49,19 @@ export const purchaseToastDraft = (saved: PurchaseToastDraft | undefined): Purch
   entries: saved?.entries ?? [],
 });
 
+export const stockLeftDraft = (saved: StockLeftDraft | undefined): StockLeftDraft => ({
+  enabled: saved?.enabled === true,
+  threshold: saved?.threshold ?? 5,
+  display: saved?.display ?? "exact",
+  label: { en: saved?.label?.en ?? "", bn: saved?.label?.bn ?? "" },
+  vagueLabel: { en: saved?.vagueLabel?.en ?? "", bn: saved?.vagueLabel?.bn ?? "" },
+  showOnCards: saved?.showOnCards === true,
+});
+
+/** A typed exact wording without `{count}` — the backend refuses it, so the tab says so first. */
+export const stockLabelMissingCount = (stock: StockLeftDraft) =>
+  [stock.label?.en, stock.label?.bn].some((text) => !!text?.trim() && !text.includes("{count}"));
+
 /** Blank text fields are left out, so the backend's built-in wording applies. */
 const text = (value: { en?: string; bn?: string } | undefined) => {
   const en = value?.en?.trim();
@@ -53,12 +69,14 @@ const text = (value: { en?: string; bn?: string } | undefined) => {
   return en || bn ? { ...(en ? { en } : {}), ...(bn ? { bn } : {}) } : undefined;
 };
 
-/** The block the PATCH carries — both halves, always: the backend replaces it wholesale. */
+/** The block the PATCH carries — every part, always: the backend replaces it wholesale. */
 export const toSocialProofPayload = (
   sold: SoldCountDraft,
   toast: PurchaseToastDraft,
+  stock: StockLeftDraft,
 ): SocialProofSettings => ({
   soldCount: { ...sold, label: text(sold.label) },
+  stockLeft: { ...stock, label: text(stock.label), vagueLabel: text(stock.vagueLabel) },
   purchaseToast: {
     ...toast,
     template: text(toast.template),

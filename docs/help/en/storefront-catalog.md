@@ -73,6 +73,30 @@ the **Featured** sort, so if your store opens on another one, the screen says so
 A homepage section where you chose the products yourself keeps the order you give it in the page
 editor: drag the products in the section's list.
 
+### You may also like
+
+Every product page ends with a row of other products. The store fills it from the closest match
+outward:
+
+1. the products **you picked** for this product, in your order;
+2. products in the **same sub-category**;
+3. products that share a **tag**, the ones sharing the most tags first;
+4. products in the **same category**.
+
+A product with no category gets products from the whole store. Inside each step, products in stock
+come first. Products that are hidden, archived or sold out with "Hide from store" never appear.
+
+To pick them yourself, open the product's page from **Products** and use the **You may also like**
+card (or, in a shop that tracks stock, the pencil on **Products → Online**). Add up to eight under
+**Related products**. Drag to change their order. Turn on **Show only these** to show
+your picks and nothing else. Your picks belong to that one product only: picking the mat for the
+cushion does not put the cushion on the mat's page.
+
+Under the picker, **What shoppers see now** shows the row as your shop shows it today, in order,
+with why each product is there: your pick, the same sub-category, a shared tag (it names the tag),
+or the same category. If a product you don't expect is there, the reason tells you what to fix —
+usually a tag. It updates when you save.
+
 ## Themes
 
 **Themes** is the quickest way to a shop that looks like your trade. Each one sets colours, type,

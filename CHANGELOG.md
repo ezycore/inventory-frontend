@@ -9,6 +9,28 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-10-21
+
+### Added
+- **"You may also like" now matches by sub-category, then tags, then category**, and leads with the
+  products the merchant picked. The row and the Customize Related products section both read the
+  backend's new related route.
+- **Related products** on every product's page (a **You may also like** card, its own Save) and in
+  the online listing editor (Products → Online → pencil): up to eight hand-picked products, drag to
+  order, and **Show only these**. Products that are not shown in the store are flagged. The product
+  page is the place stock-free shops use — they have no Online tab. Under the picker, **What
+  shoppers see now** lists the shop's current row with why each product is there ("Your pick",
+  "Same sub-category", "Shared tag: …", "Same category").
+- **"Only 3 left" chip**: Store Settings → Social proof → **Low stock on products** (threshold,
+  with or without the number, on cards too). On the product page it replaces "In stock" and follows
+  the picked size or colour. Its colour and icon are in Customize → Social proof, beside the sold
+  chip's.
+- Store Settings → Social proof now says where both chips appear on the product page (the "Stock
+  badge and tags" row) and that hiding that row in Pages → Product leaves them on cards only.
+
+### Deploy notes
+- Needs inventory-backend ≥ 1.14.0 (the related route and the stock chip settings).
+
 ## [1.12.0] - 2026-10-20
 
 ### Added

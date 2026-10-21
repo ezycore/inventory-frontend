@@ -7,6 +7,7 @@ import {
   CHIP_SWATCHES,
   readableOn,
   soldChipText,
+  stockLeftText,
   type SocialLook,
 } from "@/lib/storefront-social-proof";
 import { useStore } from "@/services/storefront/hooks";
@@ -19,9 +20,9 @@ import { useSocialLook } from "@/services/storefront/use-social-look";
  * a swatch or custom colour is a hex, and a solid fill picks black or white text by contrast — no
  * combination of settings can draw unreadable text.
  */
-function chipColors(look: SocialLook): CSSProperties {
-  const named = CHIP_SWATCHES[look.chipColor as keyof typeof CHIP_SWATCHES];
-  const hex = named ?? (look.chipColor.startsWith("#") ? look.chipColor : null);
+function chipColors(look: SocialLook, color: string): CSSProperties {
+  const named = CHIP_SWATCHES[color as keyof typeof CHIP_SWATCHES];
+  const hex = named ?? (color.startsWith("#") ? color : null);
   const main = hex ?? "var(--primary, #2563eb)";
   switch (look.chipStyle) {
     case "solid":
@@ -50,20 +51,26 @@ const SIZES = {
   card: { sm: { fontSize: 11, padding: "4px 7px", icon: 11 }, md: { fontSize: 12, padding: "5px 9px", icon: 13 } },
 } as const;
 
-/** The chip as drawn — shared by the storefront and the Customize panel's own preview. */
+/**
+ * The chip as drawn — shared by the storefront and the Customize panel's own preview. `kind`
+ * "stock" is the "Only 3 left" chip: the same style and size, its own colour and icon.
+ */
 export function SoldChipView({
   text,
   look,
   place = "page",
+  kind = "sold",
 }: {
   text: string;
   look: SocialLook;
   place?: "page" | "card";
+  kind?: "sold" | "stock";
 }) {
   const size = SIZES[place][look.chipSize];
+  const icon = kind === "stock" ? look.stockIcon : look.chipIcon;
   return (
     <span
-      data-sold-chip=""
+      {...(kind === "stock" ? { "data-stock-chip": "" } : { "data-sold-chip": "" })}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -78,10 +85,10 @@ export function SoldChipView({
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        ...chipColors(look),
+        ...chipColors(look, kind === "stock" ? look.stockColor : look.chipColor),
       }}
     >
-      {look.chipIcon !== "none" ? <Icon name={look.chipIcon} size={size.icon} style={{ display: "block", flexShrink: 0 }} /> : null}
+      {icon !== "none" ? <Icon name={icon} size={size.icon} style={{ display: "block", flexShrink: 0 }} /> : null}
       {text}
     </span>
   );
@@ -100,4 +107,33 @@ export function SoldChip({ count, place = "page" }: { count: number | undefined;
   const sold = store?.socialProof?.soldCount;
   if (count == null || !sold) return null;
   return <SoldChipView text={soldChipText(count, sold, lang)} look={look} place={place} />;
+}
+
+/** The stock chip's text for this product, or `null` — the hook behind `StockChip`. */
+export function useStockLeftText(available: number | undefined, tracked: boolean | undefined): string | null {
+  const { slug } = useStoreContext();
+  const { data: store } = useStore(slug);
+  const { lang } = useStorefrontUI();
+  return stockLeftText(store?.socialProof?.stockLeft, available, tracked ?? store?.tracked, lang);
+}
+
+/**
+ * "Only 3 left" — drawn only while the store has the chip on and stock is between 1 and the
+ * threshold (`stockLeftText`). `place` "card" also needs the merchant's "Show on product cards".
+ */
+export function StockChip({
+  available,
+  tracked,
+  place = "page",
+}: {
+  available: number | undefined;
+  tracked: boolean | undefined;
+  place?: "page" | "card";
+}) {
+  const { slug } = useStoreContext();
+  const { data: store } = useStore(slug);
+  const look = useSocialLook();
+  const text = useStockLeftText(available, tracked);
+  if (!text || (place === "card" && !store?.socialProof?.stockLeft?.showOnCards)) return null;
+  return <SoldChipView text={text} look={look} place={place} kind="stock" />;
 }

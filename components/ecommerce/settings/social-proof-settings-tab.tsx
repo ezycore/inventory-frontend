@@ -9,21 +9,26 @@ import { SaveBar, useStoreSettingsSave } from "./settings-form-shared";
 import {
   purchaseToastDraft,
   soldCountDraft,
+  stockLabelMissingCount,
+  stockLeftDraft,
   toSocialProofPayload,
   type PurchaseToastDraft,
   type SoldCountDraft,
+  type StockLeftDraft,
 } from "./social-proof-shared";
 import { SoldCountSettingsCard } from "./sold-count-settings-card";
+import { StockLeftSettingsCard } from "./stock-left-settings-card";
 
 /**
- * Store settings → Social proof: the sold chip and the recent-purchase popup
- * (docs/plan/social-proof.md). Both start off. This tab is behaviour only — the look is a
+ * Store settings → Social proof: the sold chip, the "Only 3 left" chip and the recent-purchase
+ * popup (docs/plan/social-proof.md, docs/plan/related-products-and-stock-left.md). All start off. This tab is behaviour only — the look is a
  * Customize setting with a live preview, like every other piece of the shop's design.
  */
 export function SocialProofSettingsTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useStoreSettingsSave();
   const [sold, setSold] = useState(() => soldCountDraft(settings.socialProof?.soldCount));
   const [popup, setPopup] = useState(() => purchaseToastDraft(settings.socialProof?.purchaseToast));
+  const [stock, setStock] = useState(() => stockLeftDraft(settings.socialProof?.stockLeft));
 
   const onSave = () => {
     // An entry with no product can never be shown, and the backend refuses it — say which.
@@ -36,7 +41,11 @@ export function SocialProofSettingsTab({ settings }: { settings: StorefrontSetti
       toast.error("Add at least one entry, or show real orders");
       return;
     }
-    save({ socialProof: toSocialProofPayload(sold, popup) });
+    if (stockLabelMissingCount(stock)) {
+      toast.error("Add {count} to the “Only … left” text, where the number goes");
+      return;
+    }
+    save({ socialProof: toSocialProofPayload(sold, popup, stock) });
   };
 
   return (
@@ -44,6 +53,10 @@ export function SocialProofSettingsTab({ settings }: { settings: StorefrontSetti
       <SoldCountSettingsCard
         value={sold}
         onChange={(patch: Partial<SoldCountDraft>) => setSold((s) => ({ ...s, ...patch }))}
+      />
+      <StockLeftSettingsCard
+        value={stock}
+        onChange={(patch: Partial<StockLeftDraft>) => setStock((s) => ({ ...s, ...patch }))}
       />
       <PurchaseToastSettingsCard
         value={popup}

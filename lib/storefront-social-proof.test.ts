@@ -8,6 +8,7 @@ import {
   readableOn,
   resolveSocialLook,
   soldChipText,
+  stockLeftText,
   timeAgoText,
   toastText,
 } from "./storefront-social-proof";
@@ -34,6 +35,33 @@ describe("sold chip text", () => {
 
   it("formats counts", () => {
     expect(formatCount(7, "bn")).toBe("৭");
+  });
+});
+
+describe("stock chip text", () => {
+  const stock = (display: "exact" | "vague" = "exact") => ({
+    threshold: 5,
+    display,
+    label: display === "exact" ? { en: "Only {count} left", bn: "মাত্র {count}টি বাকি" } : { en: "Almost gone", bn: "প্রায় শেষ" },
+    showOnCards: false,
+  });
+
+  it("shows only between 1 and the threshold", () => {
+    expect(stockLeftText(stock(), 6, true, "en")).toBeNull();
+    expect(stockLeftText(stock(), 5, true, "en")).toBe("Only 5 left");
+    expect(stockLeftText(stock(), 1, true, "bn")).toBe("মাত্র ১টি বাকি");
+    expect(stockLeftText(stock(), 0, true, "en")).toBeNull();
+    expect(stockLeftText(stock(), -2, true, "en")).toBeNull();
+  });
+
+  it("never reads an untracked store's sentinel, and is off without the setting", () => {
+    expect(stockLeftText(stock(), 3, false, "en")).toBeNull();
+    expect(stockLeftText(undefined, 3, true, "en")).toBeNull();
+    expect(stockLeftText(stock(), undefined, true, "en")).toBeNull();
+  });
+
+  it("vague wording never names the number", () => {
+    expect(stockLeftText(stock("vague"), 2, true, "en")).toBe("Almost gone");
   });
 });
 

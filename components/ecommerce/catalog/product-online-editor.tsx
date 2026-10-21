@@ -32,6 +32,10 @@ import {
 import { buildImageOrder, galleryFiles } from "@/lib/image-gallery-order";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
 import {
+  RelatedProductsCard,
+  useRelatedPicksDraft,
+} from "@/components/ecommerce/catalog/related-products-card";
+import {
   VariantPricingFields,
   type VariantPriceDraft,
 } from "@/components/ecommerce/catalog/variant-pricing-fields";
@@ -75,6 +79,7 @@ export function ProductOnlineEditor({
   currency?: string;
 }) {
   const update = useUpdateCatalogListing();
+  const related = useRelatedPicksDraft(product?._id ?? null);
   // Only to LABEL the inherit option with what it actually resolves to — the
   // editor never writes this. Shared cache with the Settings page, so opening
   // the sheet costs no extra request in practice.
@@ -239,6 +244,8 @@ export function ProductOnlineEditor({
     const imageOrder = buildImageOrder(images);
     if (imageOrder) fd.append("imageOrder", JSON.stringify(imageOrder));
 
+    // Picks first: a refused pick (a product deleted meanwhile) keeps the sheet open on it.
+    if (related.dirty) await related.save();
     await update.mutateAsync({ id: product._id, formData: fd });
     onClose();
   };
@@ -411,6 +418,8 @@ export function ProductOnlineEditor({
             />
           </div>
 
+          <RelatedProductsCard productId={product._id} draft={related} />
+
           {/* SEO */}
           <div className="space-y-3 rounded-lg border p-3">
             <div className="text-sm font-medium">SEO</div>
@@ -437,8 +446,8 @@ export function ProductOnlineEditor({
         </div>
 
         <SheetFooter className="border-t">
-          <Button onClick={save} disabled={update.isPending}>
-            {update.isPending ? "Saving…" : "Save listing"}
+          <Button onClick={save} disabled={update.isPending || related.pending}>
+            {update.isPending || related.pending ? "Saving…" : "Save listing"}
           </Button>
           <Button variant="outline" onClick={onClose}>
             Cancel
