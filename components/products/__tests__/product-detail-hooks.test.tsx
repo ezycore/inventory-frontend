@@ -81,6 +81,7 @@ vi.mock("../detail/detail-timeline", () => ({ DetailTimeline: () => <div /> }));
 vi.mock("../detail/detail-storefront", () => ({
   DetailStorefront: () => <div />,
 }));
+vi.mock("../detail/detail-related", () => ({ DetailRelated: () => <div /> }));
 
 let errorSpy: ReturnType<typeof vi.spyOn>;
 

@@ -14,6 +14,13 @@ import type { ProductPart } from "@/lib/storefront-builder/product-parts";
  */
 vi.mock("@/components/storefront/product-gallery", () => ({ ProductGallery: () => null }));
 vi.mock("@/services/storefront/use-orders-paused", () => ({ useOrdersPaused: () => null }));
+// The chips read the store payload; here only whether the low-stock chip replaces "In stock".
+const stockText = vi.hoisted(() => ({ value: null as string | null }));
+vi.mock("@/components/storefront/social-proof/sold-chip", () => ({
+  SoldChip: () => null,
+  StockChip: () => <span data-stock-chip="">{stockText.value}</span>,
+  useStockLeftText: () => stockText.value,
+}));
 vi.mock("@/components/storefront/product-detail/product-buy-panel", () => ({
   canChoose: () => true,
   ProductOptions: () => <div data-part="options" />,
@@ -56,6 +63,16 @@ function column(container: HTMLElement): string[] {
     return child.textContent ?? "?";
   });
 }
+
+describe("the stock badge", () => {
+  it("shows the low-stock chip in place of In stock, never both", () => {
+    stockText.value = "Only 2 left";
+    const container = draw([{ key: "b", part: "badges" }]);
+    stockText.value = null;
+    expect(container.querySelector("[data-stock-chip]")?.textContent).toBe("Only 2 left");
+    expect(container.textContent).not.toContain("In stock");
+  });
+});
 
 describe("the product column", () => {
   it("draws the column as it always was with no parts", () => {

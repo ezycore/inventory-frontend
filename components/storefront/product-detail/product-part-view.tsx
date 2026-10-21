@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
-import { SoldChip } from "@/components/storefront/social-proof/sold-chip";
+import { SoldChip, StockChip, useStockLeftText } from "@/components/storefront/social-proof/sold-chip";
 import { PromiseRows } from "@/components/storefront/home/promise-rows";
 import {
   canChoose,
@@ -55,6 +55,11 @@ export function ProductPartView({
 }) {
   const { t, base, product } = d;
   const paused = useOrdersPaused();
+  // The selected variant's stock — a variable product with nothing matched shows no stock chip,
+  // since a total across sizes would tell an XL shopper "Only 2 left" when XL has none.
+  const stockAvailable = d.variable && !d.selectedVariant ? undefined : d.availableQty;
+  const stockText = useStockLeftText(stockAvailable, product?.tracked);
+  const stockLow = !d.soldOut && !!stockText;
   if (!product) return null;
   const drawn = (() => {
     switch (part.part) {
@@ -65,18 +70,23 @@ export function ProductPartView({
         // title — the labels are what the merchant is merchandising on, so
         // burying them below the fold would make the tags page look like it does
         // nothing. Two states, not three: a backorder product reads exactly like
-        // an in-stock one, since `soldOut` already excludes it.
+        // an in-stock one, since `soldOut` already excludes it. "Only 3 left" takes the
+        // "In stock" badge's place while it shows — both at once say the same thing twice.
         return (
           <div style={badgeRow}>
-            <span
-              style={{
-                ...stockBadge,
-                color: d.soldOut ? "var(--discount)" : "var(--primary)",
-                background: d.soldOut ? "var(--discount-soft)" : "var(--primary-soft)",
-              }}
-            >
-              {d.soldOut ? t.outOfStock : t.inStock}
-            </span>
+            {stockLow ? (
+              <StockChip available={stockAvailable} tracked={product.tracked} />
+            ) : (
+              <span
+                style={{
+                  ...stockBadge,
+                  color: d.soldOut ? "var(--discount)" : "var(--primary)",
+                  background: d.soldOut ? "var(--discount-soft)" : "var(--primary-soft)",
+                }}
+              >
+                {d.soldOut ? t.outOfStock : t.inStock}
+              </span>
+            )}
             {/* "120 sold" — only when the backend sent a number (Store settings → Social proof). */}
             {product.soldCount != null ? <SoldChip count={product.soldCount} /> : null}
             {/* Each chip links into the tag facet — a chip that only decorates is a wasted exit. */}

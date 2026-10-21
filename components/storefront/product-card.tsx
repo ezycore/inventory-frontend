@@ -17,7 +17,7 @@ import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
 import { cardBadgeTags, discountBadgeText } from "@/components/storefront/card-badges";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
-import { SoldChip } from "@/components/storefront/social-proof/sold-chip";
+import { CardChips } from "@/components/storefront/social-proof/card-chips";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
   CardCtaRow,
@@ -288,14 +288,10 @@ export function ProductCard({
           </span>
         ) : null}
 
-        {/* "120 sold" — sent on a listing only when the merchant put the chip on cards too, so a
+        {/* "120 sold" / "Only 3 left" — each only when the merchant put it on cards too, so a
             card never grows a line the store did not ask for. Under the name, never over the
             photo: the top of the photo is the discount badge's and the tags'. */}
-        {product.soldCount != null ? (
-          <span style={{ display: "flex", justifyContent: editorial ? "center" : undefined, margin: "0 0 7px" }}>
-            <SoldChip count={product.soldCount} place="card" />
-          </span>
-        ) : null}
+        <CardChips product={product} centered={editorial} />
 
         {/* `iconOnly` has no room for a price row of its own — the price sits
             inline beside the button, which is the shape the compact density has

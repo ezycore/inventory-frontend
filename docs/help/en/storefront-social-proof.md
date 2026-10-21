@@ -1,7 +1,7 @@
 ---
 title: Show how much you sell
 slug: storefront-social-proof
-summary: Put a "124 sold" chip on your products and a small "Rahim from Dhaka bought…" popup on your shop.
+summary: Put "124 sold" and "Only 3 left" chips on your products and a small "Rahim from Dhaka bought…" popup on your shop.
 order: 109
 # Social proof is a tab on Store Settings, so it shares that route with `storefront-setup`, which has
 # the lower `order` and keeps the "?" there. The Sold counts screen has no sidebar row, so it
@@ -18,12 +18,14 @@ ui_labels:
 
 # Show how much you sell
 
-Shoppers trust a product other people have bought. Two small things on your shop say so:
+Shoppers trust a product other people have bought, and act sooner when it is nearly gone. Three
+small things on your shop say so:
 
 - a **sold chip** on the product page — "124 sold";
+- a **low stock chip** — "Only 3 left";
 - a **purchase popup** in a bottom corner — "Rahim from Dhaka bought Cotton Panjabi · 12 min ago".
 
-Both start **off**. Turn them on in **Ecommerce → Store Settings → Social proof**.
+All three start **off**. Turn them on in **Ecommerce → Store Settings → Social proof**.
 
 ## The sold chip
 
@@ -47,6 +49,22 @@ your online shop.
 **Show the chip from** hides it on products that have not sold many yet: "2 sold" puts people off
 more than no chip does. **Rounded** shows "120+" instead of 124.
 
+## The low stock chip
+
+Turn on **Low stock on products**. The chip uses your real stock at the location that ships online
+orders, so there is nothing to enter.
+
+- **Show when stock is at or below** — the chip shows from this number down to 1. The default is 5,
+  so a product with 40 in stock never says "Only 40 left".
+- **Wording** — **Show the number** ("Only 3 left") or **No number** ("Almost gone"). You can write
+  your own text in English and Bangla; with the number, keep {count} where it goes.
+- **Also on product cards** — the chip shows in grids as well, next to the sold count.
+
+On the product page it takes the place of **In stock**. A sold-out product keeps its **Out of
+stock** badge, and a product sold on backorder shows the chip only while it still has stock. For a
+product with sizes or colours, the chip follows the size or colour the shopper picks. If your
+workspace does not track stock, the chip never shows.
+
 ## The purchase popup
 
 Turn on **Recent purchase popup**, then choose where the purchases come from:
@@ -68,5 +86,10 @@ not see it again that visit.
 
 ## Colours and size
 
-How the chip and the popup look — style, colour, size, corners — is in **Online Store → Customize →
-Social proof**, with a live preview. Until you change anything, both follow your shop's theme.
+How the chips and the popup look — style, colour, size, corners — is in **Online Store → Customize →
+Social proof**, with a live preview. The low stock chip shares the sold chip's style and size, with
+its own colour and icon. Until you change anything, they follow your shop's theme.
+
+On the product page both chips sit in the **Stock badge and tags** row, next to "In stock". If you
+hide that row in **Online Store → Pages → Product**, the chips go with it there, and show on product
+cards only (when **Also on product cards** is on).

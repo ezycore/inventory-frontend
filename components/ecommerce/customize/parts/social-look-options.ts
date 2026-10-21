@@ -26,6 +26,11 @@ export const SOCIAL_LOOK_OPTIONS: Partial<Record<SocialLookKey, SegmentedOption[
     { value: "fire", label: "Flame" },
     { value: "bag", label: "Bag" },
   ],
+  stockChipIcon: [
+    { value: "clock", label: "Clock" },
+    { value: "fire", label: "Flame" },
+    { value: "none", label: "None" },
+  ],
   toastStyle: [
     { value: "light", label: "Light", description: "Your card colour, with a border" },
     { value: "dark", label: "Dark", description: "Near-black with light text" },

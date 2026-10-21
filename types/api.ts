@@ -180,6 +180,7 @@ export type OrderableProduct = Schemas["OrderableProduct"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
 export type CatalogVariant = Schemas["CatalogVariant"];
+export type CatalogRelated = Schemas["CatalogRelated"];
 export type StorefrontCollection = Schemas["Collection"];
 export type ProductOrderView = Schemas["ProductOrderView"];
 export type ProductOrderRow = Schemas["ProductOrderRow"];

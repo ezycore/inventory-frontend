@@ -24,7 +24,7 @@ export function RelatedProductsSection({ settings, context }: SectionViewProps<S
       <Island
         name="related-products"
         props={{
-          product: { slug: product.slug, categoryId: product.categoryId },
+          product: { slug: product.slug },
           heading: settings.heading,
           subheading: settings.subheading,
           limit: settings.limit,
