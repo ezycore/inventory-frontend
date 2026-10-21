@@ -2,7 +2,13 @@
 import { describe, expect, it } from "vitest";
 import { filterSoldRows, soldCountsToSave } from "@/components/products/sold-counts/sold-counts-helpers";
 import { NO_TAXONOMY_FILTER } from "@/components/products/catalog-filters/taxonomy-filter";
-import { purchaseToastDraft, soldCountDraft, toSocialProofPayload } from "./social-proof-shared";
+import {
+  purchaseToastDraft,
+  soldCountDraft,
+  stockLabelMissingCount,
+  stockLeftDraft,
+  toSocialProofPayload,
+} from "./social-proof-shared";
 
 describe("social proof settings payload", () => {
   it("starts both features off, with the backend's defaults", () => {
@@ -19,10 +25,18 @@ describe("social proof settings payload", () => {
         template: { en: " {name} ordered {product} " },
         entries: [{ productId: "p1", name: " Karim ", area: "", timeLabel: "  " }],
       }),
+      stockLeftDraft({ enabled: true, label: { en: " " }, vagueLabel: { bn: " প্রায় শেষ " } }),
     );
     expect(payload.soldCount?.label).toBeUndefined();
     expect(payload.purchaseToast?.template).toEqual({ en: "{name} ordered {product}" });
     expect(payload.purchaseToast?.entries).toEqual([{ productId: "p1", name: "Karim" }]);
+    expect(payload.stockLeft).toMatchObject({ enabled: true, threshold: 5, label: undefined, vagueLabel: { bn: "প্রায় শেষ" } });
+  });
+
+  it("starts the stock chip off at 5, and flags an exact wording with no {count}", () => {
+    expect(stockLeftDraft(undefined)).toMatchObject({ enabled: false, threshold: 5, display: "exact" });
+    expect(stockLabelMissingCount(stockLeftDraft({ label: { en: "Hurry" } }))).toBe(true);
+    expect(stockLabelMissingCount(stockLeftDraft({ label: { en: "Only {count} left", bn: "" } }))).toBe(false);
   });
 });
 

@@ -433,7 +433,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/oauth/:provider/callback
-         * @description Defined in `src/routes/storefront.routes.ts:70`.
+         * @description Defined in `src/routes/storefront.routes.ts:72`.
          */
         get: operations["get_api_storefront_oauth_provider_callback"];
         put?: never;
@@ -453,7 +453,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug
-         * @description Defined in `src/routes/storefront.routes.ts:76`.
+         * @description Defined in `src/routes/storefront.routes.ts:78`.
          */
         get: operations["get_api_storefront_slug"];
         put?: never;
@@ -473,7 +473,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/products
-         * @description Defined in `src/routes/storefront.routes.ts:77`.
+         * @description Defined in `src/routes/storefront.routes.ts:79`.
          */
         get: operations["get_api_storefront_slug_products"];
         put?: never;
@@ -493,9 +493,29 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/products/:productSlug
-         * @description Defined in `src/routes/storefront.routes.ts:82`.
+         * @description Defined in `src/routes/storefront.routes.ts:84`.
          */
         get: operations["get_api_storefront_slug_products_productSlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storefront/{slug}/products/{productSlug}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/storefront/:slug/products/:productSlug/related
+         * @description Defined in `src/routes/storefront.routes.ts:86`.
+         */
+        get: operations["get_api_storefront_slug_products_productSlug_related"];
         put?: never;
         post?: never;
         delete?: never;
@@ -513,7 +533,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/categories
-         * @description Defined in `src/routes/storefront.routes.ts:85`.
+         * @description Defined in `src/routes/storefront.routes.ts:93`.
          */
         get: operations["get_api_storefront_slug_categories"];
         put?: never;
@@ -533,7 +553,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/categories/resolve
-         * @description Defined in `src/routes/storefront.routes.ts:88`.
+         * @description Defined in `src/routes/storefront.routes.ts:96`.
          */
         get: operations["get_api_storefront_slug_categories_resolve"];
         put?: never;
@@ -553,7 +573,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/tags
-         * @description Defined in `src/routes/storefront.routes.ts:93`.
+         * @description Defined in `src/routes/storefront.routes.ts:101`.
          */
         get: operations["get_api_storefront_slug_tags"];
         put?: never;
@@ -573,7 +593,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/brands
-         * @description Defined in `src/routes/storefront.routes.ts:98`.
+         * @description Defined in `src/routes/storefront.routes.ts:106`.
          */
         get: operations["get_api_storefront_slug_brands"];
         put?: never;
@@ -593,7 +613,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/facets
-         * @description Defined in `src/routes/storefront.routes.ts:106`.
+         * @description Defined in `src/routes/storefront.routes.ts:114`.
          */
         get: operations["get_api_storefront_slug_facets"];
         put?: never;
@@ -613,7 +633,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/campaigns
-         * @description Defined in `src/routes/storefront.routes.ts:111`.
+         * @description Defined in `src/routes/storefront.routes.ts:119`.
          */
         get: operations["get_api_storefront_slug_campaigns"];
         put?: never;
@@ -633,7 +653,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/campaigns/:campaignSlug
-         * @description Defined in `src/routes/storefront.routes.ts:115`.
+         * @description Defined in `src/routes/storefront.routes.ts:123`.
          */
         get: operations["get_api_storefront_slug_campaigns_campaignSlug"];
         put?: never;
@@ -653,7 +673,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/pages
-         * @description Defined in `src/routes/storefront.routes.ts:120`.
+         * @description Defined in `src/routes/storefront.routes.ts:128`.
          */
         get: operations["get_api_storefront_slug_pages"];
         put?: never;
@@ -673,7 +693,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/page
-         * @description Defined in `src/routes/storefront.routes.ts:123`.
+         * @description Defined in `src/routes/storefront.routes.ts:131`.
          */
         get: operations["get_api_storefront_slug_page"];
         put?: never;
@@ -693,7 +713,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/section-data
-         * @description Defined in `src/routes/storefront.routes.ts:128`.
+         * @description Defined in `src/routes/storefront.routes.ts:136`.
          */
         get: operations["get_api_storefront_slug_section_data"];
         put?: never;
@@ -713,7 +733,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/sitemap
-         * @description Defined in `src/routes/storefront.routes.ts:134`.
+         * @description Defined in `src/routes/storefront.routes.ts:142`.
          */
         get: operations["get_api_storefront_slug_sitemap"];
         put?: never;
@@ -733,7 +753,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/recent-purchases
-         * @description Defined in `src/routes/storefront.routes.ts:136`.
+         * @description Defined in `src/routes/storefront.routes.ts:144`.
          */
         get: operations["get_api_storefront_slug_recent_purchases"];
         put?: never;
@@ -755,7 +775,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/register
-         * @description Defined in `src/routes/storefront.routes.ts:144`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:152`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_register"];
         delete?: never;
@@ -775,7 +795,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/login
-         * @description Defined in `src/routes/storefront.routes.ts:150`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:158`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_login"];
         delete?: never;
@@ -795,7 +815,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/verify-email
-         * @description Defined in `src/routes/storefront.routes.ts:156`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:164`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_verify_email"];
         delete?: never;
@@ -815,7 +835,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/forgot-password
-         * @description Defined in `src/routes/storefront.routes.ts:162`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:170`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_forgot_password"];
         delete?: never;
@@ -835,7 +855,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/reset-password
-         * @description Defined in `src/routes/storefront.routes.ts:168`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:176`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_reset_password"];
         delete?: never;
@@ -855,7 +875,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/resend-verification
-         * @description Defined in `src/routes/storefront.routes.ts:174`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:182`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_resend_verification"];
         delete?: never;
@@ -873,7 +893,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/oauth/:provider/start
-         * @description Defined in `src/routes/storefront.routes.ts:181`.
+         * @description Defined in `src/routes/storefront.routes.ts:189`.
          */
         get: operations["get_api_storefront_slug_auth_oauth_provider_start"];
         put?: never;
@@ -893,7 +913,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:182`.
+         * @description Defined in `src/routes/storefront.routes.ts:190`.
          */
         get: operations["get_api_storefront_slug_auth_me"];
         put?: never;
@@ -903,7 +923,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:185`.
+         * @description Defined in `src/routes/storefront.routes.ts:193`.
          */
         patch: operations["patch_api_storefront_slug_auth_me"];
         trace?: never;
@@ -918,7 +938,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/password
-         * @description Defined in `src/routes/storefront.routes.ts:192`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:200`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         put: operations["put_api_storefront_slug_auth_me_password"];
         post?: never;
@@ -938,7 +958,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/prefs
-         * @description Defined in `src/routes/storefront.routes.ts:199`.
+         * @description Defined in `src/routes/storefront.routes.ts:207`.
          */
         put: operations["put_api_storefront_slug_auth_me_prefs"];
         post?: never;
@@ -959,7 +979,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/me/addresses
-         * @description Defined in `src/routes/storefront.routes.ts:205`.
+         * @description Defined in `src/routes/storefront.routes.ts:213`.
          */
         post: operations["post_api_storefront_slug_auth_me_addresses"];
         delete?: never;
@@ -980,14 +1000,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:217`.
+         * @description Defined in `src/routes/storefront.routes.ts:225`.
          */
         delete: operations["delete_api_storefront_slug_auth_me_addresses_addressId"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:211`.
+         * @description Defined in `src/routes/storefront.routes.ts:219`.
          */
         patch: operations["patch_api_storefront_slug_auth_me_addresses_addressId"];
         trace?: never;
@@ -1002,7 +1022,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/cart
-         * @description Defined in `src/routes/storefront.routes.ts:230`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:238`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         put: operations["put_api_storefront_slug_cart"];
         post?: never;
@@ -1023,7 +1043,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/checkout-started
-         * @description Defined in `src/routes/storefront.routes.ts:236`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:244`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_checkout_started"];
         delete?: never;
@@ -1043,7 +1063,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/contact
-         * @description Defined in `src/routes/storefront.routes.ts:245`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:253`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_contact"];
         delete?: never;
@@ -1063,7 +1083,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/claim
-         * @description Defined in `src/routes/storefront.routes.ts:251`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:259`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_claim"];
         delete?: never;
@@ -1083,7 +1103,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/subscribe
-         * @description Defined in `src/routes/storefront.routes.ts:262`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:270`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
          */
         post: operations["post_api_storefront_slug_subscribe"];
         delete?: never;
@@ -1101,7 +1121,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/cart/restore/:token
-         * @description Defined in `src/routes/storefront.routes.ts:273`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:281`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
          */
         get: operations["get_api_storefront_slug_cart_restore_token"];
         put?: never;
@@ -1121,13 +1141,13 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:327`.
+         * @description Defined in `src/routes/storefront.routes.ts:335`.
          */
         get: operations["get_api_storefront_slug_orders"];
         put?: never;
         /**
          * POST /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:287`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:295`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
          */
         post: operations["post_api_storefront_slug_orders"];
         delete?: never;
@@ -1145,7 +1165,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/track
-         * @description Defined in `src/routes/storefront.routes.ts:307`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:315`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
          */
         get: operations["get_api_storefront_slug_orders_track"];
         put?: never;
@@ -1165,7 +1185,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/t/:token
-         * @description Defined in `src/routes/storefront.routes.ts:313`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:321`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
          */
         get: operations["get_api_storefront_slug_t_token"];
         put?: never;
@@ -1185,7 +1205,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/:orderNumber
-         * @description Defined in `src/routes/storefront.routes.ts:333`.
+         * @description Defined in `src/routes/storefront.routes.ts:341`.
          */
         get: operations["get_api_storefront_slug_orders_orderNumber"];
         put?: never;
@@ -1207,7 +1227,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/orders/:orderNumber/cancel
-         * @description Defined in `src/routes/storefront.routes.ts:341`.
+         * @description Defined in `src/routes/storefront.routes.ts:349`.
          */
         post: operations["post_api_storefront_slug_orders_orderNumber_cancel"];
         delete?: never;
@@ -1227,7 +1247,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/coupon/validate
-         * @description Defined in `src/routes/storefront.routes.ts:351`.
+         * @description Defined in `src/routes/storefront.routes.ts:359`.
          */
         post: operations["post_api_storefront_slug_coupon_validate"];
         delete?: never;
@@ -8029,7 +8049,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/catalog
-         * @description Defined in `src/routes/catalog.routes.ts:26`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:32`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_catalog"];
         put?: never;
@@ -8055,7 +8075,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/bulk
-         * @description Defined in `src/routes/catalog.routes.ts:33`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:39`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_bulk"];
         trace?: never;
@@ -8069,7 +8089,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/catalog/collections
-         * @description Defined in `src/routes/catalog.routes.ts:42`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:48`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_catalog_collections"];
         put?: never;
@@ -8095,7 +8115,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/collections/reorder
-         * @description Defined in `src/routes/catalog.routes.ts:47`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:53`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_collections_reorder"];
         trace?: never;
@@ -8115,7 +8135,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/collections/:id
-         * @description Defined in `src/routes/catalog.routes.ts:53`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:59`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_collections_id"];
         trace?: never;
@@ -8129,10 +8149,34 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/catalog/:id/variants
-         * @description Defined in `src/routes/catalog.routes.ts:62`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:68`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_catalog_id_variants"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/catalog/{id}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/catalog/:id/related
+         * @description Defined in `src/routes/catalog.routes.ts:76`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_catalog_id_related"];
+        /**
+         * PUT /api/ecommerce/catalog/:id/related
+         * @description Defined in `src/routes/catalog.routes.ts:82`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        put: operations["put_api_ecommerce_catalog_id_related"];
         post?: never;
         delete?: never;
         options?: never;
@@ -8155,7 +8199,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/:id
-         * @description Defined in `src/routes/catalog.routes.ts:69`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:89`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_id"];
         trace?: never;
@@ -14146,6 +14190,21 @@ export interface components {
                         timeLabel?: string;
                     }[];
                 };
+                stockLeft?: {
+                    enabled?: boolean;
+                    threshold?: number;
+                    /** @enum {string} */
+                    display?: "exact" | "vague";
+                    label?: {
+                        en?: string;
+                        bn?: string;
+                    };
+                    vagueLabel?: {
+                        en?: string;
+                        bn?: string;
+                    };
+                    showOnCards?: boolean;
+                };
             };
             couriers: {
                 /** @enum {string} */
@@ -14491,6 +14550,16 @@ export interface components {
                     };
                     /** @enum {string} */
                     position: "bottom-left" | "bottom-right";
+                };
+                stockLeft?: {
+                    threshold: number;
+                    /** @enum {string} */
+                    display: "exact" | "vague";
+                    label: {
+                        en: string;
+                        bn: string;
+                    };
+                    showOnCards: boolean;
                 };
             };
         };
@@ -15709,6 +15778,8 @@ export interface components {
                         soldChipColor?: string;
                         soldChipSize?: string;
                         soldChipIcon?: string;
+                        stockChipColor?: string;
+                        stockChipIcon?: string;
                         toastStyle?: string;
                         toastBg?: string;
                         toastText?: string;
@@ -16069,6 +16140,8 @@ export interface components {
                         soldChipColor?: string;
                         soldChipSize?: string;
                         soldChipIcon?: string;
+                        stockChipColor?: string;
+                        stockChipIcon?: string;
                         toastStyle?: string;
                         toastBg?: string;
                         toastText?: string;
@@ -16434,6 +16507,8 @@ export interface components {
                 soldChipColor?: string;
                 soldChipSize?: string;
                 soldChipIcon?: string;
+                stockChipColor?: string;
+                stockChipIcon?: string;
                 toastStyle?: string;
                 toastBg?: string;
                 toastText?: string;
@@ -19792,6 +19867,21 @@ export interface components {
                     timeLabel?: string;
                 }[];
             };
+            stockLeft?: {
+                enabled?: boolean;
+                threshold?: number;
+                /** @enum {string} */
+                display?: "exact" | "vague";
+                label?: {
+                    en?: string;
+                    bn?: string;
+                };
+                vagueLabel?: {
+                    en?: string;
+                    bn?: string;
+                };
+                showOnCards?: boolean;
+            };
         };
         StoreSocialProof: {
             soldCount?: {
@@ -19815,6 +19905,112 @@ export interface components {
                 /** @enum {string} */
                 position: "bottom-left" | "bottom-right";
             };
+            stockLeft?: {
+                threshold: number;
+                /** @enum {string} */
+                display: "exact" | "vague";
+                label: {
+                    en: string;
+                    bn: string;
+                };
+                showOnCards: boolean;
+            };
+        };
+        CatalogRelated: {
+            preview: {
+                listed: boolean;
+                items: {
+                    _id: string;
+                    name: string;
+                    image: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    } | null;
+                    /** @enum {string} */
+                    reason: "picked" | "subcategory" | "tags" | "category" | "store";
+                    tagNames?: string[];
+                }[];
+            };
+            pickedOnly: boolean;
+            picks: {
+                _id: string;
+                name: string;
+                image: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                    bytes?: number;
+                    largeUrl?: string;
+                } | null;
+                shown: boolean;
+            }[];
+        };
+        StorefrontRelatedProducts: {
+            items: {
+                _id: string;
+                name: string;
+                slug?: string;
+                price: number | null;
+                compareAtPrice: number | null;
+                discountLabel: string | null;
+                basePrice: number | null;
+                images: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                    bytes?: number;
+                    largeUrl?: string;
+                }[];
+                description: string;
+                featured: boolean;
+                categoryId?: string | null;
+                tags: {
+                    _id: string;
+                    name: string;
+                    slug?: string;
+                    color: string | null;
+                    showOnCard: boolean;
+                    cardPriority: number | null;
+                }[];
+                subcategoryId?: string | null;
+                productType: string;
+                hasVariants: boolean;
+                availableQuantity: number;
+                tracked?: boolean;
+                unitLabel?: string;
+                /** @enum {string} */
+                outOfStockBehavior?: "hide" | "show" | "backorder";
+                seo?: {
+                    title?: string;
+                    description?: string;
+                };
+                variants?: {
+                    _id: string;
+                    label: string;
+                    attributes: {
+                        [key: string]: unknown;
+                    };
+                    price: number | null;
+                    compareAtPrice: number | null;
+                    images: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    }[];
+                    availableQuantity: number;
+                    tracked?: boolean;
+                }[];
+                soldCount?: number;
+            }[];
         };
     };
     responses: never;
@@ -20751,6 +20947,51 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["StorefrontProduct"];
                     };
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_storefront_slug_products_productSlug_related: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+                productSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontRelatedProducts"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not found */
@@ -24384,6 +24625,21 @@ export interface operations {
                                 productId: string;
                                 timeLabel?: string;
                             }[];
+                        };
+                        stockLeft?: {
+                            enabled?: boolean;
+                            threshold?: number;
+                            /** @enum {string} */
+                            display?: "exact" | "vague";
+                            label?: {
+                                en?: string;
+                                bn?: string;
+                            };
+                            vagueLabel?: {
+                                en?: string;
+                                bn?: string;
+                            };
+                            showOnCards?: boolean;
                         };
                     };
                 };
@@ -47958,6 +48214,9 @@ export interface operations {
                             soldChipSize?: "sm" | "md";
                             /** @enum {string} */
                             soldChipIcon?: "none" | "fire" | "bag";
+                            stockChipColor?: ("accent" | "green" | "red" | "orange" | "neutral") | string;
+                            /** @enum {string} */
+                            stockChipIcon?: "none" | "clock" | "fire";
                             /** @enum {string} */
                             toastStyle?: "light" | "dark" | "brand" | "custom";
                             toastBg?: string;
@@ -48541,6 +48800,139 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["CatalogVariant"][];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_catalog_id_related: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CatalogRelated"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_ecommerce_catalog_id_related: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    productIds: string[];
+                    pickedOnly: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CatalogRelated"];
                     };
                 };
             };

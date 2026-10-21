@@ -663,6 +663,8 @@ export interface StoreTemplatesRaw {
   soldChipColor?: string;
   soldChipSize?: string;
   soldChipIcon?: string;
+  stockChipColor?: string;
+  stockChipIcon?: string;
   toastStyle?: string;
   toastBg?: string;
   toastText?: string;
@@ -981,6 +983,8 @@ export interface CatalogProduct {
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;
+  /** `false` when the store does not count stock — `availableQuantity` is then a sentinel, never shown. */
+  tracked?: boolean;
   /**
    * How the product is sold — "kg", "pcs". **Absent when the merchant set no
    * sale unit**, which is why every consumer must treat it as optional rather
@@ -1602,6 +1606,9 @@ export const storefrontApi = {
   ) => sfFetch<ProductListResult>(slug, `/products${buildQuery(params)}`),
   getProduct: (slug: string, productSlug: string) =>
     sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
+  /** "You may also like" — the merchant's picks, then sub-category, shared tags, category. */
+  relatedProducts: (slug: string, productSlug: string, limit: number) =>
+    sfFetch<{ items: CatalogProduct[] }>(slug, `/products/${productSlug}/related${buildQuery({ limit })}`),
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
   /** Every facet at once (`GET …/facets`); `params` are the listing's filters. */

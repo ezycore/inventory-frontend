@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import {
   useStoreCategories,
   useStoreProduct,
-  useStoreProducts,
+  useStoreRelated,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
@@ -70,29 +70,20 @@ export function useProductDetail(
 }
 
 /**
- * Products like this one: its collection's when it has one, the newest
- * otherwise, never itself — the product page's "You may also like" row, and the
- * Related products section that can take its place (plan §17, Phase 6 step 5).
- * One query for both, so a page drawing the section beside a hidden row asks
- * the catalogue once.
+ * The product page's "You may also like" row, and the Related products section that can take its
+ * place (plan §17, Phase 6 step 5). The backend decides the order — the merchant's picks, then the
+ * same sub-category, shared tags, the same category
+ * (docs/plan/related-products-and-stock-left.md §A3) — so this only asks for `limit` rows. One
+ * query for both, so a page drawing the section beside a hidden row asks once.
  */
 export function useRelatedProducts(
-  product: Pick<CatalogProduct, "slug" | "categoryId"> | undefined,
+  product: Pick<CatalogProduct, "slug"> | undefined,
   /** `undefined` rather than a caller's own default, so an unset section setting lands here. */
   limit?: number,
 ): CatalogProduct[] {
   const { slug } = useStoreContext();
-  const want = limit ?? 4;
-  /* One more than asked for, because the page's OWN product comes back in its
-     collection's products and is filtered out below — and never fewer than the
-     eight this has always fetched, so the query key of every row that has not
-     asked for more is unchanged and keeps its cache. */
-  const fetch = Math.max(8, want + 1);
-  const { data } = useStoreProducts(
-    slug,
-    product?.categoryId ? { categoryId: product.categoryId, limit: fetch } : { limit: fetch },
-  );
-  return (data?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, want);
+  const { data } = useStoreRelated(slug, product?.slug, limit ?? 4);
+  return data?.items ?? [];
 }
 
 export type ProductDetail = ReturnType<typeof useProductDetail>;

@@ -1,8 +1,9 @@
 // coding-standard: maintained
 
 /**
- * The sold chip and the recent-purchase toast — the storefront's half of
- * `docs/plan/social-proof.md` (backend `utils/social-proof.ts` owns the counting and the masking).
+ * The sold chip, the "Only 3 left" stock chip and the recent-purchase toast — the storefront's half
+ * of `docs/plan/social-proof.md` and `docs/plan/related-products-and-stock-left.md` Part B (backend
+ * `utils/social-proof.ts` owns the counting and the masking).
  *
  * Pure: types, the look resolver, and the text builders, so the product page, the cards, the
  * toast and the two admin previews all print the same thing.
@@ -22,6 +23,13 @@ export interface StoreSocialProof {
     maxPerVisit: number;
     template: { en: string; bn: string };
     position: "bottom-left" | "bottom-right";
+  };
+  /** `label` is already the wording for `display` — exact carries `{count}`, vague does not. */
+  stockLeft?: {
+    threshold: number;
+    display: "exact" | "vague";
+    label: { en: string; bn: string };
+    showOnCards: boolean;
   };
 }
 
@@ -59,6 +67,27 @@ export function soldChipText(
 ): string {
   const number = formatCount(count, lang) + (sold.display === "rounded" ? "+" : "");
   const label = sold.label[lang] || sold.label.en;
+  return label.includes("{count}") ? label.replace("{count}", number) : `${number} ${label}`;
+}
+
+/**
+ * "Only 3 left", or `null` when the chip must not show. One rule for the product page and the cards:
+ *
+ * - only a counted number — an untracked store's quantity is a sentinel, never a stock level;
+ * - only between 1 and the threshold — 0 is the red "Out of stock" badge's job, and a backorder
+ *   product at 0 is presented as available, not as nearly gone.
+ */
+export function stockLeftText(
+  stock: StoreSocialProof["stockLeft"],
+  available: number | undefined,
+  tracked: boolean | undefined,
+  lang: ShopLang,
+): string | null {
+  if (!stock || tracked === false || available == null) return null;
+  if (available < 1 || available > stock.threshold) return null;
+  const label = stock.label[lang] || stock.label.en;
+  if (stock.display === "vague") return label;
+  const number = formatCount(available, lang);
   return label.includes("{count}") ? label.replace("{count}", number) : `${number} ${label}`;
 }
 
@@ -118,6 +147,8 @@ export const SOCIAL_LOOK_KEYS = [
   "soldChipColor",
   "soldChipSize",
   "soldChipIcon",
+  "stockChipColor",
+  "stockChipIcon",
   "toastStyle",
   "toastBg",
   "toastText",
@@ -129,12 +160,17 @@ export const SOCIAL_LOOK_KEYS = [
 export type SocialLookKey = (typeof SOCIAL_LOOK_KEYS)[number];
 export type SocialLookRaw = Partial<Record<SocialLookKey, string>>;
 
+export type ChipIcon = "none" | "fire" | "bag" | "clock";
+
 export interface SocialLook {
   chipStyle: "soft" | "solid" | "outline" | "text";
   /** A named swatch or a `#rrggbb`. */
   chipColor: string;
   chipSize: "sm" | "md";
-  chipIcon: "none" | "fire" | "bag";
+  chipIcon: ChipIcon;
+  /** The stock chip shares the style and size above, with its own colour and icon. */
+  stockColor: string;
+  stockIcon: ChipIcon;
   toastStyle: "light" | "dark" | "brand" | "custom";
   toastBg: string | null;
   toastText: string | null;
@@ -167,13 +203,15 @@ export function pickSocialLook(templates: Record<string, unknown> | undefined): 
 /** Raw ids → a look the components can draw; anything unknown falls back like a saved store. */
 export function resolveSocialLook(raw: SocialLookRaw | undefined): SocialLook {
   const r = raw ?? {};
-  const color = r.soldChipColor;
+  const color = (raw: string | undefined, fallback: string) =>
+    raw && (HEX.test(raw) || Object.hasOwn(CHIP_SWATCHES, raw) || raw === "accent") ? raw : fallback;
   return {
     chipStyle: oneOf(r.soldChipStyle, ["soft", "solid", "outline", "text"], "soft"),
-    chipColor:
-      color && (HEX.test(color) || Object.hasOwn(CHIP_SWATCHES, color)) ? color : "accent",
+    chipColor: color(r.soldChipColor, "accent"),
     chipSize: oneOf(r.soldChipSize, ["sm", "md"], "sm"),
     chipIcon: oneOf(r.soldChipIcon, ["none", "fire", "bag"], "none"),
+    stockColor: color(r.stockChipColor, "orange"),
+    stockIcon: oneOf(r.stockChipIcon, ["none", "clock", "fire"], "clock"),
     toastStyle: oneOf(r.toastStyle, ["light", "dark", "brand", "custom"], "light"),
     toastBg: r.toastBg && HEX.test(r.toastBg) ? r.toastBg : null,
     toastText: r.toastText && HEX.test(r.toastText) ? r.toastText : null,

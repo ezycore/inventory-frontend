@@ -48,6 +48,9 @@ export const storefront = {
     ["storefront", slug, "products", "infinite", params ?? {}] as const,
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
+  /** Under the `products` prefix, so evicting the catalogue evicts these rows too. */
+  related: (slug: string, productSlug: string, limit: number) =>
+    ["storefront", slug, "products", "related", productSlug, limit] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
   facets: (slug: string, params: unknown = {}) =>
     ["storefront", slug, "facets", params] as const,
@@ -120,6 +123,14 @@ export const useStoreProducts = (
     queryFn: () => storefrontApi.listProducts(slug, params),
     enabled: !!slug && enabled,
     initialData,
+  });
+
+/** The product page's related row (`GET …/products/:productSlug/related`). */
+export const useStoreRelated = (slug: string, productSlug: string | undefined, limit: number) =>
+  useQuery({
+    queryKey: storefront.related(slug, productSlug ?? "", limit),
+    queryFn: () => storefrontApi.relatedProducts(slug, productSlug!, limit),
+    enabled: !!slug && !!productSlug,
   });
 
 /**
