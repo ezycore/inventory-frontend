@@ -33,6 +33,24 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ### Deploy notes
 - Needs inventory-backend with the inbox (`/api/inbox/*`) — deploy the backend first.
 
+## [1.13.1] - 2026-10-23
+
+### Fixed
+- **Shops no longer show a 404, and custom domains no longer send shoppers to the login page, when
+  the backend is busy.** A rate-limited (429) or timed-out (408) API answer used to read as "this
+  store doesn't exist": cached shop pages were saved as 404s, and a custom domain's shoppers were
+  redirected to `/login` (uriibaba.com, 2026-10-23). Now it reads as "no answer": cached pages keep
+  their last good copy, and a custom domain reuses its last known store, or answers a short 503 "try
+  again" when it has none.
+- Every server-side call to the backend sends the new runtime `SSR_API_KEY` (`lib/server-api.ts`),
+  so the backend stops counting all shoppers of all shops against this server's one IP.
+
+### Deploy notes
+- New RUNTIME env `SSR_API_KEY` in `.env.frontend` (not a build arg — changing it needs only
+  `docker compose up -d`, no rebuild). Must equal the backend's `SSR_API_KEY` (inventory-backend
+  ≥ 1.14.1). Empty = no exemption, so the 429 handling still ships safely on its own; set the key on
+  both sides to stop the rate limit being hit at all.
+
 ## [1.13.0] - 2026-10-21
 
 ### Added
