@@ -9,6 +9,7 @@ import {
   type ResolvedStore,
 } from "@/lib/storefront-host-map";
 import {
+  isHostLookupUnavailable,
   lookupCanonicalHostByHost,
   lookupCanonicalHostBySlug,
 } from "@/lib/storefront-domain-lookup";
@@ -119,6 +120,21 @@ export async function proxy(request: NextRequest) {
   // Build-time config first, then the merchant custom-domain registry (cached, so
   // steady-state traffic doesn't pay an extra round trip).
   const store = await resolveStoreForHost(hostnameOf(hostHeader));
+
+  // A custom domain whose lookup got no answer (API down, or rate-limited) is
+  // "could not tell", not "not a store" — falling through would hand a shopper
+  // the admin login, which is what uriibaba.com did on 2026-10-23. Ask them to
+  // retry instead; the lookup itself retries after 10s.
+  if (!store && isHostLookupUnavailable(hostnameOf(hostHeader))) {
+    return new NextResponse("This shop is temporarily unavailable. Please try again in a moment.", {
+      status: 503,
+      headers: {
+        "Retry-After": "10",
+        "Cache-Control": "no-store",
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
 
   // Never trust client-supplied store headers — strip them, then set our own
   // from the resolved host so they can't be spoofed.

@@ -177,8 +177,8 @@ minimum version, say so under "Deploy notes".
 ## Infra env templates (mandatory)
 
 **A new `NEXT_PUBLIC_*` is not done until four files agree.** Every env var this app reads is
-`NEXT_PUBLIC_*`, which means it is **baked into the image at BUILD time** — the running container
-reads nothing. So a var added here and nowhere else is not "missing in prod", it is *permanently
+`NEXT_PUBLIC_*` — **except `SSR_API_KEY`**, see below — which means it is **baked into the image at
+BUILD time** — the running container reads nothing else. So a var added here and nowhere else is not "missing in prod", it is *permanently
 empty in prod*, and no server-side env edit can fix it: it needs a rebuild.
 
 The four that move together, in the same change:
@@ -188,14 +188,20 @@ The four that move together, in the same change:
 | `.env.example` (this repo) | local dev + the documented meaning of each var |
 | `Dockerfile` | `ARG X` + `ENV X=$X` — without this the build never sees it |
 | `.github/workflows/deploy.yml` | `build-args:` — the per-branch value (main → prod, else staging) |
-| [`easystock-infra/templates/frontend.env.example`](../easystock-infra/templates/frontend.env.example) | the deploy registry: runtime `NODE_ENV` only, plus these listed as build-time-only |
+| [`easystock-infra/templates/frontend.env.example`](../easystock-infra/templates/frontend.env.example) | the deploy registry: runtime `NODE_ENV` + `SSR_API_KEY`, plus these listed as build-time-only |
 
 Rules:
 
-- **Never add a runtime var to the infra template expecting it to work.** `env_file: ./.env.frontend`
+- **Never add a `NEXT_PUBLIC_*` to the infra template expecting it to work.** `env_file: ./.env.frontend`
   is loaded, but Next has already inlined `NEXT_PUBLIC_*` into the bundle at build time — editing it
-  on the server changes nothing. If you genuinely need a runtime value, it has to be fetched from the
-  API, not read from `process.env`.
+  on the server changes nothing.
+- **The one runtime var: `SSR_API_KEY`** (server-only secret, `lib/server-api.ts`). A
+  non-`NEXT_PUBLIC_` name is NOT inlined, so server code — the proxy (Node in Next 16), server
+  components, route handlers — reads it from `.env.frontend` at runtime, and in a browser bundle it
+  is `undefined`. It lives in `.env.example` and the infra template only: **no** Dockerfile `ARG`,
+  **no** workflow `build-arg` — baking a secret into the image is exactly what to avoid. Changing it
+  needs a container restart, not a rebuild. A future runtime secret follows the same pattern and is
+  only ever read by server code.
 - **The Dockerfile `ARG` and the workflow `build-arg` are separate steps.** Declaring the `ARG`
   without passing the `build-arg` produces a silently empty value in every image —
   `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP` is in that state today (intentionally: self-serve domains resolve
