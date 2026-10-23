@@ -43,6 +43,7 @@
  * Never throws.
  */
 import { PREVIEW_API_HEADER } from "@/lib/storefront-preview";
+import { serverApiHeaders } from "@/lib/server-api";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -67,7 +68,7 @@ type Probe = "found" | "missing" | "error";
 async function probe(url: string, headers: Record<string, string> = {}): Promise<Probe> {
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json", ...headers },
+      headers: { Accept: "application/json", ...serverApiHeaders(), ...headers },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (res.ok) return "found";
