@@ -85,6 +85,31 @@
     "disconnect": "Disconnect",
     "disconnectTitle": "Disconnect this Facebook Page?",
     "disconnectDescription": "New messages will stop arriving. Chats already received stay here, and reconnecting the same Page continues them.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "connectedVia": "Connected with",
+    "viaFacebook": "Connect with Facebook",
+    "viaOwnApp": "Your own Meta app",
+    "oauth": {
+      "title": "Connect with Facebook",
+      "reconnectTitle": "Connect with Facebook again",
+      "description": "Log in with the Facebook account that manages your Page and pick the Page. ezycore sets up the rest — nothing to copy.",
+      "button": "Connect with Facebook",
+      "redirecting": "Opening Facebook…",
+      "pickTitle": "Choose the Page to connect",
+      "pickHint": "These are the Pages you gave ezycore access to on Facebook. One Page per workspace.",
+      "noPages": "Facebook returned no Pages. Connect again and tick the Page in the Facebook window.",
+      "cannotMessage": "Your Facebook role on this Page can't answer messages",
+      "connect": "Connect",
+      "connecting": "Connecting…",
+      "cancel": "Cancel",
+      "expired": "This Facebook sign-in has expired. Click Connect with Facebook again.",
+      "ownAppToggle": "Use your own Meta app instead (advanced)",
+      "errors": {
+        "cancelled": "Facebook sign-in was cancelled.",
+        "INBOX_OAUTH_SESSION_INVALID": "The Facebook sign-in expired. Please try again.",
+        "INBOX_OAUTH_UNAVAILABLE": "Connect with Facebook is not available right now. Use your own Meta app instead.",
+        "failed": "Facebook sign-in didn't work. Please try again."
+      }
+    }
   }
 }

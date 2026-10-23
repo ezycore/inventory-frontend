@@ -5,11 +5,21 @@ import type {
   InboxConnection,
   InboxConversation,
   InboxMessage,
+  InboxOAuthPages,
+  InboxOAuthStart,
   InboxSummary,
   InboxThread,
 } from "@/types/api";
 
-export type { InboxConnection, InboxConversation, InboxMessage, InboxSummary, InboxThread };
+export type {
+  InboxConnection,
+  InboxConversation,
+  InboxMessage,
+  InboxOAuthPages,
+  InboxOAuthStart,
+  InboxSummary,
+  InboxThread,
+};
 
 export interface InboxConversationListParams {
   search?: string;
@@ -53,6 +63,16 @@ export const inboxApi = {
     apiClient.post(`${base}/connection/test`, {}),
 
   disconnect: (): Promise<ApiResponse<InboxConnection>> => apiClient.delete(`${base}/connection`),
+
+  /** "Connect with Facebook": where to send the browser (Facebook Login for Business). */
+  startOAuth: (): Promise<ApiResponse<InboxOAuthStart>> => apiClient.post(`${base}/oauth/start`, {}),
+
+  /** The Pages a finished sign-in can connect. `grant` is the opaque blob from the URL fragment. */
+  getOAuthPages: (grant: string): Promise<ApiResponse<InboxOAuthPages>> =>
+    apiClient.post(`${base}/oauth/pages`, { grant }),
+
+  connectOAuthPage: (grant: string, pageId: string): Promise<ApiResponse<InboxConnection>> =>
+    apiClient.post(`${base}/oauth/connect`, { grant, pageId }),
 
   summary: (): Promise<ApiResponse<InboxSummary>> => apiClient.get(`${base}/summary`),
 

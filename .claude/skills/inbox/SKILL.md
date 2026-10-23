@@ -14,7 +14,7 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
 | Concern | Where |
 |---|---|
 | Pages | `app/(protected)/inbox/page.tsx`, `app/(protected)/inbox/settings/page.tsx`, guard `app/(protected)/inbox/layout.tsx` |
-| Components | `components/inbox/` — `conversation-list`, `thread-view`, `message-bubble`, `reply-box`, `connection-form`, `connection-status`, `inbox-nav-badge`, `inbox-utils` |
+| Components | `components/inbox/` — `conversation-list`, `thread-view`, `message-bubble`, `reply-box`, `connection-form`, `connection-status`, `facebook-connect-card`, `facebook-page-picker`, `inbox-nav-badge`, `inbox-utils` |
 | API | `services/api/modules/inbox/{api,hooks}.ts`; keys `queryKeys.inbox`; events `inbox.connectionChanged`, `inbox.threadRead`, `inbox.replied` |
 | Copy | `messages/{en,bn}/inbox.json` (fully translated); glossary section "Inbox" in `docs/I18N-GLOSSARY.md` |
 
@@ -37,3 +37,11 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
    so a half-typed reply does not follow the merchant into another chat.
 7. **The sidebar badge is the one special case in `app-sidebar.tsx`** (`item.url === "/inbox"`). A
    second live count should become a `NavItem` `badge` key, not another branch.
+8. **"Connect with Facebook" is decided by the backend** (`connection.oauthAvailable`, an env switch
+   there) — never by a `NEXT_PUBLIC_*`, which would need a rebuild to flip. On: the button leads and
+   the own-app form folds under "advanced". Off: the old screen, unchanged.
+9. **The return is in the URL fragment** (`#oauth=<grant>` / `#oauthError=<code>`), parsed by
+   `readOAuthReturn` and stripped with `history.replaceState` on arrival. The grant is opaque and
+   encrypted — pass it back as-is, never put it in a query string or a query key you log.
+10. **A `platform` connection has no webhook card** — ezycore subscribed the Page; there is nothing
+    to paste. `useStartInboxOAuth` is in `READ_ONLY_MUTATIONS` (it only fetches the login URL).

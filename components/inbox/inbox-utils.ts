@@ -25,3 +25,23 @@ export type AttachmentKind = (typeof KNOWN_ATTACHMENTS)[number] | "other";
 export function attachmentKind(type: string): AttachmentKind {
   return (KNOWN_ATTACHMENTS as readonly string[]).includes(type) ? (type as AttachmentKind) : "other";
 }
+
+/** The `#oauthError=` codes the settings screen has its own sentence for; anything else is `failed`. */
+const KNOWN_OAUTH_ERRORS = ["cancelled", "INBOX_OAUTH_SESSION_INVALID", "INBOX_OAUTH_UNAVAILABLE"] as const;
+export type OAuthReturnError = (typeof KNOWN_OAUTH_ERRORS)[number] | "failed";
+
+/**
+ * The result of the "Connect with Facebook" round trip, read off the settings URL fragment the
+ * backend redirected to: `#oauth=<grant>` (the encrypted sign-in blob) or `#oauthError=<code>`.
+ * `null` when the fragment is neither — an ordinary visit.
+ */
+export function readOAuthReturn(hash: string): { grant?: string; error?: OAuthReturnError } | null {
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const grant = params.get("oauth");
+  if (grant) return { grant };
+  const error = params.get("oauthError");
+  if (error === null) return null;
+  return {
+    error: (KNOWN_OAUTH_ERRORS as readonly string[]).includes(error) ? (error as OAuthReturnError) : "failed",
+  };
+}

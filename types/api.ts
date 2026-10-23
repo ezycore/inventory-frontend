@@ -239,6 +239,9 @@ export type InboxConversation = Schemas["InboxConversation"];
 export type InboxMessage = Schemas["InboxMessage"];
 export type InboxThread = Schemas["InboxThread"];
 export type InboxSummary = Schemas["InboxSummary"];
+/** "Connect with Facebook" (plan D2b): the login URL, and the Page picker — never a token. */
+export type InboxOAuthStart = Schemas["InboxOAuthStart"];
+export type InboxOAuthPages = Schemas["InboxOAuthPages"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */

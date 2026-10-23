@@ -31,6 +31,8 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
   const test = useTestInboxConnection();
   const disconnect = useDisconnectInbox();
   const healthy = connection.status === "active";
+  // Connected through ezycore's app: ezycore subscribed the Page, so there is nothing to paste.
+  const platform = connection.source === "platform";
 
   return (
     <div className="space-y-4">
@@ -53,6 +55,8 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
         <dl className="grid gap-1 text-sm sm:grid-cols-[140px_1fr]">
           <dt className="text-muted-foreground">{t("page")}</dt>
           <dd>{connection.pageName ? `${connection.pageName} · ${connection.pageId}` : connection.pageId}</dd>
+          <dt className="text-muted-foreground">{t("connectedVia")}</dt>
+          <dd>{platform ? t("viaFacebook") : t("viaOwnApp")}</dd>
         </dl>
         <p className="text-xs text-muted-foreground">
           {connection.lastVerifiedAt && t("lastChecked", { time: formatDateTime(connection.lastVerifiedAt) })}
@@ -83,7 +87,7 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
         </div>
       </Card>
 
-      <Card className="space-y-3 p-5">
+      {!platform && <Card className="space-y-3 p-5">
         <h2 className="font-semibold">{t("webhookTitle")}</h2>
         <p className="text-sm text-muted-foreground">{t("webhookHint")}</p>
         <dl className="space-y-2 text-sm">
@@ -100,7 +104,7 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
           {connection.webhookVerifiedAt ? t("webhookVerified") : t("webhookNotVerified")}
         </p>
         <p className="text-sm text-muted-foreground">{t("subscribeHint")}</p>
-      </Card>
+      </Card>}
     </div>
   );
 }

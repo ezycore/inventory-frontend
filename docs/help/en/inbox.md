@@ -16,6 +16,8 @@ ui_labels:
   - inbox:settings.verifyToken
   - inbox:settings.test
   - inbox:settings.disconnect
+  - inbox:settings.oauth.button
+  - inbox:settings.oauth.ownAppToggle
   - settings:features.names.inbox
 ---
 
@@ -37,8 +39,24 @@ Sell.
 
 ## Connect your Facebook Page
 
-You connect your Page once, through your own Meta app — the same idea as connecting a courier with
-your own account. It takes about fifteen minutes, and our support team can do it with you on a call.
+### With Connect with Facebook
+
+If **Inbox → Page settings** shows a **Connect with Facebook** button, that is the quick way:
+
+1. Click **Connect with Facebook** and log in with the Facebook account that manages your Page.
+2. In the Facebook window, allow access to your Page.
+3. Back in ezycore, pick the Page and click **Connect**. That is all — there is nothing to copy, and
+   ezycore sets up Facebook for you.
+
+If a Page is listed but cannot be connected, your role on that Page cannot answer messages — ask the
+Page's admin to connect it.
+
+### With your own Meta app
+
+You can also connect your Page through your own Meta app — the same idea as connecting a courier with
+your own account. When the button above is shown, this option is under **Use your own Meta app
+instead (advanced)**. It takes about fifteen minutes, and our support team can do it with you on a
+call.
 
 1. On **developers.facebook.com**, create an app with the "Engage with customers on Messenger" use
    case, inside the same business portfolio as your Page.

@@ -381,6 +381,8 @@ export const queryKeys = {
   inbox: {
     ...resourceKeys("inbox"),
     connection: () => ["inbox", "connection"] as const,
+    /** The "Connect with Facebook" Page picker for one sign-in (the encrypted grant). */
+    oauthPages: (grant: string) => ["inbox", "oauth-pages", grant] as const,
   },
 
   /** Courier provider config — a sibling of orders, not a part of them. */

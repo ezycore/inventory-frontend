@@ -10,6 +10,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox settings — "Connect with Facebook"**: when the backend offers it (`oauthAvailable`), the
+  merchant logs in with Facebook, picks the Page and is done — nothing to copy. The own-app form moves
+  under "Use your own Meta app instead (advanced)". When it is not offered, the screen is unchanged.
+  English + Bangla; help guide updated.
 - **Inbox — Facebook Messenger chats** (Phase 0 of inventory-backend `docs/plan/social-inbox-ai.md`, no
   AI yet). New **Inbox** row in the sidebar under Sell (`/inbox`) with an unread badge: the chat list
   (search, unread only), the thread (customer left, shop right; replies typed in Facebook marked
@@ -31,6 +35,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - `types/api-generated.ts` regenerated for the inbox endpoints.
 
 ### Deploy notes
+- "Connect with Facebook" needs inventory-backend with `/api/inbox/oauth/*`; without it
+  `oauthAvailable` is absent and the screen shows only the own-app form, as before.
 - Needs inventory-backend with the inbox (`/api/inbox/*`) — deploy the backend first.
 
 ## [1.13.1] - 2026-10-23

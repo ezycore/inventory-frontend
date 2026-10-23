@@ -92,6 +92,45 @@ export function useTestInboxConnection() {
   });
 }
 
+/**
+ * Send the browser to Facebook. No success toast and no invalidation: the page is about to
+ * be left, and the round trip ends back on Inbox settings with the result in the URL fragment.
+ */
+export function useStartInboxOAuth() {
+  return useMutation({
+    mutationFn: () => inboxApi.startOAuth(),
+    onSuccess: (result) => window.location.assign(result.data.url),
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * The Page picker after a Facebook sign-in. A POST (the grant must not sit in a URL), read as a
+ * query so a re-render does not ask Facebook again. No retry: an expired grant stays expired.
+ */
+export function useInboxOAuthPages(grant: string | null) {
+  return useQuery({
+    queryKey: queryKeys.inbox.oauthPages(grant ?? ""),
+    queryFn: () => inboxApi.getOAuthPages(grant!),
+    select: (data) => data.data.pages,
+    enabled: Boolean(grant),
+    retry: false,
+    staleTime: Infinity,
+  });
+}
+
+export function useConnectInboxOAuthPage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ grant, pageId }: { grant: string; pageId: string }) => inboxApi.connectOAuthPage(grant, pageId),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Facebook Page connected");
+      invalidate(qc, "inbox.connectionChanged");
+    },
+    onError: handleMutationError,
+  });
+}
+
 export function useDisconnectInbox() {
   const qc = useQueryClient();
   return useMutation({
