@@ -26,15 +26,20 @@
  *
  * **The two sets also fail differently.** A 4xx is the API's answer — the store
  * or the thing is not there — and both return `null`. When the API gives no
- * answer (unreachable, or a 5xx) the request-aware set still returns `null`, but
- * `publicStorefront` throws `StorefrontUnavailableError`: a cached render that
- * turned an outage into `notFound()` stored that 404 for five minutes after the
- * API came back (measured 2026-09-14). A thrown render is not cached, and a
- * failed revalidation keeps the last good page.
+ * answer (unreachable, a 5xx, or a 429/408 — `isNoAnswer` in `lib/server-api.ts`) the request-aware
+ * set still returns `null`, but `publicStorefront` throws
+ * `StorefrontUnavailableError`: a cached render that turned an outage into
+ * `notFound()` stored that 404 for five minutes after the API came back
+ * (measured 2026-09-14). A thrown render is not cached, and a failed
+ * revalidation keeps the last good page.
+ *
+ * Every read carries `serverApiHeaders()`, which exempts this server from the
+ * backend's per-IP limiter — it renders every shop from one address.
  */
 
 import { getStorePreviewToken } from "@/lib/storefront-host";
 import { previewApiHeaders } from "@/lib/storefront-preview";
+import { isNoAnswer, serverApiHeaders } from "@/lib/server-api";
 import { storefrontCacheTags, type StorefrontCacheScope } from "@/lib/storefront-cache-tags";
 import {
   chunkSectionDataRequests,
@@ -93,7 +98,11 @@ async function fetchStorefront<T>(
       ...(preview
         ? { cache: "no-store" as const }
         : { next: { revalidate, tags: storefrontCacheTags(slug, scopes) } }),
-      headers: { Accept: "application/json", ...previewApiHeaders(preview) },
+      headers: {
+        Accept: "application/json",
+        ...serverApiHeaders(),
+        ...previewApiHeaders(preview),
+      },
     });
   } catch (error) {
     if (onNoAnswer === "throw") {
@@ -103,7 +112,7 @@ async function fetchStorefront<T>(
     }
     return null;
   }
-  if (res.status >= 500 && onNoAnswer === "throw") {
+  if (isNoAnswer(res.status) && onNoAnswer === "throw") {
     throw new StorefrontUnavailableError(`Storefront API failed with ${res.status} (${endpoint})`);
   }
   if (!res.ok) return null;
