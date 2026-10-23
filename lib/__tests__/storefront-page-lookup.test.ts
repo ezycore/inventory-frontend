@@ -44,6 +44,10 @@ describe("storePageExists", () => {
 
     const unreachable = await load({ builder: new Error("ECONNREFUSED") });
     expect(await unreachable.storePageExists("rafi5", "about")).toBe(true);
+
+    // A rate limit says nothing about the page (the backend's limiter ran out on 2026-10-23).
+    const limited = await load({ builder: 429 });
+    expect(await limited.storePageExists("rafi5", "about")).toBe(true);
   });
 
   it("expires a remembered page", async () => {

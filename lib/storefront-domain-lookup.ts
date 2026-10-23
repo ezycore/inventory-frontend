@@ -24,12 +24,20 @@
  * enough that recovery is quick. Entry count is bounded against Host-header
  * spray from scanners.
  *
- * **Never throws.** Every failure degrades to "not a store, no canonical host",
- * which makes the proxy serve the request exactly as it did before this module
- * existed. That matters more here than anywhere else in the request path: a
- * confident wrong answer is a 301 pointing a live store at a host it does not
- * own, and browsers cache those.
+ * **Never throws, and never invents an answer.** When the API gives no answer
+ * (unreachable, a 5xx, a 429 — `isNoAnswer`), the last answer it DID give for
+ * that key is reused: a domain that resolved a minute ago still resolves. With no
+ * earlier answer the result is "no store, no canonical host" — never a guessed
+ * canonical host, because a confident wrong answer is a 301 pointing a live
+ * store at a host it does not own, and browsers cache those.
+ *
+ * "No store" is not the same as "could not tell", though: on a custom domain the
+ * first sends a shopper to the admin login. That happened on 2026-10-23, when the
+ * backend's rate limit ran out, so `isHostLookupUnavailable` lets the proxy tell
+ * the two apart and answer a retryable 503 instead.
  */
+
+import { isNoAnswer, serverApiHeaders } from "@/lib/server-api";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -47,7 +55,37 @@ interface StoreAnswer {
 
 const MISS: StoreAnswer = { slug: null, canonicalHost: null };
 
-const cache = new Map<string, { answer: StoreAnswer; expiresAt: number }>();
+interface Entry {
+  answer: StoreAnswer;
+  expiresAt: number;
+  /** False when the API has never answered for this key — the answer is a placeholder. */
+  known: boolean;
+}
+
+const cache = new Map<string, Entry>();
+
+/** The API's answer, or `undefined` when it gave none. */
+async function ask(query: string): Promise<StoreAnswer | undefined> {
+  try {
+    const res = await fetch(`${API_BASE}/public/store-by-host?${query}`, {
+      headers: serverApiHeaders(),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (isNoAnswer(res.status)) return undefined;
+    if (!res.ok) return MISS;
+    const json = await res.json().catch(() => null);
+    const data = json?.data;
+    if (data?.exists && typeof data.slug === "string") {
+      return {
+        slug: data.slug,
+        canonicalHost: typeof data.canonicalHost === "string" ? data.canonicalHost : null,
+      };
+    }
+    return MISS;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * One fetch, one cache entry. `cacheKey` is prefixed by query form so a host and
@@ -61,32 +99,27 @@ async function resolve(
   const cached = cache.get(cacheKey);
   if (cached && cached.expiresAt > now) return cached.answer;
 
-  let answer = MISS;
-  let ttl = HIT_TTL_MS;
-  try {
-    const res = await fetch(`${API_BASE}/public/store-by-host?${query}`, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-    if (res.ok) {
-      const json = await res.json().catch(() => null);
-      const data = json?.data;
-      if (data?.exists && typeof data.slug === "string") {
-        answer = {
-          slug: data.slug,
-          canonicalHost:
-            typeof data.canonicalHost === "string" ? data.canonicalHost : null,
-        };
-      }
-    } else {
-      ttl = ERROR_TTL_MS;
-    }
-  } catch {
-    ttl = ERROR_TTL_MS;
-  }
+  const fresh = await ask(query);
+  // No answer: keep the last real one (expired or not) and retry soon.
+  const entry: Entry = fresh
+    ? { answer: fresh, expiresAt: now + HIT_TTL_MS, known: true }
+    : cached?.known
+      ? { ...cached, expiresAt: now + ERROR_TTL_MS }
+      : { answer: MISS, expiresAt: now + ERROR_TTL_MS, known: false };
 
   if (cache.size >= MAX_ENTRIES) cache.clear();
-  cache.set(cacheKey, { answer, expiresAt: now + ttl });
-  return answer;
+  cache.set(cacheKey, entry);
+  return entry.answer;
+}
+
+/**
+ * Whether the last lookup for `host` failed with no earlier answer to fall back
+ * on — "could not tell", as opposed to "not a store". Only meaningful right
+ * after `lookupStoreByHost(host)`, which is how the proxy uses it.
+ */
+export function isHostLookupUnavailable(host: string): boolean {
+  const entry = cache.get(`h:${host}`);
+  return !!entry && !entry.known;
 }
 
 const byHost = (host: string): Promise<StoreAnswer> =>

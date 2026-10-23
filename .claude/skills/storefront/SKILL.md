@@ -17,7 +17,11 @@ to the back office. One codebase serves every store; **the host picks the store*
   (`lib/storefront-links.ts`). Resolution order: `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP` (manual
   override) → **dynamic lookup** `lib/storefront-domain-lookup.ts` → BE
   `GET /api/public/store-by-host?host=` (resolves the org `domains` array from Settings →
-  Domains; active entries only; 60s in-memory cache, errors cached 10s). Merchant flow is
+  Domains; active entries only; 60s in-memory cache, errors cached 10s). When the API gives no
+  answer (5xx/429/408/unreachable) the lookup reuses its last real answer; with none,
+  `isHostLookupUnavailable` makes `proxy.ts` answer a retryable **503** — never fall through to
+  "not a store", which on a custom domain is the admin login (uriibaba.com's shoppers got exactly
+  that when the backend's rate limit ran out, 2026-10-23). Merchant flow is
   fully self-serve: add domain in settings → TXT verify → Caddy on-demand cert → live.
   A custom domain serves the SHOP at root — the admin stays on `{slug}.ezycore.com`.
 
@@ -342,10 +346,16 @@ which reads only its params:
   preview is never indexed.
 - Shared by both routes: `StoreHead` (`components/storefront/store-head.tsx` — favicon link + Meta
   Pixel).
-- **`publicStorefront` throws when the API gives no answer** — unreachable, or a 5xx
-  (`StorefrontUnavailableError` in `lib/storefront-server.ts`); a 4xx still reads as `null`, and the
-  request-aware set keeps returning `null`. A cached render must never turn an outage into
-  `notFound()`: ISR stored that bare 404 for five minutes after the API recovered (found 2026-09-14).
+- **`publicStorefront` throws when the API gives no answer** — unreachable, a 5xx, a **429** or a
+  408 (`isNoAnswer` in `lib/server-api.ts`; `StorefrontUnavailableError` in
+  `lib/storefront-server.ts`); any other 4xx still reads as `null`, and the request-aware set keeps
+  returning `null`. A cached render must never turn an outage into `notFound()`: ISR stored that
+  bare 404 for five minutes after the API recovered (found 2026-09-14). The 429 joined the list on
+  2026-10-23, when the backend's limiter ran dry and live shops were drawn as 404s.
+- **Every server-side call to the backend carries `serverApiHeaders()`** (`lib/server-api.ts`):
+  the runtime `SSR_API_KEY` that exempts this server from the backend's global per-IP limiter. One
+  Next server renders every shop, so counted per IP all shoppers of all stores shared one bucket.
+  Add it to any new server fetch — storefront reads, the proxy's lookups, a new server route.
 - Freshness follows the fetch tags (see "Cache + on-demand revalidation"): `revalidateTag` drops the
   cached HTML of every page built from a flushed fetch (Spike A). `revalidate = 300` is the backstop.
 
