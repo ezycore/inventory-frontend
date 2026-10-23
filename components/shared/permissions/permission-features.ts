@@ -31,6 +31,7 @@ const MODULE_FEATURES: Record<string, FeatureRule> = {
   stock: { all: ["inventoryTracking"] },
   discounts: { any: ["sales", "purchases"] },
   warranty: { all: ["warranty"] },
+  inbox: { all: ["inbox"] },
 };
 
 const PERMISSION_FEATURES: Record<string, FeatureRule> = {

@@ -229,6 +229,16 @@ export type WarrantyTerms = Schemas["WarrantyTerms"];
 export type SaleSerials = Schemas["SaleSerials"];
 /** Where else a code was already handed out — the "already sold" warning. Advice only. */
 export type SerialCheckResult = Schemas["SerialCheckResult"];
+/**
+ * Inbox — Facebook Messenger chats (backend `docs/features/inbox.md`). `canReply` and
+ * `replyWindowClosesAt` are the server's 24-hour rule; never re-derive them in the browser.
+ * The connection never carries its secrets — only `tokenConfigured` / `appSecretConfigured`.
+ */
+export type InboxConnection = Schemas["InboxConnection"];
+export type InboxConversation = Schemas["InboxConversation"];
+export type InboxMessage = Schemas["InboxMessage"];
+export type InboxThread = Schemas["InboxThread"];
+export type InboxSummary = Schemas["InboxSummary"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */

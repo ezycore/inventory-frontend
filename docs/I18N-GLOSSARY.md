@@ -198,6 +198,20 @@ it is a separate change.
 | Activity log | কার্যক্রমের লগ | added during S29; REVIEW |
 | Move back (a step) | পেছনে নিন | added during S29 — correcting a status; REVIEW |
 
+## Inbox (Facebook Messenger) — added 2026-10-23, REVIEW
+
+What a Bangladeshi Facebook seller already says — these are the words on their phone every day.
+
+| English | Bangla | Decision | Notes |
+|---|---|---|---|
+| Inbox | ইনবক্স | transliterate | how every FB seller says it; REVIEW |
+| Message | মেসেজ | transliterate | বার্তা reads formal; REVIEW |
+| Reply | রিপ্লাই | transliterate | as a noun/button; the verb in a sentence may be উত্তর দিন; REVIEW |
+| Chat / Conversation | চ্যাট | transliterate | কথোপকথন is formal; REVIEW |
+| Page (Facebook) | পেজ | transliterate | ফেসবুক পেজ; REVIEW |
+| Connect / Disconnect (a Page) | সংযুক্ত করুন / সংযোগ বিচ্ছিন্ন করুন | translate | same words as courier connections; REVIEW |
+| Unread | না-পড়া | translate | REVIEW |
+
 ## Statuses
 
 | English | Bangla |

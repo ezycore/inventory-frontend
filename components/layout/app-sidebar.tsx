@@ -51,6 +51,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { AppTitle } from "./app-title";
+import { InboxNavBadge } from "@/components/inbox/inbox-nav-badge";
 import type { NavItem } from "@/types/layout";
 
 /**
@@ -242,6 +243,9 @@ export default function AppSidebar() {
                         <span>{itemLabel(item.title)}</span>
                       </Link>
                     </SidebarMenuButton>
+                    {/* The one row with a live count. A second one should become a NavItem
+                        `badge` key instead of another branch here. */}
+                    {item.url === "/inbox" && <InboxNavBadge />}
                   </SidebarMenuItem>
                 );
               })}

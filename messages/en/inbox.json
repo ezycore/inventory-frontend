@@ -1,0 +1,90 @@
+{
+  "page": {
+    "title": "Inbox",
+    "subtitle": "Messenger chats from your Facebook Page",
+    "settings": "Page settings"
+  },
+  "notConnected": {
+    "title": "Connect your Facebook Page",
+    "description": "Messages to your Page will show up here, and you can answer them without leaving ezycore.",
+    "action": "Connect Page",
+    "askOwner": "Ask the shop owner to connect the Facebook Page in Inbox settings."
+  },
+  "attention": {
+    "title": "The Facebook connection needs attention",
+    "fix": "Fix connection"
+  },
+  "list": {
+    "search": "Search chats",
+    "unreadOnly": "Unread only",
+    "empty": "No chats yet",
+    "emptyHint": "When a customer messages your Page, the chat shows up here.",
+    "noMatch": "No chat matches",
+    "customer": "Customer",
+    "you": "You: "
+  },
+  "thread": {
+    "pick": "Select a chat",
+    "pickHint": "Pick a chat on the left to read and reply.",
+    "back": "All chats",
+    "windowOpen": "You can reply until {time}",
+    "windowClosed": "Facebook only allows a reply within 24 hours of the customer's last message. You can reply again when they write.",
+    "fromFacebook": "Replied from Facebook",
+    "latestOnly": "Showing the latest 50 messages",
+    "openInMeta": "{type} — open it in Meta Business Suite",
+    "attachment": {
+      "image": "Photo",
+      "video": "Video",
+      "audio": "Voice message",
+      "file": "File",
+      "other": "Attachment"
+    }
+  },
+  "reply": {
+    "placeholder": "Type a reply…",
+    "send": "Send",
+    "sending": "Sending…"
+  },
+  "settings": {
+    "title": "Inbox settings",
+    "subtitle": "Connect the Facebook Page whose Messenger chats come here",
+    "back": "Back to Inbox",
+    "stepsTitle": "Before you start — in your Meta app",
+    "step1": "On developers.facebook.com, create an app with the “Engage with customers on Messenger” use case, in the same business portfolio as your Page.",
+    "step2": "App settings → Basic: add an icon, a privacy policy URL and a data deletion URL, then copy the App Secret.",
+    "step3": "Messenger → API settings → Generate access tokens: connect your Page, copy its Page ID and generate the Page access token.",
+    "step4": "Paste them below and save. Then paste the Callback URL and Verify token we show you into Configure webhooks.",
+    "step5": "Click Add subscriptions on your Page and tick messages and message_echoes. Then publish the app.",
+    "pageId": "Page ID",
+    "pageIdHint": "The number under your Page's name in Messenger API settings.",
+    "token": "Page access token",
+    "tokenHint": "Starts with EAA. Leave empty to keep the saved one.",
+    "secret": "App Secret",
+    "secretHint": "App settings → Basic → App secret. Leave empty to keep the saved one.",
+    "connect": "Connect Page",
+    "save": "Save",
+    "saving": "Checking with Facebook…",
+    "statusTitle": "Connection",
+    "status": {
+      "active": "Connected",
+      "pending": "Not checked yet",
+      "token_invalid": "Needs attention"
+    },
+    "page": "Page",
+    "lastChecked": "Last checked {time}",
+    "lastEvent": "Last message received {time}",
+    "noEventYet": "No message received yet",
+    "webhookTitle": "Point Meta at ezycore",
+    "webhookHint": "In your Meta app: Messenger → API settings → Configure webhooks. Paste these two values and click Verify and save.",
+    "callbackUrl": "Callback URL",
+    "verifyToken": "Verify token",
+    "webhookVerified": "Facebook has checked the webhook",
+    "webhookNotVerified": "Facebook has not checked the webhook yet",
+    "subscribeHint": "Then click Add subscriptions next to your Page and tick messages and message_echoes.",
+    "test": "Check connection",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect this Facebook Page?",
+    "disconnectDescription": "New messages will stop arriving. Chats already received stay here, and reconnecting the same Page continues them.",
+    "cancel": "Cancel"
+  }
+}

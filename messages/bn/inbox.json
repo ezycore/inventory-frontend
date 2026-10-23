@@ -1,0 +1,90 @@
+{
+  "page": {
+    "title": "ইনবক্স",
+    "subtitle": "আপনার ফেসবুক পেজের মেসেঞ্জার চ্যাট",
+    "settings": "পেজ সেটিংস"
+  },
+  "notConnected": {
+    "title": "আপনার ফেসবুক পেজ সংযুক্ত করুন",
+    "description": "আপনার পেজে আসা মেসেজ এখানে দেখা যাবে, আর ezycore থেকে বের না হয়েই রিপ্লাই দিতে পারবেন।",
+    "action": "পেজ সংযুক্ত করুন",
+    "askOwner": "ইনবক্স সেটিংসে ফেসবুক পেজ সংযুক্ত করতে দোকানের মালিককে বলুন।"
+  },
+  "attention": {
+    "title": "ফেসবুক সংযোগটি ঠিক করা দরকার",
+    "fix": "সংযোগ ঠিক করুন"
+  },
+  "list": {
+    "search": "চ্যাট খুঁজুন",
+    "unreadOnly": "শুধু না-পড়া",
+    "empty": "এখনো কোনো চ্যাট নেই",
+    "emptyHint": "কোনো গ্রাহক আপনার পেজে মেসেজ দিলে চ্যাটটি এখানে দেখা যাবে।",
+    "noMatch": "কোনো চ্যাট মেলেনি",
+    "customer": "গ্রাহক",
+    "you": "আপনি: "
+  },
+  "thread": {
+    "pick": "একটি চ্যাট বেছে নিন",
+    "pickHint": "পড়তে ও রিপ্লাই দিতে বাঁ দিক থেকে একটি চ্যাট বেছে নিন।",
+    "back": "সব চ্যাট",
+    "windowOpen": "{time} পর্যন্ত রিপ্লাই দিতে পারবেন",
+    "windowClosed": "গ্রাহকের শেষ মেসেজের ২৪ ঘণ্টার মধ্যেই শুধু ফেসবুক রিপ্লাই দিতে দেয়। গ্রাহক আবার লিখলে আবার রিপ্লাই দিতে পারবেন।",
+    "fromFacebook": "ফেসবুক থেকে রিপ্লাই",
+    "latestOnly": "সর্বশেষ ৫০টি মেসেজ দেখানো হচ্ছে",
+    "openInMeta": "{type} — Meta Business Suite-এ খুলে দেখুন",
+    "attachment": {
+      "image": "ছবি",
+      "video": "ভিডিও",
+      "audio": "ভয়েস মেসেজ",
+      "file": "ফাইল",
+      "other": "অ্যাটাচমেন্ট"
+    }
+  },
+  "reply": {
+    "placeholder": "রিপ্লাই লিখুন…",
+    "send": "পাঠান",
+    "sending": "পাঠানো হচ্ছে…"
+  },
+  "settings": {
+    "title": "ইনবক্স সেটিংস",
+    "subtitle": "যে ফেসবুক পেজের মেসেঞ্জার চ্যাট এখানে আসবে, সেটি সংযুক্ত করুন",
+    "back": "ইনবক্সে ফিরুন",
+    "stepsTitle": "শুরু করার আগে — আপনার Meta অ্যাপে",
+    "step1": "developers.facebook.com-এ “Engage with customers on Messenger” ইউজ কেস দিয়ে একটি অ্যাপ বানান, আপনার পেজ যে বিজনেস পোর্টফোলিওতে আছে সেখানেই।",
+    "step2": "App settings → Basic: আইকন, প্রাইভেসি পলিসি URL আর ডেটা ডিলিট URL দিন, তারপর App Secret কপি করুন।",
+    "step3": "Messenger → API settings → Generate access tokens: পেজ সংযুক্ত করুন, পেজ আইডি কপি করুন আর পেজ অ্যাক্সেস টোকেন তৈরি করুন।",
+    "step4": "নিচে বসিয়ে সেভ করুন। তারপর আমাদের দেখানো Callback URL আর Verify token, Configure webhooks-এ বসান।",
+    "step5": "আপনার পেজের পাশে Add subscriptions চাপুন, messages আর message_echoes টিক দিন। তারপর অ্যাপটি Publish করুন।",
+    "pageId": "পেজ আইডি",
+    "pageIdHint": "Messenger API settings-এ আপনার পেজের নামের নিচের নম্বরটি।",
+    "token": "পেজ অ্যাক্সেস টোকেন",
+    "tokenHint": "EAA দিয়ে শুরু হয়। আগেরটি রাখতে চাইলে খালি রাখুন।",
+    "secret": "App Secret",
+    "secretHint": "App settings → Basic → App secret। আগেরটি রাখতে চাইলে খালি রাখুন।",
+    "connect": "পেজ সংযুক্ত করুন",
+    "save": "সেভ করুন",
+    "saving": "ফেসবুকের সাথে যাচাই করা হচ্ছে…",
+    "statusTitle": "সংযোগ",
+    "status": {
+      "active": "সংযুক্ত",
+      "pending": "এখনো যাচাই হয়নি",
+      "token_invalid": "ঠিক করা দরকার"
+    },
+    "page": "পেজ",
+    "lastChecked": "শেষ যাচাই {time}",
+    "lastEvent": "শেষ মেসেজ এসেছে {time}",
+    "noEventYet": "এখনো কোনো মেসেজ আসেনি",
+    "webhookTitle": "Meta-কে ezycore-এর ঠিকানা দিন",
+    "webhookHint": "আপনার Meta অ্যাপে: Messenger → API settings → Configure webhooks। এই দুটি মান বসিয়ে Verify and save চাপুন।",
+    "callbackUrl": "Callback URL",
+    "verifyToken": "Verify token",
+    "webhookVerified": "ফেসবুক ওয়েবহুক যাচাই করেছে",
+    "webhookNotVerified": "ফেসবুক এখনো ওয়েবহুক যাচাই করেনি",
+    "subscribeHint": "তারপর আপনার পেজের পাশে Add subscriptions চাপুন, messages আর message_echoes টিক দিন।",
+    "test": "সংযোগ যাচাই করুন",
+    "disconnect": "সংযোগ বিচ্ছিন্ন করুন",
+    "disconnectTitle": "এই ফেসবুক পেজের সংযোগ বিচ্ছিন্ন করবেন?",
+    "disconnectDescription": "নতুন মেসেজ আসা বন্ধ হবে। আগে আসা চ্যাট এখানেই থাকবে, আর একই পেজ আবার সংযুক্ত করলে সেগুলো চলতে থাকবে।",
+    "cancel": "বাতিল"
+  }
+}

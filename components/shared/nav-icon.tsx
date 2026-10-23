@@ -26,6 +26,7 @@ import {
   type LucideProps,
   MapPin,
   Megaphone,
+  MessageCircle,
   Package,
   PackageMinus,
   Palette,
@@ -85,6 +86,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   list: List,
   "map-pin": MapPin,
   megaphone: Megaphone,
+  "message-circle": MessageCircle,
   package: Package,
   "package-minus": PackageMinus,
   // Nav config uses "packages" (New Purchase); lucide 0.475 has no `Packages`

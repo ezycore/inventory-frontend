@@ -9,6 +9,30 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Inbox — Facebook Messenger chats** (Phase 0 of inventory-backend `docs/plan/social-inbox-ai.md`, no
+  AI yet). New **Inbox** row in the sidebar under Sell (`/inbox`) with an unread badge: the chat list
+  (search, unread only), the thread (customer left, shop right; replies typed in Facebook marked
+  "Replied from Facebook"; photos while Meta's link works) and a reply box that is replaced by the
+  reason once Facebook's 24-hour window has closed. **Inbox → Page settings** (`/inbox/settings`,
+  `inbox.manage`): paste Page ID, Page token and App Secret, then the Callback URL + Verify token to
+  copy into Meta, connection status, Check connection, Disconnect. Polls (list 10 s, thread 5 s,
+  badge 30 s), paused while the tab is hidden.
+- `inbox` switch in Customize workspace (opt-in, needs the online store); `inbox.*` permissions in the
+  role builder, hidden while the feature is off.
+- New `messages/{en,bn}/inbox.json` namespace (fully translated), glossary section "Inbox", help guide
+  `docs/help/en/inbox.md`.
+
+### Fixed
+- Inbox settings: the Page token and App Secret fields use `autocomplete="new-password"`, so Chrome no longer fills them (and the Page ID) with the login email and password.
+
+### Changed
+- `useUrlParam` accepts `"any"` for a free value (the Inbox's open chat id).
+- `types/api-generated.ts` regenerated for the inbox endpoints.
+
+### Deploy notes
+- Needs inventory-backend with the inbox (`/api/inbox/*`) — deploy the backend first.
+
 ## [1.13.0] - 2026-10-21
 
 ### Added

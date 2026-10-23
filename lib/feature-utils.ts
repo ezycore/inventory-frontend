@@ -208,6 +208,7 @@ export const getFeatureDisplayNames = (t: Translator): Record<FeatureName, strin
   inventoryTracking: t("names.inventoryTracking"),
   warranty: t("names.warranty"),
   courierPayouts: t("names.courierPayouts"),
+  inbox: t("names.inbox"),
 });
 
 /**
@@ -230,6 +231,7 @@ export const getFeatureDescriptions = (t: Translator): Record<FeatureName, strin
   inventoryTracking: t("descriptions.inventoryTracking"),
   warranty: t("descriptions.warranty"),
   courierPayouts: t("descriptions.courierPayouts"),
+  inbox: t("descriptions.inbox"),
 });
 
 /**
@@ -252,4 +254,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   inventoryTracking: "database",
   warranty: "shield",
   courierPayouts: "truck",
+  inbox: "message-circle",
 };

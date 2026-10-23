@@ -373,6 +373,16 @@ export const queryKeys = {
       ["warranty", "serial-check", codes, excludeSaleId ?? ""] as const,
   },
 
+  /**
+   * Inbox — Facebook Messenger chats. `list` = the conversation list, `detail(id)` = one
+   * thread, `summary()` = the sidebar badge; `connection` sits under the root too, so a
+   * (dis)connect drops every chat view with it.
+   */
+  inbox: {
+    ...resourceKeys("inbox"),
+    connection: () => ["inbox", "connection"] as const,
+  },
+
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {
     ...resourceKeys("storefront-couriers"),
