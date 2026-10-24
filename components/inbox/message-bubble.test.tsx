@@ -28,6 +28,11 @@ describe("MessageBubble", () => {
     expect(screen.getByText(/Replied from Facebook/)).toBeInTheDocument();
   });
 
+  it("marks a reply the AI wrote, so staff can tell it from their own", () => {
+    renderWithProviders(<MessageBubble message={message({ role: "ai", text: "Ji ache!" })} />);
+    expect(screen.getByText(/· AI$/)).toBeInTheDocument();
+  });
+
   it("falls back to a Meta Business Suite note when a photo link has expired", () => {
     renderWithProviders(
       <MessageBubble message={message({ attachments: [{ type: "image", url: "https://cdn.example/x.jpg" }] })} />,

@@ -40,6 +40,13 @@ export interface SaveInboxConnectionInput {
   holdingMessage?: string;
 }
 
+/** Body of `PUT /api/inbox/ai-settings`. Omitted = unchanged. */
+export interface SaveInboxAiSettingsInput {
+  aiEnabled?: boolean;
+  holdingMessage?: string;
+  handoverIdleMinutes?: number;
+}
+
 const base = "/inbox";
 
 /** `apiClient.get` takes a URL only, so every list builds its own query string. */
@@ -63,6 +70,13 @@ export const inboxApi = {
     apiClient.post(`${base}/connection/test`, {}),
 
   disconnect: (): Promise<ApiResponse<InboxConnection>> => apiClient.delete(`${base}/connection`),
+
+  saveAiSettings: (data: SaveInboxAiSettingsInput): Promise<ApiResponse<InboxConnection>> =>
+    apiClient.put(`${base}/ai-settings`, data),
+
+  /** Take over (`staff`) or Give back to AI (`ai`). */
+  setOwner: (id: string, owner: "ai" | "staff"): Promise<ApiResponse<InboxConversation>> =>
+    apiClient.post(`${base}/conversations/${id}/owner`, { owner }),
 
   /** "Connect with Facebook": where to send the browser (Facebook Login for Business). */
   startOAuth: (): Promise<ApiResponse<InboxOAuthStart>> => apiClient.post(`${base}/oauth/start`, {}),

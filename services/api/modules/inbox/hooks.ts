@@ -5,7 +5,12 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
-import { inboxApi, type InboxConversationListParams, type SaveInboxConnectionInput } from "./api";
+import {
+  inboxApi,
+  type InboxConversationListParams,
+  type SaveInboxAiSettingsInput,
+  type SaveInboxConnectionInput,
+} from "./api";
 
 /**
  * Inbox hooks — Facebook Messenger chats (backend `docs/features/inbox.md`).
@@ -139,6 +144,28 @@ export function useDisconnectInbox() {
       handleMutationSuccess(result.message || "Facebook Page disconnected");
       invalidate(qc, "inbox.connectionChanged");
     },
+    onError: handleMutationError,
+  });
+}
+
+export function useSaveInboxAiSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SaveInboxAiSettingsInput) => inboxApi.saveAiSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "AI settings saved");
+      invalidate(qc, "inbox.connectionChanged");
+    },
+    onError: handleMutationError,
+  });
+}
+
+/** Take over / Give back to AI. The banner changing in the thread is the confirmation. */
+export function useSetInboxOwner(conversationId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (owner: "ai" | "staff") => inboxApi.setOwner(conversationId, owner),
+    onSuccess: () => invalidate(qc, "inbox.replied"),
     onError: handleMutationError,
   });
 }

@@ -10,8 +10,8 @@ import { attachmentKind } from "./inbox-utils";
 
 /**
  * One message. The customer's sit left, the shop's right. A reply typed in Meta's own inbox
- * (`source: "platform_inbox"`) says so, because staff otherwise cannot tell it from one sent
- * here.
+ * (`source: "platform_inbox"`) says so, and so does one the AI wrote (`role: "ai"`) — staff
+ * otherwise cannot tell either from one they sent here.
  */
 export function MessageBubble({ message }: { message: InboxMessage }) {
   const t = useTranslations("inbox.thread");
@@ -33,6 +33,7 @@ export function MessageBubble({ message }: { message: InboxMessage }) {
         <p className={cn("text-[11px]", fromShop ? "text-primary-foreground/75" : "text-muted-foreground")}>
           {formatDateTime(message.at)}
           {message.source === "platform_inbox" && ` · ${t("fromFacebook")}`}
+          {message.role === "ai" && ` · ${t("fromAi")}`}
         </p>
       </div>
     </div>

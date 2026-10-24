@@ -38,6 +38,14 @@
       "audio": "Voice message",
       "file": "File",
       "other": "Attachment"
+    },
+    "fromAi": "AI",
+    "owner": {
+      "ai": "AI is answering this chat",
+      "staff": "With staff — {reason}",
+      "staffDefault": "a team member is answering",
+      "takeOver": "Take over",
+      "giveBack": "Give back to AI"
     }
   },
   "reply": {
@@ -110,6 +118,26 @@
         "INBOX_OAUTH_UNAVAILABLE": "Connect with Facebook is not available right now. Use your own Meta app instead.",
         "failed": "Facebook sign-in didn't work. Please try again."
       }
+    },
+    "ai": {
+      "title": "AI replies",
+      "unavailable": "AI replies aren't available on your workspace yet. Your team answers every chat.",
+      "enable": "Let AI answer new chats",
+      "enableHint": "The AI answers product, price, stock and delivery questions from your own catalogue, and hands the chat to your team for orders, complaints, photos or anything it can't answer. Chats already with your team stay with them — use Give back to AI in the chat.",
+      "holding": "Message when a chat goes to your team",
+      "holdingPlaceholder": "Thanks! A team member will reply shortly.",
+      "holdingHint": "Sent once when the AI hands a chat over and has nothing else to say. Leave empty to send nothing.",
+      "idle": "Give the chat back to AI when your team is quiet for",
+      "idleHint": "After your team replies, the AI stays out of the chat. It answers again when the customer writes after this long without a staff reply.",
+      "idleChoice": {
+        "0": "Never — only when we give it back",
+        "15": "15 minutes",
+        "30": "30 minutes",
+        "60": "1 hour",
+        "240": "4 hours"
+      },
+      "save": "Save AI settings",
+      "saving": "Saving…"
     }
   }
 }

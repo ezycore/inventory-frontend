@@ -1424,6 +1424,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inbox/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/oauth/callback
+         * @description Defined in `src/routes/inbox-public.routes.ts:17`.
+         */
+        get: operations["get_api_inbox_oauth_callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organization": {
         parameters: {
             query?: never;
@@ -6405,18 +6425,18 @@ export interface paths {
         };
         /**
          * GET /api/inbox/connection
-         * @description Defined in `src/routes/inbox.routes.ts:47`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:35`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_connection"];
         /**
          * PUT /api/inbox/connection
-         * @description Defined in `src/routes/inbox.routes.ts:48`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:36`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         put: operations["put_api_inbox_connection"];
         post?: never;
         /**
          * DELETE /api/inbox/connection
-         * @description Defined in `src/routes/inbox.routes.ts:55`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:43`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         delete: operations["delete_api_inbox_connection"];
         options?: never;
@@ -6435,9 +6455,29 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/connection/test
-         * @description Defined in `src/routes/inbox.routes.ts:54`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:42`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_connection_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/inbox/ai-settings
+         * @description Defined in `src/routes/inbox.routes.ts:46`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        put: operations["put_api_inbox_ai_settings"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6455,7 +6495,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/start
-         * @description Defined in `src/routes/inbox.routes.ts:58`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:54`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_start"];
         delete?: never;
@@ -6475,7 +6515,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/pages
-         * @description Defined in `src/routes/inbox.routes.ts:59`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:55`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_pages"];
         delete?: never;
@@ -6495,7 +6535,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/connect
-         * @description Defined in `src/routes/inbox.routes.ts:65`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:61`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_connect"];
         delete?: never;
@@ -6513,7 +6553,7 @@ export interface paths {
         };
         /**
          * GET /api/inbox/summary
-         * @description Defined in `src/routes/inbox.routes.ts:72`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:68`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_summary"];
         put?: never;
@@ -6533,7 +6573,7 @@ export interface paths {
         };
         /**
          * GET /api/inbox/conversations
-         * @description Defined in `src/routes/inbox.routes.ts:73`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:69`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_conversations"];
         put?: never;
@@ -6553,11 +6593,31 @@ export interface paths {
         };
         /**
          * GET /api/inbox/conversations/:id
-         * @description Defined in `src/routes/inbox.routes.ts:79`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:75`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_conversations_id"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations/{id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/conversations/:id/owner
+         * @description Defined in `src/routes/inbox.routes.ts:82`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_conversations_id_owner"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6575,7 +6635,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/conversations/:id/reply
-         * @description Defined in `src/routes/inbox.routes.ts:85`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:88`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_conversations_id_reply"];
         delete?: never;
@@ -13197,6 +13257,9 @@ export interface components {
             /** Format: date-time */
             lastEventAt?: string;
             holdingMessage?: string;
+            aiAvailable: boolean;
+            aiEnabled?: boolean;
+            handoverIdleMinutes?: number;
         };
         InboxConversation: {
             _id: string;
@@ -13221,6 +13284,11 @@ export interface components {
             unreadCount: number;
             /** Format: date-time */
             lastReadAt?: string;
+            handoverReason?: string;
+            /** Format: date-time */
+            handoverAt?: string;
+            /** Format: date-time */
+            lastStaffAt?: string;
             /** Format: date-time */
             replyWindowClosesAt: string | null;
             canReply: boolean;
@@ -13273,6 +13341,7 @@ export interface components {
         };
         InboxSummary: {
             unreadConversations: number;
+            aiActive: boolean;
         };
         InboxThread: {
             conversation: {
@@ -13298,6 +13367,11 @@ export interface components {
                 unreadCount: number;
                 /** Format: date-time */
                 lastReadAt?: string;
+                handoverReason?: string;
+                /** Format: date-time */
+                handoverAt?: string;
+                /** Format: date-time */
+                lastStaffAt?: string;
                 /** Format: date-time */
                 replyWindowClosesAt: string | null;
                 canReply: boolean;
@@ -23828,6 +23902,39 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_oauth_callback: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -42783,6 +42890,66 @@ export interface operations {
             };
         };
     };
+    put_api_inbox_ai_settings: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    aiEnabled?: boolean;
+                    holdingMessage?: string;
+                    handoverIdleMinutes?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     post_api_inbox_oauth_start: {
         parameters: {
             query?: never;
@@ -43082,6 +43249,76 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["InboxThread"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_conversations_id_owner: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    owner: "ai" | "staff";
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConversation"];
                     };
                 };
             };

@@ -10,6 +10,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox — AI replies.** Inbox settings gets an AI replies card (switch, holding message, when
+  the AI takes a quiet chat back), shown only when the backend can run the AI. Each chat shows
+  who is answering — "AI is answering this chat" or "With staff — <reason>" — with **Take over**
+  / **Give back to AI**; AI messages are labelled. English + Bangla; help guide section.
 - **Inbox settings — "Connect with Facebook"**: when the backend offers it (`oauthAvailable`), the
   merchant logs in with Facebook, picks the Page and is done — nothing to copy. The own-app form moves
   under "Use your own Meta app instead (advanced)". When it is not offered, the screen is unchanged.
@@ -35,6 +39,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - `types/api-generated.ts` regenerated for the inbox endpoints.
 
 ### Deploy notes
+- AI replies need inventory-backend with `/api/inbox/ai-settings`; without it the card says AI
+  replies are not available and nothing else changes.
 - "Connect with Facebook" needs inventory-backend with `/api/inbox/oauth/*`; without it
   `oauthAvailable` is absent and the screen shows only the own-app form, as before.
 - Needs inventory-backend with the inbox (`/api/inbox/*`) — deploy the backend first.

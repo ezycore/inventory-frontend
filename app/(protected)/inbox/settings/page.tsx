@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { AiSettingsCard } from "@/components/inbox/ai-settings-card";
 import { ConnectionForm } from "@/components/inbox/connection-form";
 import { ConnectionStatus } from "@/components/inbox/connection-status";
 import { FacebookConnectCard } from "@/components/inbox/facebook-connect-card";
@@ -94,6 +95,12 @@ export default function InboxSettingsPage() {
         <>
           {grant && <FacebookPagePicker grant={grant} onDone={() => setGrant(null)} />}
           {connection?.connected && <ConnectionStatus connection={connection} />}
+          {connection?.connected && (
+            <AiSettingsCard
+              key={`${connection.aiEnabled}-${connection.holdingMessage}-${connection.handoverIdleMinutes}`}
+              connection={connection}
+            />
+          )}
           {offerFacebook && <FacebookConnectCard reconnect={Boolean(connection?.connected)} />}
           {oauth ? (
             // Open by default only for a shop already on its own app — that is their setup.

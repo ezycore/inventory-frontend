@@ -45,3 +45,7 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
    encrypted — pass it back as-is, never put it in a query string or a query key you log.
 10. **A `platform` connection has no webhook card** — ezycore subscribed the Page; there is nothing
     to paste. `useStartInboxOAuth` is in `READ_ONLY_MUTATIONS` (it only fetches the login URL).
+11. **AI replies (Phase 1):** the thread's `OwnershipBanner` shows who answers and offers
+    Take over / Give back to AI; "Give back" appears only while `summary.aiActive` (readable with
+    `inbox.view` — the connection is not). `AiSettingsCard` on settings shows a switch only when the
+    backend reports `aiAvailable`. AI messages carry `role: "ai"` and the bubble labels them.

@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { initialsOf } from "./inbox-utils";
 import { MessageBubble } from "./message-bubble";
+import { OwnershipBanner } from "./ownership-banner";
 import { ReplyBox } from "./reply-box";
 
 interface ThreadViewProps {
@@ -62,6 +63,7 @@ export function ThreadView({ conversationId, onBack, className }: ThreadViewProp
         </span>
         <span className="truncate font-medium">{name}</span>
       </header>
+      <OwnershipBanner conversation={conversation} />
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {hasOlder && <p className="text-center text-xs text-muted-foreground">{t("thread.latestOnly")}</p>}

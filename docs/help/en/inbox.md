@@ -18,6 +18,11 @@ ui_labels:
   - inbox:settings.disconnect
   - inbox:settings.oauth.button
   - inbox:settings.oauth.ownAppToggle
+  - inbox:settings.ai.title
+  - inbox:settings.ai.enable
+  - inbox:settings.ai.idle
+  - inbox:thread.owner.takeOver
+  - inbox:thread.owner.giveBack
   - settings:features.names.inbox
 ---
 
@@ -93,6 +98,30 @@ to see just the chats waiting for you. Open a chat to read it and reply; opening
 Facebook only lets a Page reply within **24 hours of the customer's last message**. After that the
 reply box is replaced by a note saying so — the moment the customer writes again, you can reply
 again. Order updates after that window are best sent by SMS.
+
+## AI replies
+
+When your workspace has AI replies, **Inbox → Page settings** shows an **AI replies** card. Turn on
+**Let AI answer new chats** and the AI answers customers' questions about your products, prices,
+stock and delivery charges — always from your own catalogue, the same prices your online store
+shows. It waits a few seconds after the customer stops typing, so three quick messages get one
+answer.
+
+The AI hands the chat to your team when a customer wants to place an order, complains, bargains,
+sends a photo or voice message, or asks something it cannot answer. The customer then gets your
+holding message (if you set one), and the chat shows **With staff** with the reason.
+
+In a chat:
+- **Take over** stops the AI so you can answer yourself. Replying from ezycore or from Facebook
+  does the same.
+- **Give back to AI** hands the chat back. Typing `#ai` in Meta Business Suite does it too.
+
+After you reply, the AI stays out of that chat until you give it back — or, if you chose a time in
+**Give the chat back to AI when your team is quiet for**, until the customer writes again after
+that long without a reply from your team.
+
+Turning AI on starts it on **new** chats. Chats already with your team stay with them until you
+click **Give back to AI**.
 
 ## Who can do what
 
