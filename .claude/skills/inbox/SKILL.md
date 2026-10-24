@@ -14,7 +14,7 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
 | Concern | Where |
 |---|---|
 | Pages | `app/(protected)/inbox/page.tsx`, `app/(protected)/inbox/settings/page.tsx`, guard `app/(protected)/inbox/layout.tsx` |
-| Components | `components/inbox/` — `conversation-list`, `thread-view`, `message-bubble`, `reply-box`, `connection-form`, `connection-status`, `facebook-connect-card`, `facebook-page-picker`, `inbox-nav-badge`, `inbox-utils` |
+| Components | `components/inbox/` — `conversation-list`, `thread-view`, `message-bubble`, `reply-box`, `connection-form`, `connection-status`, `facebook-connect-card`, `facebook-page-picker`, `ai-settings-card`, `ai-credit-card`, `ownership-banner`, `inbox-nav-badge`, `inbox-utils` |
 | API | `services/api/modules/inbox/{api,hooks}.ts`; keys `queryKeys.inbox`; events `inbox.connectionChanged`, `inbox.threadRead`, `inbox.replied` |
 | Copy | `messages/{en,bn}/inbox.json` (fully translated); glossary section "Inbox" in `docs/I18N-GLOSSARY.md` |
 
@@ -49,3 +49,12 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
     Take over / Give back to AI; "Give back" appears only while `summary.aiActive` (readable with
     `inbox.view` — the connection is not). `AiSettingsCard` on settings shows a switch only when the
     backend reports `aiAvailable`. AI messages carry `role: "ai"` and the bubble labels them.
+12. **AI credit (Phase 1b):** `AiCreditCard` (`components/inbox/ai-credit-card.tsx`) reads
+    `useInboxAiCredit()` (`GET /api/inbox/ai-credit`, key `queryKeys.inbox.aiCredit()` under the
+    inbox root, so any inbox change refreshes it). The balance is **whole paisa** — show it with
+    `formatPaisa`, never divide inline. `aiCreditProblem()` names the ONE reason the AI is stopped
+    (no price → used up → expired); "replies left" is never shown beside one. The terms text comes
+    from Mission Control and renders through the shared `CreditTermsBlock`
+    (`components/shared/credit-terms-block.tsx`, also the SMS card's) — never hardcode it.
+13. **`aiChat` is the workspace's AI switch** (Customize workspace, on by default). Off →
+    `AiSettingsCard` says where to turn it on instead of showing a switch the backend refuses.

@@ -1,8 +1,8 @@
 "use client";
 // coding-standard: maintained
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { CreditTermsBlock } from "@/components/shared/credit-terms-block";
 import type { NotificationSettings } from "@/types/api";
-import type { AppLocale } from "@/i18n/config";
 
 /**
  * The rate and the purchase terms, on the merchant's own SMS credit card.
@@ -17,10 +17,8 @@ import type { AppLocale } from "@/i18n/config";
  * The whole block is therefore absent until MC has pushed at least once. That
  * is deliberate: a price the product invented is worse than no price.
  *
- * Both languages come down together and the merchant's own locale leads, with
- * the other tucked into a `<details>`. BD consumer-protection practice expects
- * material terms in a language the buyer reads, and "top of the card, in their
- * language" is the difference between disclosed and technically-available.
+ * Both languages come down together and the merchant's own locale leads
+ * (`CreditTermsBlock`, shared with the inbox's AI credit card).
  */
 
 /** Taka, always — MC denominates the price in BDT regardless of org currency. */
@@ -36,37 +34,12 @@ export function SmsCreditTerms({
   terms: NonNullable<NotificationSettings["sms"]["terms"]>;
 }) {
   const t = useTranslations("settings.notifications.sms");
-  const locale = useLocale() as AppLocale;
-
-  const isBangla = locale === "bn";
-  const primary = isBangla ? terms.bn : terms.en;
-  const secondary = isBangla ? terms.en : terms.bn;
-
   return (
-    <div className="space-y-2 rounded-md border bg-muted/40 p-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm font-medium">
-          {t("rate", { price: formatRate(terms.pricePerSegmentBdt) })}
-        </p>
-        {/* Small, but present. It is what makes "you agreed to this" answerable
-            a year later, and support quotes it when a merchant disputes. */}
-        <span className="text-[10px] text-muted-foreground">
-          {t("termsVersion", { version: terms.version })}
-        </span>
-      </div>
-
-      <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
-        {primary}
-      </p>
-
-      <details>
-        <summary className="cursor-pointer text-xs text-muted-foreground">
-          {isBangla ? "English" : "বাংলা"}
-        </summary>
-        <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
-          {secondary}
-        </p>
-      </details>
-    </div>
+    <CreditTermsBlock
+      headline={t("rate", { price: formatRate(terms.pricePerSegmentBdt) })}
+      versionLabel={t("termsVersion", { version: terms.version })}
+      en={terms.en}
+      bn={terms.bn}
+    />
   );
 }

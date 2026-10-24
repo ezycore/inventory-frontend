@@ -209,6 +209,7 @@ export const getFeatureDisplayNames = (t: Translator): Record<FeatureName, strin
   warranty: t("names.warranty"),
   courierPayouts: t("names.courierPayouts"),
   inbox: t("names.inbox"),
+  aiChat: t("names.aiChat"),
 });
 
 /**
@@ -232,6 +233,7 @@ export const getFeatureDescriptions = (t: Translator): Record<FeatureName, strin
   warranty: t("descriptions.warranty"),
   courierPayouts: t("descriptions.courierPayouts"),
   inbox: t("descriptions.inbox"),
+  aiChat: t("descriptions.aiChat"),
 });
 
 /**
@@ -255,4 +257,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   warranty: "shield",
   courierPayouts: "truck",
   inbox: "message-circle",
+  aiChat: "bot",
 };

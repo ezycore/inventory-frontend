@@ -33,6 +33,16 @@ export function useInboxConnection(enabled = true) {
   });
 }
 
+/** AI credit for Inbox → Settings. Refreshed by any inbox change (its key sits under the root). */
+export function useInboxAiCredit(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.inbox.aiCredit(),
+    queryFn: () => inboxApi.getAiCredit(),
+    select: (data) => data.data,
+    enabled,
+  });
+}
+
 /** Unread chats for the sidebar badge. Off unless the caller can read the inbox. */
 export function useInboxSummary(enabled = true) {
   return useQuery({

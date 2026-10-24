@@ -2,6 +2,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
+  InboxAiCredit,
   InboxConnection,
   InboxConversation,
   InboxMessage,
@@ -12,6 +13,7 @@ import type {
 } from "@/types/api";
 
 export type {
+  InboxAiCredit,
   InboxConnection,
   InboxConversation,
   InboxMessage,
@@ -73,6 +75,9 @@ export const inboxApi = {
 
   saveAiSettings: (data: SaveInboxAiSettingsInput): Promise<ApiResponse<InboxConnection>> =>
     apiClient.put(`${base}/ai-settings`, data),
+
+  /** The AI-credit balance, ≈ replies left, the price and the terms. */
+  getAiCredit: (): Promise<ApiResponse<InboxAiCredit>> => apiClient.get(`${base}/ai-credit`),
 
   /** Take over (`staff`) or Give back to AI (`ai`). */
   setOwner: (id: string, owner: "ai" | "staff"): Promise<ApiResponse<InboxConversation>> =>

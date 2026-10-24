@@ -213,7 +213,7 @@ export interface paths {
         };
         /**
          * GET /api/mc/permissions
-         * @description Defined in `src/routes/mc.routes.ts:15`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:16`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         get: operations["get_api_mc_permissions"];
         put?: never;
@@ -235,7 +235,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/entitlement
-         * @description Defined in `src/routes/mc.routes.ts:18`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:19`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_entitlement"];
         delete?: never;
@@ -255,9 +255,49 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/sms-credits
-         * @description Defined in `src/routes/mc.routes.ts:22`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:23`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_sms_credits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mc/ai-credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/mc/ai-credits
+         * @description Defined in `src/routes/mc.routes.ts:27`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        post: operations["post_api_mc_ai_credits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mc/ai-credit-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/mc/ai-credit-rates
+         * @description Defined in `src/routes/mc.routes.ts:30`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        post: operations["post_api_mc_ai_credit_rates"];
         delete?: never;
         options?: never;
         head?: never;
@@ -273,7 +313,7 @@ export interface paths {
         };
         /**
          * GET /api/mc/sms-balance
-         * @description Defined in `src/routes/mc.routes.ts:25`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:33`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         get: operations["get_api_mc_sms_balance"];
         put?: never;
@@ -295,7 +335,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/roles
-         * @description Defined in `src/routes/mc.routes.ts:28`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:36`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_roles"];
         delete?: never;
@@ -315,7 +355,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/commands
-         * @description Defined in `src/routes/mc.routes.ts:31`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:39`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_commands"];
         delete?: never;
@@ -6474,9 +6514,29 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/inbox/ai-settings
-         * @description Defined in `src/routes/inbox.routes.ts:46`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:47`. Requires permission `inbox.manage`. Gated by organization feature `inbox`, `aiChat` — returns 403 when disabled.
          */
         put: operations["put_api_inbox_ai_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-credit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/ai-credit
+         * @description Defined in `src/routes/inbox.routes.ts:55`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_ai_credit"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -6495,7 +6555,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/start
-         * @description Defined in `src/routes/inbox.routes.ts:54`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:58`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_start"];
         delete?: never;
@@ -6515,7 +6575,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/pages
-         * @description Defined in `src/routes/inbox.routes.ts:55`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:59`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_pages"];
         delete?: never;
@@ -6535,7 +6595,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/oauth/connect
-         * @description Defined in `src/routes/inbox.routes.ts:61`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:65`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_oauth_connect"];
         delete?: never;
@@ -6553,7 +6613,7 @@ export interface paths {
         };
         /**
          * GET /api/inbox/summary
-         * @description Defined in `src/routes/inbox.routes.ts:68`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:72`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_summary"];
         put?: never;
@@ -6573,7 +6633,7 @@ export interface paths {
         };
         /**
          * GET /api/inbox/conversations
-         * @description Defined in `src/routes/inbox.routes.ts:69`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:73`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_conversations"];
         put?: never;
@@ -6593,7 +6653,7 @@ export interface paths {
         };
         /**
          * GET /api/inbox/conversations/:id
-         * @description Defined in `src/routes/inbox.routes.ts:75`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:79`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         get: operations["get_api_inbox_conversations_id"];
         put?: never;
@@ -6615,7 +6675,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/conversations/:id/owner
-         * @description Defined in `src/routes/inbox.routes.ts:82`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:86`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_conversations_id_owner"];
         delete?: never;
@@ -6635,7 +6695,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inbox/conversations/:id/reply
-         * @description Defined in `src/routes/inbox.routes.ts:88`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         * @description Defined in `src/routes/inbox.routes.ts:92`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
          */
         post: operations["post_api_inbox_conversations_id_reply"];
         delete?: never;
@@ -13233,6 +13293,24 @@ export interface components {
             transactionId?: string;
             shortfall: number;
         };
+        InboxAiCredit: {
+            paisa: number;
+            /** Format: date-time */
+            expiresAt: string | null;
+            expired: boolean;
+            repliesLeft: number | null;
+            typicalReplyPaisa: number | null;
+            rates: {
+                inputPaisaPer1k: number;
+                outputPaisaPer1k: number;
+            } | null;
+            terms: {
+                version: string;
+                effectiveFrom?: string;
+                en: string;
+                bn: string;
+            } | null;
+        };
         InboxConnection: {
             connected: boolean;
             oauthAvailable: boolean;
@@ -13895,6 +13973,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13914,6 +13993,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -14151,6 +14231,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -14191,6 +14272,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -14235,6 +14317,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -14254,6 +14337,7 @@ export interface components {
                 warranty: boolean;
                 courierPayouts: boolean;
                 inbox: boolean;
+                aiChat: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -14286,6 +14370,7 @@ export interface components {
             warranty: boolean;
             courierPayouts: boolean;
             inbox: boolean;
+            aiChat: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -18073,6 +18158,7 @@ export interface components {
                     warranty: boolean;
                     courierPayouts: boolean;
                     inbox: boolean;
+                    aiChat: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -18092,6 +18178,7 @@ export interface components {
                     warranty: boolean;
                     courierPayouts: boolean;
                     inbox: boolean;
+                    aiChat: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -18349,6 +18436,7 @@ export interface components {
                     warranty: boolean;
                     courierPayouts: boolean;
                     inbox: boolean;
+                    aiChat: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -18368,6 +18456,7 @@ export interface components {
                     warranty: boolean;
                     courierPayouts: boolean;
                     inbox: boolean;
+                    aiChat: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -18629,6 +18718,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18648,6 +18738,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18906,6 +18997,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18925,6 +19017,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -19221,6 +19314,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -19240,6 +19334,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -19521,6 +19616,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -19540,6 +19636,7 @@ export interface components {
                         warranty: boolean;
                         courierPayouts: boolean;
                         inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -19917,6 +20014,18 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             };
+        };
+        McAiCredit: {
+            workspaceExternalId: string;
+            paisa: number;
+            mcPaisa: number;
+            unreportedUsage: number;
+            /** Format: date-time */
+            expiresAt: string | null;
+            appliedAt: string;
+        };
+        McAiCreditRates: {
+            stored: boolean;
         };
         McCatalog: {
             product: string;
@@ -21123,6 +21232,68 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["McSmsCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_mc_ai_credits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McAiCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_mc_ai_credit_rates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McAiCreditRates"];
                     };
                 };
             };
@@ -25071,6 +25242,7 @@ export interface operations {
                     warranty?: boolean;
                     courierPayouts?: boolean;
                     inbox?: boolean;
+                    aiChat?: boolean;
                 };
             };
         };
@@ -25190,6 +25362,7 @@ export interface operations {
                         warranty?: boolean;
                         courierPayouts?: boolean;
                         inbox?: boolean;
+                        aiChat?: boolean;
                     };
                     vatRegistration?: {
                         /** @enum {string} */
@@ -42928,6 +43101,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_ai_credit: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxAiCredit"];
+                    };
                 };
             };
             /** @description Missing or invalid credentials */

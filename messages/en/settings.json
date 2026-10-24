@@ -29,7 +29,8 @@
       "inventoryTracking": "Stock tracking",
       "warranty": "Warranty",
       "courierPayouts": "Courier payouts",
-      "inbox": "Inbox"
+      "inbox": "Inbox",
+      "aiChat": "AI replies"
     },
     "descriptions": {
       "sales": "Enable sales orders, customer invoices, and sales history tracking",
@@ -48,7 +49,8 @@
       "inventoryTracking": "Count what you have on hand — stock levels, adjustments, transfers and the movement history. Turn this off if you sell to order and do not hold inventory.",
       "warranty": "Set warranty terms on products, print them on the invoice, check whether a sale is still covered and log warranty claims",
       "courierPayouts": "Record what each courier pays you and see what they still owe. Works with or without Cash & Bank — with it on, payments also go into your accounts.",
-      "inbox": "Connect your Facebook Page and read and answer its Messenger chats here, next to your orders. Replies you send from Facebook still show up."
+      "inbox": "Connect your Facebook Page and read and answer its Messenger chats here, next to your orders. Replies you send from Facebook still show up.",
+      "aiChat": "Let an AI assistant answer Messenger chats from your catalogue, charged per reply from AI credit. Switch it on for your Page in Inbox → Settings."
     },
     "disable": {
       "title": "Turn off {feature}?",

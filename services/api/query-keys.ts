@@ -381,6 +381,8 @@ export const queryKeys = {
   inbox: {
     ...resourceKeys("inbox"),
     connection: () => ["inbox", "connection"] as const,
+    /** AI credit — under the root, so a settings save or a reply refreshes it too. */
+    aiCredit: () => ["inbox", "ai-credit"] as const,
     /** The "Connect with Facebook" Page picker for one sign-in (the encrypted grant). */
     oauthPages: (grant: string) => ["inbox", "oauth-pages", grant] as const,
   },

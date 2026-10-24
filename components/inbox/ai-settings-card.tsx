@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useSaveInboxAiSettings, type InboxConnection } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Label } from "@/ui/components/label";
@@ -22,10 +23,15 @@ const IDLE_CHOICES = ["0", "15", "30", "60", "240"] as const;
  *
  * Switching on starts the AI on NEW chats; chats already with staff stay there until someone
  * clicks "Give back to AI" in the thread — said on the card, because it is the one surprise.
+ *
+ * Above the merchant's switch sits the workspace's own `aiChat` (Customize workspace, plan-granted):
+ * off there, the backend refuses this save and no chat starts with the AI, so the card says where to
+ * turn it back on instead of offering a switch that cannot work.
  */
 export function AiSettingsCard({ connection }: { connection: InboxConnection }) {
   const t = useTranslations("inbox.settings.ai");
   const save = useSaveInboxAiSettings();
+  const aiChatOn = useAuthStore((s) => s.user?.organization?.features?.aiChat) !== false;
   const holdingId = useId();
   const [enabled, setEnabled] = useState(Boolean(connection.aiEnabled));
   const [holding, setHolding] = useState(connection.holdingMessage ?? "");
@@ -45,6 +51,8 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
 
       {!connection.aiAvailable ? (
         <p className="text-sm text-muted-foreground">{t("unavailable")}</p>
+      ) : !aiChatOn ? (
+        <p className="text-sm text-muted-foreground">{t("workspaceOff")}</p>
       ) : (
         <>
           <label className="flex items-start justify-between gap-4">

@@ -10,6 +10,12 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox — AI credit.** Inbox → Page settings gets an **AI credit** card: the balance in ৳, valid
+  until, about how many replies it covers, what a typical reply costs and the purchase terms; it
+  says plainly when the AI is stopped because the credit is used up, expired, or not priced yet.
+  English + Bangla; help guide section.
+- **`aiChat` switch** ("AI replies") in Customize workspace — on by default; off, the AI settings
+  card says where to turn it back on.
 - **Inbox — AI replies.** Inbox settings gets an AI replies card (switch, holding message, when
   the AI takes a quiet chat back), shown only when the backend can run the AI. Each chat shows
   who is answering — "AI is answering this chat" or "With staff — <reason>" — with **Take over**
@@ -39,6 +45,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - `types/api-generated.ts` regenerated for the inbox endpoints.
 
 ### Deploy notes
+- AI credit needs inventory-backend with `GET /api/inbox/ai-credit` and the `aiChat` feature
+  (Phase 1b) deployed first.
 - AI replies need inventory-backend with `/api/inbox/ai-settings`; without it the card says AI
   replies are not available and nothing else changes.
 - "Connect with Facebook" needs inventory-backend with `/api/inbox/oauth/*`; without it

@@ -21,9 +21,11 @@ ui_labels:
   - inbox:settings.ai.title
   - inbox:settings.ai.enable
   - inbox:settings.ai.idle
+  - inbox:settings.credit.title
   - inbox:thread.owner.takeOver
   - inbox:thread.owner.giveBack
   - settings:features.names.inbox
+  - settings:features.names.aiChat
 ---
 
 # Answer Facebook messages in the Inbox
@@ -122,6 +124,21 @@ that long without a reply from your team.
 
 Turning AI on starts it on **new** chats. Chats already with your team stay with them until you
 click **Give back to AI**.
+
+If the card says AI replies are switched off for your workspace, turn on **AI replies** under
+**Settings → Customize workspace** first.
+
+### AI credit
+
+Each AI reply is paid for from your **AI credit** — a balance separate from your SMS credit. The
+**AI credit** card under the AI replies card shows how much you have in Taka, how long it is valid,
+and about how many replies it covers at what your recent replies cost. A typical reply costs a few
+paisa; you are only charged for replies that reach the customer.
+
+- Your workspace gets a small free amount the first time you turn AI replies on.
+- To buy more, contact ezycore support. Every top-up extends the validity of your whole balance.
+- When the credit runs out (or expires), the AI stops replying and new chats go to your team with
+  the reason — customer messages still arrive, and you can answer them as usual.
 
 ## Who can do what
 

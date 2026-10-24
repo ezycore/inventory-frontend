@@ -28,6 +28,7 @@ const ALL_ON: OrganizationFeatures = {
   warranty: true,
   courierPayouts: true,
   inbox: true,
+  aiChat: true,
 };
 
 const START: OrganizationFeatures = {

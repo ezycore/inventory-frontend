@@ -211,6 +211,8 @@ What a Bangladeshi Facebook seller already says — these are the words on their
 | Page (Facebook) | পেজ | transliterate | ফেসবুক পেজ; REVIEW |
 | Connect / Disconnect (a Page) | সংযুক্ত করুন / সংযোগ বিচ্ছিন্ন করুন | translate | same words as courier connections; REVIEW |
 | Unread | না-পড়া | translate | REVIEW |
+| AI / AI replies | এআই / এআই উত্তর | transliterate + translate | added 2026-10-24; REVIEW |
+| AI credit | এআই ক্রেডিট | transliterate | like SMS credit (এসএমএস ক্রেডিট); REVIEW |
 
 ## Statuses
 

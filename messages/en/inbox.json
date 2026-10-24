@@ -122,6 +122,7 @@
     "ai": {
       "title": "AI replies",
       "unavailable": "AI replies aren't available on your workspace yet. Your team answers every chat.",
+      "workspaceOff": "AI replies are switched off for your workspace. Turn on AI replies in Settings → Customize workspace to use them here.",
       "enable": "Let AI answer new chats",
       "enableHint": "The AI answers product, price, stock and delivery questions from your own catalogue, and hands the chat to your team for orders, complaints, photos or anything it can't answer. Chats already with your team stay with them — use Give back to AI in the chat.",
       "holding": "Message when a chat goes to your team",
@@ -138,6 +139,20 @@
       },
       "save": "Save AI settings",
       "saving": "Saving…"
+    },
+    "credit": {
+      "title": "AI credit",
+      "validUntil": "Valid until {date}",
+      "repliesLeft": "≈ {count, plural, one {# reply} other {# replies}} left",
+      "repliesLeftHint": "From what your recent replies cost.",
+      "problem": {
+        "no_rates": "AI pricing isn't set up for your workspace yet, so the AI can't reply. Contact ezycore support.",
+        "empty": "Your AI credit is used up. The AI has stopped replying and new chats go to your team. Contact ezycore support to top up.",
+        "expired": "Your AI credit has expired. The AI has stopped replying. A top-up brings the AI back and extends your whole balance."
+      },
+      "topUp": "AI credit is separate from SMS credit. To buy more, contact ezycore support. Only replies that reach the customer are charged.",
+      "rate": "A typical reply costs about {paisa} paisa",
+      "termsVersion": "Terms {version}"
     }
   }
 }
