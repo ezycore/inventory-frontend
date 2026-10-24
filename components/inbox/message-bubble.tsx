@@ -4,7 +4,9 @@
 import { useFormatters } from "@/hooks/use-formatters";
 import type { InboxMessage } from "@/services/api";
 import { cn } from "@/ui/lib/utils";
+import { ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 import { attachmentKind } from "./inbox-utils";
 
@@ -17,6 +19,8 @@ export function MessageBubble({ message }: { message: InboxMessage }) {
   const t = useTranslations("inbox.thread");
   const { formatDateTime } = useFormatters();
   const fromShop = message.role !== "customer";
+
+  if (message.role === "system" && message.orderId) return <OrderNote message={message} />;
 
   return (
     <div className={cn("flex", fromShop ? "justify-end" : "justify-start")}>
@@ -35,6 +39,28 @@ export function MessageBubble({ message }: { message: InboxMessage }) {
           {message.source === "platform_inbox" && ` · ${t("fromFacebook")}`}
           {message.role === "ai" && ` · ${t("fromAi")}`}
         </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A note for staff, never sent to the customer: the AI took an order here (plan §12 Phase 2).
+ * Centred like a date divider, so nobody reads it as something the customer saw.
+ */
+function OrderNote({ message }: { message: InboxMessage }) {
+  const t = useTranslations("inbox.thread");
+  const { formatDateTime } = useFormatters();
+  return (
+    <div className="flex justify-center">
+      <div className="flex items-center gap-2 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+        <ShoppingBag className="h-3.5 w-3.5" />
+        <span>
+          {t("orderPlaced")} · {formatDateTime(message.at)}
+        </span>
+        <Link href={`/ecommerce/orders/${message.orderId}`} className="font-medium text-primary underline-offset-2 hover:underline">
+          {t("viewOrder")}
+        </Link>
       </div>
     </div>
   );

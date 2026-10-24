@@ -21,6 +21,11 @@ ui_labels:
   - inbox:settings.ai.title
   - inbox:settings.ai.enable
   - inbox:settings.ai.idle
+  - inbox:settings.ai.autoConfirm
+  - inbox:thread.orderPlaced
+  - inbox:thread.viewOrder
+  - ecommerce:orderDetail.placedByAi
+  - ecommerce:orderDetail.openChat
   - inbox:settings.credit.title
   - inbox:thread.owner.takeOver
   - inbox:thread.owner.giveBack
@@ -109,7 +114,7 @@ stock and delivery charges — always from your own catalogue, the same prices y
 shows. It waits a few seconds after the customer stops typing, so three quick messages get one
 answer.
 
-The AI hands the chat to your team when a customer wants to place an order, complains, bargains,
+The AI hands the chat to your team when a customer complains, bargains, wants to pay in advance,
 sends a photo or voice message, or asks something it cannot answer. The customer then gets your
 holding message (if you set one), and the chat shows **With staff** with the reason.
 
@@ -127,6 +132,29 @@ click **Give back to AI**.
 
 If the card says AI replies are switched off for your workspace, turn on **AI replies** under
 **Settings → Customize workspace** first.
+
+### Orders the AI takes
+
+The AI can take **cash-on-delivery** orders. It asks for what is missing — the product and size,
+how many, the customer's name, mobile number and address — then shows the customer a summary with
+the delivery charge and total from your own checkout, and places the order only after the customer
+says yes.
+
+- The order appears in **Orders** as Pending, with the channel Messenger, like an order you typed in
+  yourself. You get the usual new-order email. Confirm, pack and send it as you always do.
+- In the chat you see **AI took an order** with a **View order** link. On the order, **Taken by AI in
+  a Messenger chat** with **Open chat** takes you back to the conversation.
+- The customer gets the order number and a tracking link, and can ask the AI later how the order is
+  doing.
+- The AI never takes a different price than the one it showed: if a price changed in between, it
+  shows the new total first.
+- It hands the chat to your team when the customer wants to pay in advance (bKash, Nagad, bank),
+  change or cancel an order, or when your store has orders paused, no cash on delivery, or asks
+  customers to accept terms at checkout.
+
+**Confirm AI orders automatically** (in the AI replies card) skips the Pending step: the order is
+confirmed straight away and the stock is held. It is off until you turn it on; if stock is short, the
+order stays Pending for you.
 
 ### AI credit
 

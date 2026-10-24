@@ -58,3 +58,8 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
     (`components/shared/credit-terms-block.tsx`, also the SMS card's) — never hardcode it.
 13. **`aiChat` is the workspace's AI switch** (Customize workspace, on by default). Off →
     `AiSettingsCard` says where to turn it on instead of showing a switch the backend refuses.
+14. **AI orders (Phase 2, backend feature doc §10):** the thread renders a `system` message carrying
+    `orderId` as `OrderNote` (centred, "AI took an order · View order") — never the stored English
+    text, which is a backend log line. The order page reads `statusHistory[0].by === "ai"` and
+    `inboxConversationId` for "Taken by AI · Open chat" (`/inbox?chat=<id>`).
+    `AiSettingsCard` carries `autoConfirmOrders` (off by default) in the same save.

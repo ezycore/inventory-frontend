@@ -47,6 +47,8 @@ export interface SaveInboxAiSettingsInput {
   aiEnabled?: boolean;
   holdingMessage?: string;
   handoverIdleMinutes?: number;
+  /** Orders the AI takes are confirmed straight away (stock held) instead of waiting as pending. */
+  autoConfirmOrders?: boolean;
 }
 
 const base = "/inbox";

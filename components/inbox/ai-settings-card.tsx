@@ -36,11 +36,13 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
   const [enabled, setEnabled] = useState(Boolean(connection.aiEnabled));
   const [holding, setHolding] = useState(connection.holdingMessage ?? "");
   const [idle, setIdle] = useState(String(connection.handoverIdleMinutes ?? 30));
+  const [autoConfirm, setAutoConfirm] = useState(Boolean(connection.autoConfirmOrders));
 
   const dirty =
     enabled !== Boolean(connection.aiEnabled) ||
     holding !== (connection.holdingMessage ?? "") ||
-    idle !== String(connection.handoverIdleMinutes ?? 30);
+    idle !== String(connection.handoverIdleMinutes ?? 30) ||
+    autoConfirm !== Boolean(connection.autoConfirmOrders);
 
   return (
     <Card className="space-y-4 p-5">
@@ -86,10 +88,24 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
             <p className="text-xs text-muted-foreground">{t("idleHint")}</p>
           </div>
 
+          {/* Off by default (owner decision, plan §3a 21): an AI order waits for the merchant. */}
+          <label className="flex items-start justify-between gap-4">
+            <span>
+              <span className="block text-sm font-medium">{t("autoConfirm")}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{t("autoConfirmHint")}</span>
+            </span>
+            <Switch checked={autoConfirm} onCheckedChange={setAutoConfirm} />
+          </label>
+
           <Button
             disabled={!dirty || save.isPending}
             onClick={() =>
-              save.mutate({ aiEnabled: enabled, holdingMessage: holding.trim(), handoverIdleMinutes: Number(idle) })
+              save.mutate({
+                aiEnabled: enabled,
+                holdingMessage: holding.trim(),
+                handoverIdleMinutes: Number(idle),
+                autoConfirmOrders: autoConfirm,
+              })
             }
           >
             {save.isPending ? t("saving") : t("save")}

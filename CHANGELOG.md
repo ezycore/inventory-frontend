@@ -10,6 +10,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox — the AI takes orders.** Cash-on-delivery orders the AI takes in Messenger appear in
+  Orders as Pending (channel Messenger); the chat shows **AI took an order · View order**, and the
+  order page **Taken by AI in a Messenger chat · Open chat**. Inbox → Page settings gets **Confirm AI
+  orders automatically** (off by default). Help guide updated. Needs inventory-backend with inbox
+  Phase 2.
 - **Inbox — AI credit.** Inbox → Page settings gets an **AI credit** card: the balance in ৳, valid
   until, about how many replies it covers, what a typical reply costs and the purchase terms; it
   says plainly when the AI is stopped because the credit is used up, expired, or not priced yet.

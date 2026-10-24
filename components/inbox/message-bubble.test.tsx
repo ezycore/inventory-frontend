@@ -41,6 +41,18 @@ describe("MessageBubble", () => {
     expect(screen.getByText("Photo — open it in Meta Business Suite")).toBeInTheDocument();
   });
 
+  it("shows an order the AI took as a staff note linking to the order, not as a sent bubble", () => {
+    renderWithProviders(
+      <MessageBubble
+        message={message({ role: "system", orderId: "ord1", text: "AI placed order ORD-1 — ৳1980, cash on delivery, pending." })}
+      />,
+    );
+    expect(screen.getByText(/AI took an order/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View order" })).toHaveAttribute("href", "/ecommerce/orders/ord1");
+    // The backend's English log line is not what staff read.
+    expect(screen.queryByText(/AI placed order ORD-1/)).not.toBeInTheDocument();
+  });
+
   it("names a voice message instead of showing a broken player", () => {
     renderWithProviders(<MessageBubble message={message({ attachments: [{ type: "audio", url: "https://x" }] })} />);
     expect(screen.getByText("Voice message — open it in Meta Business Suite")).toBeInTheDocument();

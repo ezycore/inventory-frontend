@@ -12615,6 +12615,7 @@ export interface components {
                 trackToken?: string;
                 trackUrl?: string;
                 excludeFromMeta?: boolean;
+                inboxConversationId?: string;
                 meta?: {
                     purchaseSent?: boolean;
                     purchaseEventId?: string;
@@ -12851,6 +12852,7 @@ export interface components {
             trackToken?: string;
             trackUrl?: string;
             excludeFromMeta?: boolean;
+            inboxConversationId?: string;
             meta?: {
                 purchaseSent?: boolean;
                 purchaseEventId?: string;
@@ -13077,6 +13079,7 @@ export interface components {
                 trackToken?: string;
                 trackUrl?: string;
                 excludeFromMeta?: boolean;
+                inboxConversationId?: string;
                 meta?: {
                     purchaseSent?: boolean;
                     purchaseEventId?: string;
@@ -13338,6 +13341,7 @@ export interface components {
             aiAvailable: boolean;
             aiEnabled?: boolean;
             handoverIdleMinutes?: number;
+            autoConfirmOrders?: boolean;
         };
         InboxConversation: {
             _id: string;
@@ -13401,6 +13405,7 @@ export interface components {
             error?: string;
             /** Format: date-time */
             at: string;
+            orderId?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -13481,6 +13486,7 @@ export interface components {
                 error?: string;
                 /** Format: date-time */
                 at: string;
+                orderId?: string;
                 /** Format: date-time */
                 createdAt?: string;
                 /** Format: date-time */
@@ -43079,6 +43085,7 @@ export interface operations {
                     aiEnabled?: boolean;
                     holdingMessage?: string;
                     handoverIdleMinutes?: number;
+                    autoConfirmOrders?: boolean;
                 };
             };
         };
