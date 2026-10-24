@@ -22,6 +22,10 @@ ui_labels:
   - inbox:settings.ai.enable
   - inbox:settings.ai.idle
   - inbox:settings.ai.autoConfirm
+  - inbox:settings.ai.instructions
+  - inbox:settings.ai.offHours.title
+  - inbox:settings.ai.offHours.add
+  - inbox:thread.owner.aiOff
   - inbox:thread.orderPlaced
   - inbox:thread.viewOrder
   - ecommerce:orderDetail.placedByAi
@@ -132,6 +136,28 @@ click **Give back to AI**.
 
 If the card says AI replies are switched off for your workspace, turn on **AI replies** under
 **Settings → Customize workspace** first.
+
+### Tell the AI about your shop
+
+**Instructions for the AI** is a box in the AI replies card where you write, in your own words,
+what the AI should know and how it should talk: your return policy, delivery times, greeting, what
+not to promise. Up to 2,000 characters. The AI follows them in your shop's chats only.
+
+Prices, stock, delivery charges and orders always come from your catalogue and checkout, so writing
+"give everyone 10% off" does not change what an order costs — ask for discounts to go to your team
+instead. Longer instructions make each reply cost a little more.
+
+### AI off hours
+
+Under **AI off hours**, choose the times when you want your team to answer instead of the AI —
+for example 10:00 AM to 2:00 PM on Saturday to Thursday. Click **Add off hours** for each window
+(up to five), choose its days, and the start and end time. A window may run past midnight, and the
+same start and end time means the whole day. Times follow your shop's time zone in Settings →
+Organization.
+
+During off hours the AI sends nothing and the chat shows **AI off hours — your team answers now. The AI replies afterwards if nobody has.**
+If someone on your team replies, the chat stays with them. Messages nobody answered get an AI reply
+a few minutes after the off hours end.
 
 ### Orders the AI takes
 

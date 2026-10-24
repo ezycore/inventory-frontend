@@ -63,3 +63,8 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
     text, which is a backend log line. The order page reads `statusHistory[0].by === "ai"` and
     `inboxConversationId` for "Taken by AI · Open chat" (`/inbox?chat=<id>`).
     `AiSettingsCard` carries `autoConfirmOrders` (off by default) in the same save.
+15. **Merchant AI settings:** `aiInstructions` (textarea, 2,000-character counter mirroring the
+    backend cap) and `aiOffHours` via `AiOffHoursField` (`components/inbox/ai-off-hours-field.tsx`:
+    day chips from the org's `weekStartDay`, 15-minute `SimpleSelect`s, ≤ 5 windows mirroring
+    `MAX_AI_OFF_WINDOWS`, never a window with no day). Times are "HH:mm" on the shop's zone — never
+    convert them in the browser. `OwnershipBanner` says "AI off hours" while `summary.aiOffNow`.

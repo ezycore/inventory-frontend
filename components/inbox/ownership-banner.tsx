@@ -22,6 +22,8 @@ export function OwnershipBanner({ conversation }: { conversation: InboxConversat
   const setOwner = useSetInboxOwner(conversation._id);
   const aiOwns = conversation.owner === "ai";
   const aiActive = Boolean(summary?.aiActive);
+  // Inside the merchant's AI-off hours the chat is still the AI's, but the team answers now.
+  const aiOff = aiOwns && Boolean(summary?.aiOffNow);
 
   if (!aiOwns && !aiActive) return null;
 
@@ -35,7 +37,7 @@ export function OwnershipBanner({ conversation }: { conversation: InboxConversat
       <span className="flex min-w-0 items-center gap-2">
         {aiOwns ? <Bot className="h-4 w-4 shrink-0 text-primary" /> : <UserRound className="h-4 w-4 shrink-0" />}
         <span className="truncate">
-          {aiOwns ? t("ai") : t("staff", { reason: conversation.handoverReason ?? t("staffDefault") })}
+          {aiOff ? t("aiOff") : aiOwns ? t("ai") : t("staff", { reason: conversation.handoverReason ?? t("staffDefault") })}
         </span>
       </span>
       {canReply && (aiOwns || aiActive) && (

@@ -13342,6 +13342,12 @@ export interface components {
             aiEnabled?: boolean;
             handoverIdleMinutes?: number;
             autoConfirmOrders?: boolean;
+            aiInstructions?: string;
+            aiOffHours?: {
+                days: number[];
+                start: string;
+                end: string;
+            }[];
         };
         InboxConversation: {
             _id: string;
@@ -13425,6 +13431,7 @@ export interface components {
         InboxSummary: {
             unreadConversations: number;
             aiActive: boolean;
+            aiOffNow: boolean;
         };
         InboxThread: {
             conversation: {
@@ -43086,6 +43093,12 @@ export interface operations {
                     holdingMessage?: string;
                     handoverIdleMinutes?: number;
                     autoConfirmOrders?: boolean;
+                    aiInstructions?: string;
+                    aiOffHours?: {
+                        days: number[];
+                        start: string;
+                        end: string;
+                    }[];
                 };
             };
         };

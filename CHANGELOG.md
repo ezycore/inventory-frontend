@@ -10,6 +10,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox — instructions and off hours for the AI.** The AI replies card gets **Instructions for the
+  AI** (up to 2,000 characters, the merchant's own words) and **AI off hours** (up to five windows,
+  days per window, shop time zone); during off hours the thread banner reads "AI off hours — your
+  team answers now". en + bn, help guide updated. Needs the matching inventory-backend.
 - **Inbox — the AI takes orders.** Cash-on-delivery orders the AI takes in Messenger appear in
   Orders as Pending (channel Messenger); the chat shows **AI took an order · View order**, and the
   order page **Taken by AI in a Messenger chat · Open chat**. Inbox → Page settings gets **Confirm AI

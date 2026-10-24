@@ -46,6 +46,7 @@
       "ai": "AI is answering this chat",
       "staff": "With staff — {reason}",
       "staffDefault": "a team member is answering",
+      "aiOff": "AI off hours — your team answers now. The AI replies afterwards if nobody has.",
       "takeOver": "Take over",
       "giveBack": "Give back to AI"
     }
@@ -134,6 +135,28 @@
       "idleHint": "After your team replies, the AI stays out of the chat. It answers again when the customer writes after this long without a staff reply.",
       "autoConfirm": "Confirm AI orders automatically",
       "autoConfirmHint": "Off: orders the AI takes wait in Orders as Pending for you to confirm. On: they are confirmed straight away and the stock is held — if stock is short, the order stays pending.",
+      "instructions": "Instructions for the AI",
+      "instructionsPlaceholder": "Return policy: exchange within 7 days.\nDelivery outside Dhaka takes 3–5 days.\nGreet customers with \"Assalamu alaikum\".",
+      "instructionsHint": "Your shop's policies, delivery times and how to talk. The AI follows them, but prices, stock, delivery charges and orders always come from your catalogue and checkout. Longer instructions make each reply cost a little more.",
+      "offHours": {
+        "title": "AI off hours",
+        "intro": "During these hours the AI sends nothing and your team answers. Messages nobody answered get an AI reply when the time ends.",
+        "days": "Days",
+        "to": "to",
+        "add": "Add off hours",
+        "remove": "Remove these off hours",
+        "time": "{hour}:{minute} {period, select, am {AM} other {PM}}",
+        "hint": "Times are in your shop's time zone ({timezone}). The same start and end time means the whole day.",
+        "day": {
+          "0": "Sun",
+          "1": "Mon",
+          "2": "Tue",
+          "3": "Wed",
+          "4": "Thu",
+          "5": "Fri",
+          "6": "Sat"
+        }
+      },
       "idleChoice": {
         "0": "Never — only when we give it back",
         "15": "15 minutes",

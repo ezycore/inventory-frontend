@@ -12,6 +12,10 @@ import { Textarea } from "@/ui/components/textarea";
 import { Bot } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
+import { AiOffHoursField, type AiOffWindow } from "./ai-off-hours-field";
+
+/** Mirrors the backend validator's cap (`saveInboxAiSettingsSchema`). */
+const INSTRUCTIONS_MAX = 2000;
 
 /** After staff answered: how long they may be quiet before the AI takes the chat back. */
 const IDLE_CHOICES = ["0", "15", "30", "60", "240"] as const;
@@ -33,16 +37,21 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
   const save = useSaveInboxAiSettings();
   const aiChatOn = useAuthStore((s) => s.user?.organization?.features?.aiChat) !== false;
   const holdingId = useId();
+  const instructionsId = useId();
   const [enabled, setEnabled] = useState(Boolean(connection.aiEnabled));
   const [holding, setHolding] = useState(connection.holdingMessage ?? "");
   const [idle, setIdle] = useState(String(connection.handoverIdleMinutes ?? 30));
   const [autoConfirm, setAutoConfirm] = useState(Boolean(connection.autoConfirmOrders));
+  const [instructions, setInstructions] = useState(connection.aiInstructions ?? "");
+  const [offHours, setOffHours] = useState<AiOffWindow[]>(connection.aiOffHours ?? []);
 
   const dirty =
     enabled !== Boolean(connection.aiEnabled) ||
     holding !== (connection.holdingMessage ?? "") ||
     idle !== String(connection.handoverIdleMinutes ?? 30) ||
-    autoConfirm !== Boolean(connection.autoConfirmOrders);
+    autoConfirm !== Boolean(connection.autoConfirmOrders) ||
+    instructions !== (connection.aiInstructions ?? "") ||
+    JSON.stringify(offHours) !== JSON.stringify(connection.aiOffHours ?? []);
 
   return (
     <Card className="space-y-4 p-5">
@@ -64,6 +73,30 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
             </span>
             <Switch checked={enabled} onCheckedChange={setEnabled} />
           </label>
+
+          <div className="space-y-1.5">
+            <Label htmlFor={instructionsId}>{t("instructions")}</Label>
+            <Textarea
+              id={instructionsId}
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              maxLength={INSTRUCTIONS_MAX}
+              rows={5}
+              placeholder={t("instructionsPlaceholder")}
+            />
+            <p className="flex justify-between gap-4 text-xs text-muted-foreground">
+              <span>{t("instructionsHint")}</span>
+              <span className="shrink-0 tabular-nums">
+                {instructions.length}/{INSTRUCTIONS_MAX}
+              </span>
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t("offHours.title")}</Label>
+            <p className="text-xs text-muted-foreground">{t("offHours.intro")}</p>
+            <AiOffHoursField value={offHours} onChange={setOffHours} />
+          </div>
 
           <div className="space-y-1.5">
             <Label htmlFor={holdingId}>{t("holding")}</Label>
@@ -105,6 +138,8 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
                 holdingMessage: holding.trim(),
                 handoverIdleMinutes: Number(idle),
                 autoConfirmOrders: autoConfirm,
+                aiInstructions: instructions.trim(),
+                aiOffHours: offHours,
               })
             }
           >

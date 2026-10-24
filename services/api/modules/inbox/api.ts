@@ -49,6 +49,10 @@ export interface SaveInboxAiSettingsInput {
   handoverIdleMinutes?: number;
   /** Orders the AI takes are confirmed straight away (stock held) instead of waiting as pending. */
   autoConfirmOrders?: boolean;
+  /** The merchant's own instructions to the AI, up to 2,000 characters. */
+  aiInstructions?: string;
+  /** AI-off windows on the shop's clock. */
+  aiOffHours?: { days: number[]; start: string; end: string }[];
 }
 
 const base = "/inbox";
