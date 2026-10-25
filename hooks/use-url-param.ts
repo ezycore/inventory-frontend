@@ -16,21 +16,25 @@ function useSafeSearchParams(): ReadonlyURLSearchParams | null {
  * One choice kept in the URL — a page's tab, typically — so Back from a row
  * opened on the second tab returns to that tab rather than the first.
  *
- * Only `allowed` values are read; anything else is the default. The default is
- * never written, and every other param is kept. Written with
- * `history.replaceState`, like `useListUrlState`, so it costs no server
- * round-trip and adds no history entry.
+ * Only `allowed` values are read; anything else is the default. Pass `"any"` for
+ * a free value such as a record id (the Inbox's open chat) — then any non-empty
+ * value is read. The default is never written, and every other param is kept.
+ * Written with `history.replaceState`, like `useListUrlState`, so it costs no
+ * server round-trip and adds no history entry.
  */
 export function useUrlParam<T extends string>(
   name: string,
-  allowed: readonly T[],
+  allowed: readonly T[] | "any",
   fallback: T,
 ): [T, (next: T) => void] {
   const searchParams = useSafeSearchParams();
   const pathname = usePathname();
   const raw = searchParams?.get(name) ?? null;
   const parse = (value: string | null): T =>
-    value !== null && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+    value !== null &&
+    (allowed === "any" ? value !== "" : (allowed as readonly string[]).includes(value))
+      ? (value as T)
+      : fallback;
 
   const [value, setValue] = useState<T>(() => parse(raw));
 

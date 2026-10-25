@@ -229,6 +229,27 @@ export type WarrantyTerms = Schemas["WarrantyTerms"];
 export type SaleSerials = Schemas["SaleSerials"];
 /** Where else a code was already handed out — the "already sold" warning. Advice only. */
 export type SerialCheckResult = Schemas["SerialCheckResult"];
+/**
+ * Inbox — Facebook Messenger chats (backend `docs/features/inbox.md`). `canReply` and
+ * `replyWindowClosesAt` are the server's 24-hour rule; never re-derive them in the browser.
+ * The connection never carries its secrets — only `tokenConfigured` / `appSecretConfigured`.
+ */
+export type InboxConnection = Schemas["InboxConnection"];
+export type InboxConversation = Schemas["InboxConversation"];
+export type InboxMessage = Schemas["InboxMessage"];
+export type InboxThread = Schemas["InboxThread"];
+export type InboxSummary = Schemas["InboxSummary"];
+/** AI credit — whole paisa, shown as ৳ and "≈ N replies left" (backend plan §12 Phase 1b). */
+export type InboxAiCredit = Schemas["InboxAiCredit"];
+export type InboxAiCreditHistory = Schemas["InboxAiCreditHistory"];
+export type InboxAiCreditDay = Schemas["InboxAiCreditDay"];
+export type InboxAiFlagRow = Schemas["InboxAiFlagRow"];
+/** The top-bar bell: the newest alerts this user may see, and how many are unread. */
+export type MerchantAlertBell = Schemas["MerchantAlertBell"];
+export type MerchantAlert = MerchantAlertBell["items"][number];
+/** "Connect with Facebook" (plan D2b): the login URL, and the Page picker — never a token. */
+export type InboxOAuthStart = Schemas["InboxOAuthStart"];
+export type InboxOAuthPages = Schemas["InboxOAuthPages"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */

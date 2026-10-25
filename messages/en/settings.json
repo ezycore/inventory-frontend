@@ -28,7 +28,9 @@
       "purchases": "Purchasing",
       "inventoryTracking": "Stock tracking",
       "warranty": "Warranty",
-      "courierPayouts": "Courier payouts"
+      "courierPayouts": "Courier payouts",
+      "inbox": "Inbox",
+      "aiChat": "AI replies"
     },
     "descriptions": {
       "sales": "Enable sales orders, customer invoices, and sales history tracking",
@@ -46,7 +48,9 @@
       "purchases": "Purchase orders, receiving stock, purchase returns and supplier records. Turn this off if you do not buy from suppliers to resell.",
       "inventoryTracking": "Count what you have on hand — stock levels, adjustments, transfers and the movement history. Turn this off if you sell to order and do not hold inventory.",
       "warranty": "Set warranty terms on products, print them on the invoice, check whether a sale is still covered and log warranty claims",
-      "courierPayouts": "Record what each courier pays you and see what they still owe. Works with or without Cash & Bank — with it on, payments also go into your accounts."
+      "courierPayouts": "Record what each courier pays you and see what they still owe. Works with or without Cash & Bank — with it on, payments also go into your accounts.",
+      "inbox": "Connect your Facebook Page and read and answer its Messenger chats here, next to your orders. Replies you send from Facebook still show up.",
+      "aiChat": "Let an AI assistant answer Messenger chats from your catalogue, charged per reply from AI credit. Switch it on for your Page in Inbox → Settings."
     },
     "disable": {
       "title": "Turn off {feature}?",
@@ -1344,7 +1348,8 @@
     },
     "channels": {
       "email": "Email",
-      "sms": "SMS"
+      "sms": "SMS",
+      "inApp": "In ezycore"
     },
     "domains": {
       "all": "All",
@@ -1353,7 +1358,8 @@
       "purchase": "Purchases",
       "inventory": "Inventory",
       "reports": "Reports",
-      "account": "Account"
+      "account": "Account",
+      "inbox": "Inbox"
     },
     "alwaysOn": "Always on",
     "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
@@ -1397,6 +1403,10 @@
         "password_reset": "Password reset",
         "user_invited": "User invited",
         "low_credit": "Low SMS credit"
+      },
+      "inbox": {
+        "handover": "Customer needs a reply (AI handed over a chat)",
+        "unanswered": "Customer still waiting (no reply in time)"
       }
     },
     "log": {
@@ -1529,7 +1539,9 @@
         "courier_name": "Courier",
         "store_phone": "Store phone",
         "stock_status": "Stock status",
-        "orders_count": "Online orders"
+        "orders_count": "Online orders",
+        "reason": "Why the AI handed over",
+        "minutes": "Minutes waited"
       },
       "errors": {
         "SMS_TEMPLATE_NON_GSM": "\"{char}\" can't be sent. Custom SMS supports English letters only — you can write Bangla in English letters (Banglish).",
@@ -1550,6 +1562,8 @@
         "save": "Save",
         "useAutomatic": "Use automatic"
       }
-    }
+    },
+    "managedInInbox": "Manage in Inbox → Page settings",
+    "inAppHint": "Shows in the bell at the top of ezycore, with a sound and pop-up if you switch them on there."
   }
 }

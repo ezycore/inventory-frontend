@@ -9,6 +9,89 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-25
+
+### Added
+- **Inbox: AI replies are marked beta** — a notice at the top of Inbox settings and a **Beta** badge on the AI replies card (en + bn), shown only where AI replies are available. Merchant-facing only; nothing changes in customers' chats.
+- **Inbox: "Connect with Facebook again" on the connection card** when a Page connected with Facebook needs attention, with a plain sentence (en + bn) in place of Meta's raw token error. The same button no longer sits at the bottom of the settings page, below the AI cards, where merchants did not find it.
+- **Inbox help: AI settings are kept across Disconnect** (en + bn) — needs inventory-backend with `inboxsavedsettings`.
+- **Inbox: chats from a Page no longer connected are read-only** — the reply box says why, and those chats show no AI / Staff tag or banner. Needs inventory-backend with `pageConnected`.
+- **Bangla help for the Inbox**: `docs/help/bn/inbox.md`, and the bell section in the Bangla Notifications guide.
+- **Notification bell** in the top bar: new online orders and chats the AI handed to staff, with
+  an unread count, mark read / mark all read, and per-browser **Play a sound** / **Show a pop-up**.
+  Settings → Notifications gets a **You / In ezycore** column for it. en + bn, help guides updated.
+  Needs inventory-backend with `/api/organization/notifications/bell`.
+- **Inbox — "Text me when a customer waits"** in the AI replies card: one SMS when a handed-over
+  chat has no reply after 5–60 minutes (off by default). The Notifications row links here.
+- **Inbox — who answers each chat, in the chat list.** Every chat is tagged **AI** or **Staff**
+  (amber, so a chat the AI handed over stands out; Staff during the AI's off hours; no tag for a shop
+  without the AI), and a preview the AI wrote starts "AI: ". The name now gets the whole first line, beside a short time (today's time, else the date; the full time on hover). en + bn, help guide updated.
+- **Inbox — "Flag this reply".** A **Flag** button under every AI reply (reason + note; "Other"
+  needs a note), shown as "Flagged: …" afterwards, and **Flagged AI replies** on Page settings for
+  the owner: the customer's message, the AI's reply, the reason, who flagged it, a link to the chat.
+  en + bn, help guide updated. Needs inventory-backend with `/api/inbox/ai-flags`.
+- **Inbox → Page settings → Credit history.** What the AI spent per day (last 7 / 30 / 90 days, on
+  the shop's time zone), each day opening into its chats with a link to the thread, and the credit
+  added and removed with the balance after each. en + bn, help guide updated. Needs inventory-backend
+  with `GET /api/inbox/ai-credit/history`.
+- **Inbox — instructions and off hours for the AI.** The AI replies card gets **Instructions for the
+  AI** (up to 2,000 characters, the merchant's own words) and **AI off hours** (up to five windows,
+  days per window, shop time zone); during off hours the thread banner reads "AI off hours — your
+  team answers now". en + bn, help guide updated. Needs the matching inventory-backend.
+- **Inbox — the AI takes orders.** Cash-on-delivery orders the AI takes in Messenger appear in
+  Orders as Pending (channel Messenger); the chat shows **AI took an order · View order**, and the
+  order page **Taken by AI in a Messenger chat · Open chat**. Inbox → Page settings gets **Confirm AI
+  orders automatically** (off by default). Help guide updated. Needs inventory-backend with inbox
+  Phase 2.
+- **Inbox — AI credit.** Inbox → Page settings gets an **AI credit** card: the balance in ৳, valid
+  until, about how many replies it covers, what a typical reply costs and the purchase terms; it
+  says plainly when the AI is stopped because the credit is used up, expired, or not priced yet.
+  English + Bangla; help guide section.
+- **`aiChat` switch** ("AI replies") in Customize workspace — on by default; off, the AI settings
+  card says where to turn it back on.
+- **Inbox — AI replies.** Inbox settings gets an AI replies card (switch, holding message, when
+  the AI takes a quiet chat back), shown only when the backend can run the AI. Each chat shows
+  who is answering — "AI is answering this chat" or "With staff — <reason>" — with **Take over**
+  / **Give back to AI**; AI messages are labelled. English + Bangla; help guide section.
+- **Inbox settings — "Connect with Facebook"**: when the backend offers it (`oauthAvailable`), the
+  merchant logs in with Facebook, picks the Page and is done — nothing to copy. The own-app form moves
+  under "Use your own Meta app instead (advanced)". When it is not offered, the screen is unchanged.
+  English + Bangla; help guide updated.
+- **Inbox — Facebook Messenger chats** (Phase 0 of inventory-backend `docs/plan/social-inbox-ai.md`, no
+  AI yet). New **Inbox** row in the sidebar under Sell (`/inbox`) with an unread badge: the chat list
+  (search, unread only), the thread (customer left, shop right; replies typed in Facebook marked
+  "Replied from Facebook"; photos while Meta's link works) and a reply box that is replaced by the
+  reason once Facebook's 24-hour window has closed. **Inbox → Page settings** (`/inbox/settings`,
+  `inbox.manage`): paste Page ID, Page token and App Secret, then the Callback URL + Verify token to
+  copy into Meta, connection status, Check connection, Disconnect. Polls (list 10 s, thread 5 s,
+  badge 30 s), paused while the tab is hidden.
+- `inbox` switch in Customize workspace (opt-in, needs the online store); `inbox.*` permissions in the
+  role builder, hidden while the feature is off.
+- New `messages/{en,bn}/inbox.json` namespace (fully translated), glossary section "Inbox", help guide
+  `docs/help/en/inbox.md`.
+
+### Fixed
+- **Inbox: no flash of "Connect with Facebook" right after connecting a Page.** The Page list now keeps saying "Connecting…" until the connection has refreshed, instead of closing over the old "not connected" view.
+- Inbox settings: the Page token and App Secret fields use `autocomplete="new-password"`, so Chrome no longer fills them (and the Page ID) with the login email and password.
+
+### Changed
+- **Bangla wording (owner review 2026-10-25):** UI labels write `AI` and `ezycore` in Latin letters (no more এআই / ইজিকোর); the feature is **AI রিপ্লাই** everywhere and a reply is রিপ্লাই; the bell says "{name}-এর মেসেজের উত্তর বাকি". Rules in `docs/I18N-GLOSSARY.md`.
+- **Inbox — AI credit card shows the price per reply as a range** ("A reply usually costs 10–16
+  paisa — less for a quick answer, more when the AI looks up several products or takes an order")
+  instead of one "about N paisa". Needs inventory-backend with `replyPaisaRange`.
+- `useUrlParam` accepts `"any"` for a free value (the Inbox's open chat id).
+- `types/api-generated.ts` regenerated for the inbox endpoints.
+
+### Deploy notes
+- **Deploy order:** after inventory-backend 1.15.0 (and mission-control 1.1.0 before that).
+- AI credit needs inventory-backend with `GET /api/inbox/ai-credit` and the `aiChat` feature
+  (Phase 1b) deployed first.
+- AI replies need inventory-backend with `/api/inbox/ai-settings`; without it the card says AI
+  replies are not available and nothing else changes.
+- "Connect with Facebook" needs inventory-backend with `/api/inbox/oauth/*`; without it
+  `oauthAvailable` is absent and the screen shows only the own-app form, as before.
+- Needs inventory-backend with the inbox (`/api/inbox/*`) — deploy the backend first.
+
 ## [1.13.1] - 2026-10-23
 
 ### Fixed

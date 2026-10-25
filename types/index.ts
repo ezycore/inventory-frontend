@@ -125,6 +125,16 @@ export interface OrganizationFeatures {
    * just posts nothing to the books. Mirrors the backend `OrganizationFeatures`.
    */
   courierPayouts: boolean;
+  /**
+   * Inbox — Facebook Messenger chats read and answered inside ezycore. Opt-in, needs
+   * `storefront`. Mirrors the backend `OrganizationFeatures` (`docs/features/inbox.md`).
+   */
+  inbox: boolean;
+  /**
+   * AI replies in the inbox — the plan-controlled sub-switch of `inbox` (on by default; the
+   * merchant still switches AI on per Page in Inbox → Settings). Mirrors the backend.
+   */
+  aiChat: boolean;
 }
 
 /**
@@ -151,6 +161,8 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   inventoryTracking: true,
   warranty: true,
   courierPayouts: true,
+  inbox: true,
+  aiChat: true,
 };
 
 /**

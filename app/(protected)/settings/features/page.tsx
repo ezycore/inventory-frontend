@@ -51,6 +51,8 @@ const FEATURE_ORDER: FeatureName[] = [
   "uomConversion",
   "storefront",
   "courierPayouts",
+  "inbox",
+  "aiChat",
   "multiLocation",
   "tax",
   "combo",

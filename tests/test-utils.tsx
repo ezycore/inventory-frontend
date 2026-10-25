@@ -10,6 +10,8 @@ import customersMessages from "@/messages/en/customers.json";
 import authMessages from "@/messages/en/auth.json";
 import dashboardMessages from "@/messages/en/dashboard.json";
 import ecommerceMessages from "@/messages/en/ecommerce.json";
+import inboxMessages from "@/messages/en/inbox.json";
+import layoutMessages from "@/messages/en/layout.json";
 import onboardingMessages from "@/messages/en/onboarding.json";
 import productsMessages from "@/messages/en/products.json";
 import reportsMessages from "@/messages/en/reports.json";
@@ -49,6 +51,8 @@ export function TestProviders({ children, client }: WrapperProps) {
         customers: customersMessages,
         dashboard: dashboardMessages,
         ecommerce: ecommerceMessages,
+        inbox: inboxMessages,
+        layout: layoutMessages,
         onboarding: onboardingMessages,
         products: productsMessages,
         // `reports.period` is the shared date-filter vocabulary, so this
