@@ -18,6 +18,8 @@ ui_labels:
   - inbox:settings.test
   - inbox:settings.disconnect
   - inbox:settings.oauth.button
+  - inbox:settings.oauth.reconnectTitle
+  - inbox:settings.status.token_invalid
   - inbox:settings.oauth.ownAppToggle
   - inbox:settings.ai.title
   - inbox:settings.ai.enable
@@ -94,9 +96,15 @@ call.
 7. **Publish** your Meta app. Until it is published, only you and the people you added to the app
    can reach the Inbox — your customers cannot.
 
+If a Page connected with Facebook shows **Needs attention**, Facebook no longer lets ezycore use it —
+usually because ezycore was removed in Facebook's settings, or the sign-in expired. Press
+**Connect with Facebook again** on the same card and pick the same Page; the chats and your settings
+carry on.
+
 **Check connection** re-tests the saved details with Facebook at any time. **Disconnect** stops new
 messages arriving; the chats you already have stay, and reconnecting the same Page carries on in the
-same chats. While another Page is connected, chats from the old one can be read but not answered —
+same chats. Your AI settings — on or off, your instructions, **AI off hours**, the text when a
+customer waits — are kept and come back when you connect again. While another Page is connected, chats from the old one can be read but not answered —
 a reply can only go through the Page the customer wrote to.
 
 ## Read and reply

@@ -10,6 +10,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox: "Connect with Facebook again" on the connection card** when a Page connected with Facebook needs attention, with a plain sentence (en + bn) in place of Meta's raw token error. The same button no longer sits at the bottom of the settings page, below the AI cards, where merchants did not find it.
+- **Inbox help: AI settings are kept across Disconnect** (en + bn) — needs inventory-backend with `inboxsavedsettings`.
 - **Inbox: chats from a Page no longer connected are read-only** — the reply box says why, and those chats show no AI / Staff tag or banner. Needs inventory-backend with `pageConnected`.
 - **Bangla help for the Inbox**: `docs/help/bn/inbox.md`, and the bell section in the Bangla Notifications guide.
 - **Notification bell** in the top bar: new online orders and chats the AI handed to staff, with

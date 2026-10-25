@@ -98,6 +98,7 @@
     "save": "Save",
     "saving": "Checking with Facebook…",
     "statusTitle": "Connection",
+    "platformNeedsAttention": "Facebook no longer lets ezycore use this Page — the app was removed in Facebook, or the sign-in expired. Connect with Facebook again and pick the same Page; your chats and settings stay as they are.",
     "status": {
       "active": "Connected",
       "pending": "Not checked yet",

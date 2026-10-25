@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useFormatters } from "@/hooks/use-formatters";
-import { useDisconnectInbox, useTestInboxConnection, type InboxConnection } from "@/services/api";
+import { useDisconnectInbox, useStartInboxOAuth, useTestInboxConnection, type InboxConnection } from "@/services/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,21 +18,29 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { CopyField } from "@/ui/components/copy";
 import { cn } from "@/ui/lib/utils";
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, Facebook, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 /**
  * A saved connection: is it working, and what to paste into Meta. `webhookVerifiedAt` is the
  * proof the Callback URL was pasted right — Facebook stamps it the moment it calls us.
+ *
+ * A Page connected with Facebook that needs attention has lost Facebook's permission (the app was
+ * removed, the sign-in expired), and the only cure is signing in again — so the card says that in
+ * plain words and leads with the button. Meta's own reason stays on the row for support. Connecting
+ * the same Page again updates this connection in place: chats and settings carry on.
  */
 export function ConnectionStatus({ connection }: { connection: InboxConnection }) {
   const t = useTranslations("inbox.settings");
   const { formatDateTime } = useFormatters();
   const test = useTestInboxConnection();
   const disconnect = useDisconnectInbox();
+  const reconnect = useStartInboxOAuth();
   const healthy = connection.status === "active";
   // Connected through ezycore's app: ezycore subscribed the Page, so there is nothing to paste.
   const platform = connection.source === "platform";
+  const lostFacebook = platform && connection.status === "token_invalid";
+  const redirecting = reconnect.isPending || reconnect.isSuccess;
 
   return (
     <div className="space-y-4">
@@ -51,7 +59,11 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
             {connection.status ? t(`status.${connection.status}`) : null}
           </span>
         </div>
-        {connection.statusReason && <p className="text-sm text-amber-800 dark:text-amber-300">{connection.statusReason}</p>}
+        {(lostFacebook || connection.statusReason) && (
+          <p className="text-sm text-amber-800 dark:text-amber-300">
+            {lostFacebook ? t("platformNeedsAttention") : connection.statusReason}
+          </p>
+        )}
         <dl className="grid gap-1 text-sm sm:grid-cols-[140px_1fr]">
           <dt className="text-muted-foreground">{t("page")}</dt>
           <dd>{connection.pageName ? `${connection.pageName} · ${connection.pageId}` : connection.pageId}</dd>
@@ -64,6 +76,12 @@ export function ConnectionStatus({ connection }: { connection: InboxConnection }
           {connection.lastEventAt ? t("lastEvent", { time: formatDateTime(connection.lastEventAt) }) : t("noEventYet")}
         </p>
         <div className="flex flex-wrap gap-2">
+          {lostFacebook && connection.oauthAvailable && (
+            <Button size="sm" onClick={() => reconnect.mutate()} disabled={redirecting}>
+              <Facebook className="h-4 w-4" />
+              {redirecting ? t("oauth.redirecting") : t("oauth.reconnectTitle")}
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => test.mutate()} disabled={test.isPending}>
             {t("test")}
           </Button>

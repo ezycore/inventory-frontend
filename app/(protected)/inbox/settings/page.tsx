@@ -59,9 +59,10 @@ export default function InboxSettingsPage() {
 
   const oauth = Boolean(connection?.oauthAvailable);
   const platform = connection?.connected && connection.source === "platform";
-  // Offer the button unless a healthy platform connection is already in place; a broken one
-  // ("needs attention", e.g. removed in Facebook settings) is fixed by connecting again.
-  const offerFacebook = oauth && !grant && !(platform && connection?.status === "active");
+  // Offer the button unless the Page is already connected with Facebook. A broken one ("needs
+  // attention", e.g. removed in Facebook settings) gets its reconnect button on the connection card
+  // itself — down here, below the AI cards, merchants did not find it (live test 2026-10-25).
+  const offerFacebook = oauth && !grant && !platform;
 
   const ownApp = (
     <>
