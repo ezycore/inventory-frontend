@@ -26,6 +26,10 @@ ui_labels:
   - settings:notifications.smsEditor.casesTitle
   - settings:notifications.smsEditor.reset
   - settings:notifications.smsEditor.storeName.title
+  - settings:notifications.channels.inApp
+  - layout:bell.markAllRead
+  - layout:bell.sound
+  - layout:bell.popup
 ---
 
 # Notifications
@@ -39,8 +43,27 @@ combination of **who** gets told and **how**:
 
 - **Customer / Email** — the person who bought something
 - **You / Email** — the alert that lands in your own inbox
+- **You / In ezycore** — the bell at the top of ezycore (only on the rows that can use it)
 
 Tick a box and that message starts sending. Untick it and it stops. Nothing else needs saving.
+
+## The bell at the top
+
+The bell beside the **?** at the top of every page shows what needs you right now: a **new
+online order**, or a **customer who needs a reply** because the AI handed their Messenger chat to
+your team. A red number counts what you have not opened yet. Click an alert to go straight to the
+order or the chat; **Mark all read** clears the number.
+
+Each person sees only what they are allowed to work on — someone who cannot see online orders does
+not get order alerts — and opening an alert marks it read for you, not for your whole team.
+
+Inside the bell you can switch on **Play a sound** and **Show a pop-up**, so a new alert reaches
+you even while ezycore is in a background tab. These two are saved for the browser you are using,
+so a shared shop computer can stay quiet while your own laptop rings. Your browser asks for
+permission the first time you switch the pop-up on. The bell only works while ezycore is open in a
+tab; the email covers the times it is not.
+
+To stop a kind of alert ringing the bell for everyone, untick its **In ezycore** box here.
 
 ## Who "you" means
 

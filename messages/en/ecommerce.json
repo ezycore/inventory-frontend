@@ -522,6 +522,8 @@
     "notFound": "Order not found.",
     "back": "← Back to orders",
     "backShort": "Back to orders",
+    "placedByAi": "Taken by AI in a Messenger chat",
+    "openChat": "Open chat",
     "placed": "Placed {date} · {count, plural, one {# item} other {# items}} · {total}",
     "terminal": "This order was {status}. Any reserved stock was released back to inventory.",
     "returned": "This order was returned.",

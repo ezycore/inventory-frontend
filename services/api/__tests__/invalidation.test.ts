@@ -48,6 +48,9 @@ const READ_ONLY_MUTATIONS: Record<string, string> = {
     "the support operator ending their own session — it clears the local auth, " +
     "so every cached query is discarded with the session rather than refreshed",
   useEmailCustomerStatement: "sends an email; changes no data",
+  useStartInboxOAuth:
+    "asks for the Facebook login URL and leaves the page for it; nothing is saved until " +
+    "useConnectInboxOAuthPage, which invalidates",
   useEmailSaleReceipt: "sends an email; changes no data",
   useOrderFraudScore: "on-demand risk lookup, modelled as a mutation to run lazily",
   useCourierPrice: "pre-dispatch price quote",

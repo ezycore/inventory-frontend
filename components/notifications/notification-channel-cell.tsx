@@ -12,11 +12,12 @@ import {
 } from "@/ui/components/tooltip";
 
 type Audience = "customer" | "merchant";
-type Channel = "email" | "sms";
+type Channel = "email" | "sms" | "inApp";
 
 /**
- * One Email/SMS box of the notification matrix, for one audience — or a dash
- * when the event does not address that audience at all (not an "off" state).
+ * One Email/SMS/In-ezycore box of the notification matrix, for one audience — or
+ * a dash when the event does not address that audience, or (for the bell) does
+ * not offer it at all (not an "off" state).
  */
 export function NotificationChannelCell({
   row,
@@ -39,6 +40,7 @@ export function NotificationChannelCell({
   if (!toggles) return <span className="text-muted-foreground/40">—</span>;
 
   const checked = toggles[channel];
+  if (checked === undefined) return <span className="text-muted-foreground/40">—</span>;
   const smsLocked = channel === "sms" && !smsAvailable;
   // A managed row reports what its feature currently does; the switch is
   // elsewhere. The config API rejects an override for these keys outright, so

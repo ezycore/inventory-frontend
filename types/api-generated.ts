@@ -213,7 +213,7 @@ export interface paths {
         };
         /**
          * GET /api/mc/permissions
-         * @description Defined in `src/routes/mc.routes.ts:15`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:16`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         get: operations["get_api_mc_permissions"];
         put?: never;
@@ -235,7 +235,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/entitlement
-         * @description Defined in `src/routes/mc.routes.ts:18`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:19`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_entitlement"];
         delete?: never;
@@ -255,9 +255,49 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/sms-credits
-         * @description Defined in `src/routes/mc.routes.ts:22`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:23`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_sms_credits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mc/ai-credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/mc/ai-credits
+         * @description Defined in `src/routes/mc.routes.ts:27`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        post: operations["post_api_mc_ai_credits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mc/ai-credit-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/mc/ai-credit-rates
+         * @description Defined in `src/routes/mc.routes.ts:30`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        post: operations["post_api_mc_ai_credit_rates"];
         delete?: never;
         options?: never;
         head?: never;
@@ -273,7 +313,7 @@ export interface paths {
         };
         /**
          * GET /api/mc/sms-balance
-         * @description Defined in `src/routes/mc.routes.ts:25`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:33`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         get: operations["get_api_mc_sms_balance"];
         put?: never;
@@ -295,7 +335,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/roles
-         * @description Defined in `src/routes/mc.routes.ts:28`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:36`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_roles"];
         delete?: never;
@@ -315,7 +355,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/commands
-         * @description Defined in `src/routes/mc.routes.ts:31`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:39`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_commands"];
         delete?: never;
@@ -1316,6 +1356,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/messenger-webhooks/platform": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/messenger-webhooks/platform
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:34`.
+         */
+        get: operations["get_api_messenger_webhooks_platform"];
+        put?: never;
+        /**
+         * POST /api/messenger-webhooks/platform
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:35`.
+         */
+        post: operations["post_api_messenger_webhooks_platform"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/messenger-webhooks/platform/deauthorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/messenger-webhooks/platform/deauthorize
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:36`.
+         */
+        post: operations["post_api_messenger_webhooks_platform_deauthorize"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/messenger-webhooks/platform/data-deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/messenger-webhooks/platform/data-deletion
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:41`.
+         */
+        post: operations["post_api_messenger_webhooks_platform_data_deletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/messenger-webhooks/platform/deletion/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/messenger-webhooks/platform/deletion/:code
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:46`.
+         */
+        get: operations["get_api_messenger_webhooks_platform_deletion_code"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/messenger-webhooks/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/messenger-webhooks/:token
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:52`.
+         */
+        get: operations["get_api_messenger_webhooks_token"];
+        put?: never;
+        /**
+         * POST /api/messenger-webhooks/:token
+         * @description Defined in `src/routes/messenger-webhooks.routes.ts:53`.
+         */
+        post: operations["post_api_messenger_webhooks_token"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/oauth/callback
+         * @description Defined in `src/routes/inbox-public.routes.ts:17`.
+         */
+        get: operations["get_api_inbox_oauth_callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organization": {
         parameters: {
             query?: never;
@@ -1325,12 +1493,12 @@ export interface paths {
         };
         /**
          * GET /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:69`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:70`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization"];
         /**
          * PUT /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:44`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:45`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization"];
         post?: never;
@@ -1350,7 +1518,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/receipt-images
-         * @description Defined in `src/routes/organization.routes.ts:58`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:59`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_receipt_images"];
         post?: never;
@@ -1372,7 +1540,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/demo-data
-         * @description Defined in `src/routes/organization.routes.ts:76`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:77`. Requires permission `organization.edit`.
          */
         delete: operations["delete_api_organization_demo_data"];
         options?: never;
@@ -1389,7 +1557,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:83`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:84`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications"];
         put?: never;
@@ -1399,9 +1567,69 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:90`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:91`. Requires permission `organization.manage`.
          */
         patch: operations["patch_api_organization_notifications"];
+        trace?: never;
+    };
+    "/api/organization/notifications/bell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/notifications/bell
+         * @description Defined in `src/routes/organization.routes.ts:101`.
+         */
+        get: operations["get_api_organization_notifications_bell"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/notifications/bell/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/notifications/bell/read-all
+         * @description Defined in `src/routes/organization.routes.ts:104`.
+         */
+        post: operations["post_api_organization_notifications_bell_read_all"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/notifications/bell/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/notifications/bell/:id/read
+         * @description Defined in `src/routes/organization.routes.ts:107`.
+         */
+        post: operations["post_api_organization_notifications_bell_id_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/organization/notifications/log": {
@@ -1413,7 +1641,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/log
-         * @description Defined in `src/routes/organization.routes.ts:98`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:114`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_log"];
         put?: never;
@@ -1435,7 +1663,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/log/:id/resend
-         * @description Defined in `src/routes/organization.routes.ts:107`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:123`. Requires permission `organization.manage`.
          */
         post: operations["post_api_organization_notifications_log_id_resend"];
         delete?: never;
@@ -1453,7 +1681,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/sms/usage
-         * @description Defined in `src/routes/organization.routes.ts:115`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:131`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_sms_usage"];
         put?: never;
@@ -1475,7 +1703,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/sms/test
-         * @description Defined in `src/routes/organization.routes.ts:125`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:141`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_notifications_sms_test"];
         delete?: never;
@@ -1495,7 +1723,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/sms-template/preview
-         * @description Defined in `src/routes/organization.routes.ts:137`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:153`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
          */
         post: operations["post_api_organization_notifications_sms_template_preview"];
         delete?: never;
@@ -1514,7 +1742,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/notifications/sms-template
-         * @description Defined in `src/routes/organization.routes.ts:147`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:163`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
          */
         put: operations["put_api_organization_notifications_sms_template"];
         post?: never;
@@ -1533,7 +1761,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription
-         * @description Defined in `src/routes/organization.routes.ts:165`.
+         * @description Defined in `src/routes/organization.routes.ts:181`.
          */
         get: operations["get_api_organization_subscription"];
         put?: never;
@@ -1553,7 +1781,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription/status
-         * @description Defined in `src/routes/organization.routes.ts:177`.
+         * @description Defined in `src/routes/organization.routes.ts:193`.
          */
         get: operations["get_api_organization_subscription_status"];
         put?: never;
@@ -1573,7 +1801,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/billing/pay-link
-         * @description Defined in `src/routes/organization.routes.ts:183`.
+         * @description Defined in `src/routes/organization.routes.ts:199`.
          */
         get: operations["get_api_organization_billing_pay_link"];
         put?: never;
@@ -1593,7 +1821,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/plans
-         * @description Defined in `src/routes/organization.routes.ts:190`.
+         * @description Defined in `src/routes/organization.routes.ts:206`.
          */
         get: operations["get_api_organization_plans"];
         put?: never;
@@ -1613,7 +1841,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/referral-link
-         * @description Defined in `src/routes/organization.routes.ts:198`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:214`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_referral_link"];
         put?: never;
@@ -1635,7 +1863,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change
-         * @description Defined in `src/routes/organization.routes.ts:205`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:221`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change"];
         delete?: never;
@@ -1655,7 +1883,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change/reconcile
-         * @description Defined in `src/routes/organization.routes.ts:212`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:228`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change_reconcile"];
         delete?: never;
@@ -1675,7 +1903,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/subscription/cancel
-         * @description Defined in `src/routes/organization.routes.ts:220`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:236`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_subscription_cancel"];
         delete?: never;
@@ -1694,7 +1922,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:228`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:244`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1713,12 +1941,12 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:239`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:255`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:256`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:272`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
@@ -1737,7 +1965,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/features/impact
-         * @description Defined in `src/routes/organization.routes.ts:248`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:264`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features_impact"];
         put?: never;
@@ -1759,7 +1987,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/onboarding
-         * @description Defined in `src/routes/organization.routes.ts:266`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:282`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_onboarding"];
         delete?: never;
@@ -1778,7 +2006,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:275`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:291`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1797,7 +2025,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:286`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:302`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1807,7 +2035,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:294`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. ⚠️ Nested objects are REPLACED WHOLESALE, not merged. A block you omit is left untouched; a block you send, you own entirely — every key you leave out of it is deleted, or reset to its schema default where the schema defines one. Send the complete object for any block you touch.
+         * @description Defined in `src/routes/organization.routes.ts:310`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. ⚠️ Nested objects are REPLACED WHOLESALE, not merged. A block you omit is left untouched; a block you send, you own entirely — every key you leave out of it is deleted, or reset to its schema default where the schema defines one. Send the complete object for any block you touch.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1821,7 +2049,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/preview-token
-         * @description Defined in `src/routes/organization.routes.ts:306`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:322`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_preview_token"];
         put?: never;
@@ -1847,7 +2075,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:325`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:341`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1863,7 +2091,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/image
-         * @description Defined in `src/routes/organization.routes.ts:338`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:354`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_image"];
         delete?: never;
@@ -1881,7 +2109,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:355`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:371`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_meta"];
         put?: never;
@@ -1891,7 +2119,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:363`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:379`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_meta"];
         trace?: never;
@@ -1907,7 +2135,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/meta/test
-         * @description Defined in `src/routes/organization.routes.ts:375`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:391`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_storefront_meta_test"];
         delete?: never;
@@ -1928,7 +2156,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/storefront/meta/token
-         * @description Defined in `src/routes/organization.routes.ts:387`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:403`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_organization_storefront_meta_token"];
         options?: never;
@@ -1945,7 +2173,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/clarity
-         * @description Defined in `src/routes/organization.routes.ts:407`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:423`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_clarity"];
         put?: never;
@@ -1955,7 +2183,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/clarity
-         * @description Defined in `src/routes/organization.routes.ts:416`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:432`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_clarity"];
         trace?: never;
@@ -1969,7 +2197,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/ga4
-         * @description Defined in `src/routes/organization.routes.ts:433`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:449`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_ga4"];
         put?: never;
@@ -1979,7 +2207,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/ga4
-         * @description Defined in `src/routes/organization.routes.ts:441`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:457`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_ga4"];
         trace?: never;
@@ -1993,7 +2221,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/marketing
-         * @description Defined in `src/routes/organization.routes.ts:456`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:472`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_marketing"];
         put?: never;
@@ -2003,7 +2231,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/marketing
-         * @description Defined in `src/routes/organization.routes.ts:464`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:480`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_marketing"];
         trace?: never;
@@ -2018,7 +2246,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:474`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:490`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -6286,6 +6514,338 @@ export interface paths {
          * @description Defined in `src/routes/warranty.routes.ts:94`. Requires permission `sales.edit`. Gated by organization feature `warranty` — returns 403 when disabled.
          */
         patch: operations["patch_api_warranty_sales_id_serials"];
+        trace?: never;
+    };
+    "/api/inbox/connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/connection
+         * @description Defined in `src/routes/inbox.routes.ts:40`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_connection"];
+        /**
+         * PUT /api/inbox/connection
+         * @description Defined in `src/routes/inbox.routes.ts:41`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        put: operations["put_api_inbox_connection"];
+        post?: never;
+        /**
+         * DELETE /api/inbox/connection
+         * @description Defined in `src/routes/inbox.routes.ts:48`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_inbox_connection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/connection/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/connection/test
+         * @description Defined in `src/routes/inbox.routes.ts:47`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_connection_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/inbox/ai-settings
+         * @description Defined in `src/routes/inbox.routes.ts:52`. Requires permission `inbox.manage`. Gated by organization feature `inbox`, `aiChat` — returns 403 when disabled.
+         */
+        put: operations["put_api_inbox_ai_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-credit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/ai-credit
+         * @description Defined in `src/routes/inbox.routes.ts:60`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_ai_credit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-credit/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/ai-credit/history
+         * @description Defined in `src/routes/inbox.routes.ts:62`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_ai_credit_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-credit/history/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/ai-credit/history/:date
+         * @description Defined in `src/routes/inbox.routes.ts:68`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_ai_credit_history_date"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/oauth/start
+         * @description Defined in `src/routes/inbox.routes.ts:76`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_oauth_start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/oauth/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/oauth/pages
+         * @description Defined in `src/routes/inbox.routes.ts:77`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_oauth_pages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/oauth/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/oauth/connect
+         * @description Defined in `src/routes/inbox.routes.ts:83`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_oauth_connect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/summary
+         * @description Defined in `src/routes/inbox.routes.ts:90`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/conversations
+         * @description Defined in `src/routes/inbox.routes.ts:91`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_conversations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/conversations/:id
+         * @description Defined in `src/routes/inbox.routes.ts:97`. Requires permission `inbox.view`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_conversations_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations/{id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/conversations/:id/owner
+         * @description Defined in `src/routes/inbox.routes.ts:104`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_conversations_id_owner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations/{id}/messages/{messageId}/flag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/conversations/:id/messages/:messageId/flag
+         * @description Defined in `src/routes/inbox.routes.ts:112`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_conversations_id_messages_messageId_flag"];
+        /**
+         * DELETE /api/inbox/conversations/:id/messages/:messageId/flag
+         * @description Defined in `src/routes/inbox.routes.ts:118`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_inbox_conversations_id_messages_messageId_flag"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/ai-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/inbox/ai-flags
+         * @description Defined in `src/routes/inbox.routes.ts:124`. Requires permission `inbox.manage`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        get: operations["get_api_inbox_ai_flags"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/conversations/{id}/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inbox/conversations/:id/reply
+         * @description Defined in `src/routes/inbox.routes.ts:125`. Requires permission `inbox.reply`. Gated by organization feature `inbox` — returns 403 when disabled.
+         */
+        post: operations["post_api_inbox_conversations_id_reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/reports/inventory": {
@@ -12199,6 +12759,7 @@ export interface components {
                 trackToken?: string;
                 trackUrl?: string;
                 excludeFromMeta?: boolean;
+                inboxConversationId?: string;
                 meta?: {
                     purchaseSent?: boolean;
                     purchaseEventId?: string;
@@ -12435,6 +12996,7 @@ export interface components {
             trackToken?: string;
             trackUrl?: string;
             excludeFromMeta?: boolean;
+            inboxConversationId?: string;
             meta?: {
                 purchaseSent?: boolean;
                 purchaseEventId?: string;
@@ -12661,6 +13223,7 @@ export interface components {
                 trackToken?: string;
                 trackUrl?: string;
                 excludeFromMeta?: boolean;
+                inboxConversationId?: string;
                 meta?: {
                     purchaseSent?: boolean;
                     purchaseEventId?: string;
@@ -12877,6 +13440,291 @@ export interface components {
             transactionId?: string;
             shortfall: number;
         };
+        InboxAiCreditDay: {
+            date: string;
+            timezone: string;
+            totals: {
+                replies: number;
+                paisa: number;
+            };
+            chats: {
+                conversationId: string;
+                customerName: string | null;
+                replies: number;
+                paisa: number;
+                /** Format: date-time */
+                lastAt: string;
+            }[];
+        };
+        InboxAiCredit: {
+            paisa: number;
+            /** Format: date-time */
+            expiresAt: string | null;
+            expired: boolean;
+            repliesLeft: number | null;
+            typicalReplyPaisa: number | null;
+            replyPaisaRange: {
+                low: number;
+                high: number;
+            } | null;
+            rates: {
+                inputPaisaPer1k: number;
+                outputPaisaPer1k: number;
+            } | null;
+            terms: {
+                version: string;
+                effectiveFrom?: string;
+                en: string;
+                bn: string;
+            } | null;
+        };
+        InboxAiCreditHistory: {
+            timezone: string;
+            days: number;
+            totals: {
+                replies: number;
+                paisa: number;
+            };
+            usage: {
+                date: string;
+                replies: number;
+                paisa: number;
+            }[];
+            credits: {
+                /** Format: date-time */
+                at: string;
+                paisa: number;
+                balanceAfter: number;
+            }[];
+        };
+        InboxAiFlagRow: {
+            messageId: string;
+            conversationId: string;
+            customerName: string | null;
+            customerText: string | null;
+            replyText: string;
+            /** Format: date-time */
+            replyAt: string;
+            /** @enum {string} */
+            reason: "wrong_info" | "wrong_language" | "tone" | "missed_handover" | "other";
+            note: string | null;
+            /** Format: date-time */
+            flaggedAt: string;
+            flaggedBy: string | null;
+        };
+        InboxConnection: {
+            connected: boolean;
+            oauthAvailable: boolean;
+            /** @enum {string} */
+            source?: "byo" | "platform";
+            /** @enum {string} */
+            platform?: "messenger";
+            pageId?: string;
+            pageName?: string;
+            appId?: string;
+            /** @enum {string} */
+            status?: "pending" | "active" | "token_invalid";
+            statusReason?: string;
+            tokenConfigured?: boolean;
+            appSecretConfigured?: boolean;
+            webhookUrl?: string;
+            verifyToken?: string;
+            /** Format: date-time */
+            lastVerifiedAt?: string;
+            /** Format: date-time */
+            webhookVerifiedAt?: string;
+            /** Format: date-time */
+            lastEventAt?: string;
+            holdingMessage?: string;
+            aiAvailable: boolean;
+            aiEnabled?: boolean;
+            handoverIdleMinutes?: number;
+            autoConfirmOrders?: boolean;
+            aiInstructions?: string;
+            aiOffHours?: {
+                days: number[];
+                start: string;
+                end: string;
+            }[];
+            unansweredSms?: {
+                enabled: boolean;
+                minutes: number;
+            };
+        };
+        InboxConversation: {
+            _id: string;
+            organizationId: string;
+            /** @enum {string} */
+            platform: "messenger";
+            externalAccountId: string;
+            externalUserId: string;
+            customerName?: string;
+            /** Format: date-time */
+            customerNameCheckedAt?: string;
+            customerId?: string | null;
+            /** @enum {string} */
+            owner: "ai" | "staff";
+            /** Format: date-time */
+            lastMessageAt: string;
+            lastMessagePreview?: string;
+            /** @enum {string} */
+            lastMessageRole?: "customer" | "staff" | "ai" | "system";
+            /** Format: date-time */
+            lastCustomerMessageAt?: string;
+            unreadCount: number;
+            /** Format: date-time */
+            lastReadAt?: string;
+            handoverReason?: string;
+            /** Format: date-time */
+            handoverAt?: string;
+            /** Format: date-time */
+            lastStaffAt?: string;
+            /** Format: date-time */
+            replyWindowClosesAt: string | null;
+            pageConnected: boolean;
+            canReply: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            __v?: number;
+        };
+        InboxDeauthorizeAck: {
+            revoked: number;
+        };
+        InboxMessage: {
+            _id?: string;
+            organizationId: string;
+            conversationId: string;
+            /** @enum {string} */
+            platform: "messenger";
+            /** @enum {string} */
+            role: "customer" | "staff" | "ai" | "system";
+            /** @enum {string} */
+            source?: "ezycore" | "platform_inbox";
+            text?: string;
+            attachments: {
+                type: string;
+                url?: string;
+            }[];
+            externalId?: string;
+            sentBy?: string | null;
+            /** @enum {string} */
+            deliveryStatus: "received" | "sent" | "failed";
+            error?: string;
+            /** Format: date-time */
+            at: string;
+            orderId?: string;
+            aiFlag?: {
+                /** @enum {string} */
+                reason: "wrong_info" | "wrong_language" | "tone" | "missed_handover" | "other";
+                note?: string;
+                flaggedBy: string;
+                /** Format: date-time */
+                flaggedAt: string;
+            };
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            __v?: number;
+        };
+        InboxOAuthPages: {
+            pages: {
+                id: string;
+                name?: string;
+                canMessage: boolean;
+            }[];
+        };
+        InboxOAuthStart: {
+            url: string;
+        };
+        InboxSummary: {
+            unreadConversations: number;
+            aiActive: boolean;
+            aiOffNow: boolean;
+        };
+        InboxThread: {
+            conversation: {
+                _id: string;
+                organizationId: string;
+                /** @enum {string} */
+                platform: "messenger";
+                externalAccountId: string;
+                externalUserId: string;
+                customerName?: string;
+                /** Format: date-time */
+                customerNameCheckedAt?: string;
+                customerId?: string | null;
+                /** @enum {string} */
+                owner: "ai" | "staff";
+                /** Format: date-time */
+                lastMessageAt: string;
+                lastMessagePreview?: string;
+                /** @enum {string} */
+                lastMessageRole?: "customer" | "staff" | "ai" | "system";
+                /** Format: date-time */
+                lastCustomerMessageAt?: string;
+                unreadCount: number;
+                /** Format: date-time */
+                lastReadAt?: string;
+                handoverReason?: string;
+                /** Format: date-time */
+                handoverAt?: string;
+                /** Format: date-time */
+                lastStaffAt?: string;
+                /** Format: date-time */
+                replyWindowClosesAt: string | null;
+                pageConnected: boolean;
+                canReply: boolean;
+                /** Format: date-time */
+                createdAt?: string;
+                /** Format: date-time */
+                updatedAt?: string;
+                __v?: number;
+            };
+            messages: {
+                _id?: string;
+                organizationId: string;
+                conversationId: string;
+                /** @enum {string} */
+                platform: "messenger";
+                /** @enum {string} */
+                role: "customer" | "staff" | "ai" | "system";
+                /** @enum {string} */
+                source?: "ezycore" | "platform_inbox";
+                text?: string;
+                attachments: {
+                    type: string;
+                    url?: string;
+                }[];
+                externalId?: string;
+                sentBy?: string | null;
+                /** @enum {string} */
+                deliveryStatus: "received" | "sent" | "failed";
+                error?: string;
+                /** Format: date-time */
+                at: string;
+                orderId?: string;
+                aiFlag?: {
+                    /** @enum {string} */
+                    reason: "wrong_info" | "wrong_language" | "tone" | "missed_handover" | "other";
+                    note?: string;
+                    flaggedBy: string;
+                    /** Format: date-time */
+                    flaggedAt: string;
+                };
+                /** Format: date-time */
+                createdAt?: string;
+                /** Format: date-time */
+                updatedAt?: string;
+                __v?: number;
+            }[];
+            hasOlder: boolean;
+        };
+        InboxWebhookAck: {
+            stored: number;
+        };
         EmailWebhookAck: {
             received: boolean;
             /** @enum {string} */
@@ -12884,25 +13732,45 @@ export interface components {
             suppressed: number;
             consentCleared: number;
         };
+        MerchantAlertBell: {
+            items: {
+                _id: string;
+                eventKey: string;
+                data: {
+                    [key: string]: string;
+                };
+                link: {
+                    /** @enum {string} */
+                    kind: "order" | "chat";
+                    id: string;
+                };
+                /** Format: date-time */
+                createdAt: string;
+                read: boolean;
+            }[];
+            unread: number;
+        };
         NotificationEventRow: {
             key: string;
             /** @enum {string} */
-            domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+            domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account" | "inbox";
             /** @enum {string} */
             category: "transactional" | "marketing";
             mandatory: boolean;
             /** @enum {string} */
-            managedBy?: "storefront.cartRecovery";
+            managedBy?: "storefront.cartRecovery" | "inbox.unansweredSms";
             audiences: ("customer" | "merchant")[];
             vars: string[];
             channels: {
                 customer?: {
                     email: boolean;
                     sms: boolean;
+                    inApp?: boolean;
                 };
                 merchant?: {
                     email: boolean;
                     sms: boolean;
+                    inApp?: boolean;
                 };
             };
             smsPreview: {
@@ -12935,6 +13803,7 @@ export interface components {
                             product_name?: string;
                             supplier_name?: string;
                             courier_name?: string;
+                            reason?: string;
                         };
                         /** Format: date-time */
                         updatedAt: string;
@@ -12948,6 +13817,7 @@ export interface components {
                             product_name?: string;
                             supplier_name?: string;
                             courier_name?: string;
+                            reason?: string;
                         };
                         /** Format: date-time */
                         updatedAt: string;
@@ -13023,22 +13893,24 @@ export interface components {
             events: {
                 key: string;
                 /** @enum {string} */
-                domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+                domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account" | "inbox";
                 /** @enum {string} */
                 category: "transactional" | "marketing";
                 mandatory: boolean;
                 /** @enum {string} */
-                managedBy?: "storefront.cartRecovery";
+                managedBy?: "storefront.cartRecovery" | "inbox.unansweredSms";
                 audiences: ("customer" | "merchant")[];
                 vars: string[];
                 channels: {
                     customer?: {
                         email: boolean;
                         sms: boolean;
+                        inApp?: boolean;
                     };
                     merchant?: {
                         email: boolean;
                         sms: boolean;
+                        inApp?: boolean;
                     };
                 };
                 smsPreview: {
@@ -13071,6 +13943,7 @@ export interface components {
                                 product_name?: string;
                                 supplier_name?: string;
                                 courier_name?: string;
+                                reason?: string;
                             };
                             /** Format: date-time */
                             updatedAt: string;
@@ -13084,6 +13957,7 @@ export interface components {
                                 product_name?: string;
                                 supplier_name?: string;
                                 courier_name?: string;
+                                reason?: string;
                             };
                             /** Format: date-time */
                             updatedAt: string;
@@ -13112,7 +13986,7 @@ export interface components {
                 limit: number;
             };
             warnings: "store_phone_empty"[];
-            fallbackVars: ("customer_name" | "name" | "product_name" | "supplier_name" | "courier_name")[];
+            fallbackVars: ("customer_name" | "name" | "product_name" | "supplier_name" | "courier_name" | "reason")[];
             cases: {
                 /** @enum {string} */
                 id: "typical" | "long_name" | "bangla_name" | "no_name" | "prepaid";
@@ -13122,7 +13996,7 @@ export interface components {
                 fit: "as_is" | "fallback" | "shortened" | "builtin";
                 changes: {
                     /** @enum {string} */
-                    variable: "customer_name" | "name" | "product_name" | "supplier_name" | "courier_name";
+                    variable: "customer_name" | "name" | "product_name" | "supplier_name" | "courier_name" | "reason";
                     /** @enum {string} */
                     action: "fallback" | "shortened";
                     /** @enum {string} */
@@ -13357,6 +14231,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13375,6 +14251,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -13611,6 +14489,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -13650,6 +14530,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -13693,6 +14575,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13711,6 +14595,8 @@ export interface components {
                 inventoryTracking: boolean;
                 warranty: boolean;
                 courierPayouts: boolean;
+                inbox: boolean;
+                aiChat: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -13742,6 +14628,8 @@ export interface components {
             inventoryTracking: boolean;
             warranty: boolean;
             courierPayouts: boolean;
+            inbox: boolean;
+            aiChat: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -17528,6 +18416,8 @@ export interface components {
                     inventoryTracking: boolean;
                     warranty: boolean;
                     courierPayouts: boolean;
+                    inbox: boolean;
+                    aiChat: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -17546,6 +18436,8 @@ export interface components {
                     inventoryTracking: boolean;
                     warranty: boolean;
                     courierPayouts: boolean;
+                    inbox: boolean;
+                    aiChat: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -17802,6 +18694,8 @@ export interface components {
                     inventoryTracking: boolean;
                     warranty: boolean;
                     courierPayouts: boolean;
+                    inbox: boolean;
+                    aiChat: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -17820,6 +18714,8 @@ export interface components {
                     inventoryTracking: boolean;
                     warranty: boolean;
                     courierPayouts: boolean;
+                    inbox: boolean;
+                    aiChat: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -18080,6 +18976,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18098,6 +18996,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18355,6 +19255,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18373,6 +19275,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18668,6 +19572,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18686,6 +19592,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18966,6 +19874,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18984,6 +19894,8 @@ export interface components {
                         inventoryTracking: boolean;
                         warranty: boolean;
                         courierPayouts: boolean;
+                        inbox: boolean;
+                        aiChat: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -19361,6 +20273,18 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             };
+        };
+        McAiCredit: {
+            workspaceExternalId: string;
+            paisa: number;
+            mcPaisa: number;
+            unreportedUsage: number;
+            /** Format: date-time */
+            expiresAt: string | null;
+            appliedAt: string;
+        };
+        McAiCreditRates: {
+            stored: boolean;
         };
         McCatalog: {
             product: string;
@@ -20567,6 +21491,68 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["McSmsCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_mc_ai_credits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McAiCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_mc_ai_credit_rates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McAiCreditRates"];
                     };
                 };
             };
@@ -23073,6 +24059,321 @@ export interface operations {
             };
         };
     };
+    get_api_messenger_webhooks_platform: {
+        parameters: {
+            query?: {
+                "hub.mode"?: string;
+                "hub.verify_token"?: string;
+                "hub.challenge"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_messenger_webhooks_platform: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    object?: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxWebhookAck"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_messenger_webhooks_platform_deauthorize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    signed_request: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxDeauthorizeAck"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_messenger_webhooks_platform_data_deletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    signed_request: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_messenger_webhooks_platform_deletion_code: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_messenger_webhooks_token: {
+        parameters: {
+            query?: {
+                "hub.mode"?: string;
+                "hub.verify_token"?: string;
+                "hub.challenge"?: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_messenger_webhooks_token: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    object?: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxWebhookAck"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_oauth_callback: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_organization: {
         parameters: {
             query?: never;
@@ -23320,10 +24621,12 @@ export interface operations {
                             customer?: {
                                 email?: boolean;
                                 sms?: boolean;
+                                inApp?: boolean;
                             };
                             merchant?: {
                                 email?: boolean;
                                 sms?: boolean;
+                                inApp?: boolean;
                             };
                             templates?: {
                                 emailSubject?: string;
@@ -23372,6 +24675,128 @@ export interface operations {
             };
             /** @description Permission denied */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_notifications_bell: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["MerchantAlertBell"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_notifications_bell_read_all: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["MerchantAlertBell"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_notifications_bell_id_read: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["MerchantAlertBell"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -23663,6 +25088,7 @@ export interface operations {
                         product_name?: string;
                         supplier_name?: string;
                         courier_name?: string;
+                        reason?: string;
                     };
                 };
             };
@@ -23731,6 +25157,7 @@ export interface operations {
                         product_name?: string;
                         supplier_name?: string;
                         courier_name?: string;
+                        reason?: string;
                     };
                 };
             };
@@ -24199,6 +25626,8 @@ export interface operations {
                     inventoryTracking?: boolean;
                     warranty?: boolean;
                     courierPayouts?: boolean;
+                    inbox?: boolean;
+                    aiChat?: boolean;
                 };
             };
         };
@@ -24317,6 +25746,8 @@ export interface operations {
                         inventoryTracking?: boolean;
                         warranty?: boolean;
                         courierPayouts?: boolean;
+                        inbox?: boolean;
+                        aiChat?: boolean;
                     };
                     vatRegistration?: {
                         /** @enum {string} */
@@ -41786,6 +43217,1113 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["SaleSerials"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_connection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_inbox_connection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    pageId: string;
+                    pageAccessToken?: string;
+                    appSecret?: string;
+                    holdingMessage?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_inbox_connection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_connection_test: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_inbox_ai_settings: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    aiEnabled?: boolean;
+                    holdingMessage?: string;
+                    handoverIdleMinutes?: number;
+                    autoConfirmOrders?: boolean;
+                    aiInstructions?: string;
+                    aiOffHours?: {
+                        days: number[];
+                        start: string;
+                        end: string;
+                    }[];
+                    unansweredSms?: {
+                        enabled: boolean;
+                        minutes: number;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_ai_credit: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxAiCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_ai_credit_history: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxAiCreditHistory"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_ai_credit_history_date: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxAiCreditDay"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_oauth_start: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxOAuthStart"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_oauth_pages: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    grant: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxOAuthPages"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_oauth_connect: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    grant: string;
+                    pageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConnection"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_summary: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxSummary"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_conversations: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: string;
+                start_date?: string;
+                end_date?: string;
+                unread?: "true" | "false";
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["InboxConversation"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_conversations_id: {
+        parameters: {
+            query?: {
+                before?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxThread"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_conversations_id_owner: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    owner: "ai" | "staff";
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxConversation"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_conversations_id_messages_messageId_flag: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    reason: "wrong_info" | "wrong_language" | "tone" | "missed_handover" | "other";
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxMessage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_inbox_conversations_id_messages_messageId_flag: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxMessage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_inbox_ai_flags: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: string;
+                start_date?: string;
+                end_date?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["InboxAiFlagRow"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_inbox_conversations_id_reply: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["InboxMessage"];
                     };
                 };
             };

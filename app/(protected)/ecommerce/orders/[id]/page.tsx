@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, Ban, RotateCcw, Store } from "lucide-react";
+import { ArrowLeft, Ban, Bot, RotateCcw, Store } from "lucide-react";
 import { useStorefrontOrder, type AdminStorefrontOrder } from "@/services/api";
 import { useGetMetaSettings } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -128,6 +128,18 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               total: money(order.totalAmount),
             })}
           </p>
+          {/* An order the inbox AI took (plan §12 Phase 2): say so, and lead back to the chat. */}
+          {order.statusHistory?.[0]?.by === "ai" && (
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+              <Bot className="h-4 w-4" />
+              {t("placedByAi")}
+              {order.inboxConversationId && (
+                <Link href={`/inbox?chat=${order.inboxConversationId}`} className="font-medium text-primary hover:underline">
+                  {t("openChat")}
+                </Link>
+              )}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <OrderInvoicePrintButton orders={[order]} />
