@@ -8,6 +8,7 @@ covers_routes:
 features:
   - inbox
 ui_labels:
+  - inbox:settings.ai.unansweredSms.enable
   - inbox:page.title
   - inbox:page.settings
   - inbox:list.unreadOnly
@@ -101,6 +102,8 @@ same chats.
 
 The left side lists every chat, newest first, with a count of unread messages. Use **Unread only**
 to see just the chats waiting for you. Open a chat to read it and reply; opening it marks it read.
+When your workspace uses AI replies, each chat is tagged **AI** or **Staff** — who answers it right
+now — and a preview starting "AI:" is the AI's last reply.
 
 - A customer's name appears a moment after their first message. Facebook does not share profile
   photos, so each chat shows the customer's initials.
@@ -162,6 +165,18 @@ Organization.
 During off hours the AI sends nothing and the chat shows **AI off hours — your team answers now. The AI replies afterwards if nobody has.**
 If someone on your team replies, the chat stays with them. Messages nobody answered get an AI reply
 a few minutes after the off hours end.
+
+### When the AI hands a chat to your team
+
+When the AI passes a chat to your team — a complaint, bargaining, a photo, a question it cannot
+answer — ezycore tells you: the **bell** at the top of the page shows *"Karim needs a reply"*, and
+you get an email. Both can be switched off in Settings → Notifications. Pressing **Take over**
+yourself sends no alert, and neither does a chat during AI off hours.
+
+To be sure nobody waits, switch on **Text me when a customer waits** in the AI replies card and
+choose how long to wait (5 minutes to an hour). If nobody on your team has replied by then, we send
+one SMS to the alert number in Settings → Notifications. It uses your SMS credit — about one SMS per
+chat — and is off until you switch it on. A reply from your team, or **Give back to AI**, stops it.
 
 ### Flag a wrong AI reply
 

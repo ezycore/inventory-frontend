@@ -2,7 +2,7 @@
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { Mail, MessageSquare } from "lucide-react";
+import { Bell, Mail, MessageSquare } from "lucide-react";
 import {
   useNotificationSettings,
   useUpdateNotificationSettings,
@@ -16,10 +16,12 @@ import { Skeleton } from "@/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/components/tabs";
 
 type Audience = "customer" | "merchant";
-type Channel = "email" | "sms";
+type Channel = "email" | "sms" | "inApp";
 
 const AUDIENCES: Audience[] = ["customer", "merchant"];
 const CHANNELS: Channel[] = ["email", "sms"];
+
+const CHANNEL_ICON = { email: Mail, sms: MessageSquare, inApp: Bell } as const;
 
 /**
  * The email templates to echo back when a toggle replaces the event's stored
@@ -133,6 +135,12 @@ export function NotificationMatrix({
     });
   };
 
+  // The bell ("In ezycore") is a merchant-side box on the few events that offer it — a column only
+  // when one of the rows on screen has it.
+  const hasBell = visible.some((row) => row.channels.merchant?.inApp !== undefined);
+  const channelsFor = (audience: Audience): Channel[] =>
+    audience === "merchant" && hasBell ? [...CHANNELS, "inApp"] : CHANNELS;
+
   const columns: SimpleColumn<NotificationEventRow>[] = [
     {
       key: "event",
@@ -147,38 +155,37 @@ export function NotificationMatrix({
       ),
     },
     ...AUDIENCES.flatMap((audience) =>
-      CHANNELS.map(
-        (channel): SimpleColumn<NotificationEventRow> => ({
-          key: `${audience}-${channel}`,
-          align: "center",
-          headClassName: "w-24",
-          cellClassName: "w-24",
-          header: (
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {t(`audiences.${audience}`)}
-              </span>
-              <span className="flex items-center gap-1 text-xs">
-                {channel === "email" ? (
-                  <Mail className="size-3" />
-                ) : (
-                  <MessageSquare className="size-3" />
-                )}
-                {t(`channels.${channel}`)}
-              </span>
-            </div>
-          ),
-          cell: (row) => (
-            <NotificationChannelCell
-              row={row}
-              audience={audience}
-              channel={channel}
-              smsAvailable={smsAvailable}
-              pending={updateSettings.isPending}
-              onToggle={() => toggle(row, audience, channel)}
-            />
-          ),
-        }),
+      channelsFor(audience).map(
+        (channel): SimpleColumn<NotificationEventRow> => {
+          const Icon = CHANNEL_ICON[channel];
+          return {
+            key: `${audience}-${channel}`,
+            align: "center",
+            headClassName: "w-24",
+            cellClassName: "w-24",
+            header: (
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {t(`audiences.${audience}`)}
+                </span>
+                <span className="flex items-center gap-1 text-xs">
+                  <Icon className="size-3" />
+                  {t(`channels.${channel}`)}
+                </span>
+              </div>
+            ),
+            cell: (row) => (
+              <NotificationChannelCell
+                row={row}
+                audience={audience}
+                channel={channel}
+                smsAvailable={smsAvailable}
+                pending={updateSettings.isPending}
+                onToggle={() => toggle(row, audience, channel)}
+              />
+            ),
+          };
+        },
       ),
     ),
   ];

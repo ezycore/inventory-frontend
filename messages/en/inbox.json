@@ -21,7 +21,12 @@
     "emptyHint": "When a customer messages your Page, the chat shows up here.",
     "noMatch": "No chat matches",
     "customer": "Customer",
-    "you": "You: "
+    "you": "You: ",
+    "ai": "AI: ",
+    "answeredBy": {
+      "ai": "AI",
+      "staff": "Staff"
+    }
   },
   "thread": {
     "pick": "Select a chat",
@@ -181,7 +186,15 @@
         "240": "4 hours"
       },
       "save": "Save AI settings",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "unansweredSms": {
+        "enable": "Text me when a customer waits",
+        "hint": "If the AI hands a chat to your team and nobody replies in time, we send one SMS to your alert number. Off by default.",
+        "after": "Send the SMS when nobody has replied after",
+        "minutes": "{count} minutes",
+        "where": "It goes to the alert number in Settings → Notifications and uses your SMS credit (about 1 SMS each, one per chat).",
+        "whereLink": "Open Notifications"
+      }
     },
     "credit": {
       "title": "AI credit",

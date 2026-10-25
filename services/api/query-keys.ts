@@ -82,6 +82,12 @@ export const queryKeys = {
       ["organization", "notifications", "sms-template-preview", draft] as const,
   },
 
+  // The top-bar bell. Its own root, not under `organization`: it is per user and polls every
+  // 30 s, and an organization save has nothing to tell it.
+  notificationBell: {
+    all: () => ["notification-bell"] as const,
+  },
+
   profile: {
     all: () => ["profile"] as const,
     twoFactorStatus: () => ["profile", "2fa-status"] as const,

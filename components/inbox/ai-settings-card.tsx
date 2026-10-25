@@ -13,9 +13,13 @@ import { Bot } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { AiOffHoursField, type AiOffWindow } from "./ai-off-hours-field";
+import { UnansweredSmsField, type UnansweredSms } from "./unanswered-sms-field";
 
 /** Mirrors the backend validator's cap (`saveInboxAiSettingsSchema`). */
 const INSTRUCTIONS_MAX = 2000;
+
+/** What the backend resolves for a Page that never saved the setting. */
+const UNANSWERED_SMS_DEFAULT: UnansweredSms = { enabled: false, minutes: 10 };
 
 /** After staff answered: how long they may be quiet before the AI takes the chat back. */
 const IDLE_CHOICES = ["0", "15", "30", "60", "240"] as const;
@@ -44,6 +48,8 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
   const [autoConfirm, setAutoConfirm] = useState(Boolean(connection.autoConfirmOrders));
   const [instructions, setInstructions] = useState(connection.aiInstructions ?? "");
   const [offHours, setOffHours] = useState<AiOffWindow[]>(connection.aiOffHours ?? []);
+  const savedSms = connection.unansweredSms ?? UNANSWERED_SMS_DEFAULT;
+  const [unansweredSms, setUnansweredSms] = useState<UnansweredSms>(savedSms);
 
   const dirty =
     enabled !== Boolean(connection.aiEnabled) ||
@@ -51,7 +57,9 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
     idle !== String(connection.handoverIdleMinutes ?? 30) ||
     autoConfirm !== Boolean(connection.autoConfirmOrders) ||
     instructions !== (connection.aiInstructions ?? "") ||
-    JSON.stringify(offHours) !== JSON.stringify(connection.aiOffHours ?? []);
+    JSON.stringify(offHours) !== JSON.stringify(connection.aiOffHours ?? []) ||
+    unansweredSms.enabled !== savedSms.enabled ||
+    unansweredSms.minutes !== savedSms.minutes;
 
   return (
     <Card className="space-y-4 p-5">
@@ -130,6 +138,8 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
             <Switch checked={autoConfirm} onCheckedChange={setAutoConfirm} />
           </label>
 
+          <UnansweredSmsField value={unansweredSms} onChange={setUnansweredSms} />
+
           <Button
             disabled={!dirty || save.isPending}
             onClick={() =>
@@ -140,6 +150,7 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
                 autoConfirmOrders: autoConfirm,
                 aiInstructions: instructions.trim(),
                 aiOffHours: offHours,
+                unansweredSms,
               })
             }
           >

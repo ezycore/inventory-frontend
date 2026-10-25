@@ -244,6 +244,9 @@ export type InboxAiCredit = Schemas["InboxAiCredit"];
 export type InboxAiCreditHistory = Schemas["InboxAiCreditHistory"];
 export type InboxAiCreditDay = Schemas["InboxAiCreditDay"];
 export type InboxAiFlagRow = Schemas["InboxAiFlagRow"];
+/** The top-bar bell: the newest alerts this user may see, and how many are unread. */
+export type MerchantAlertBell = Schemas["MerchantAlertBell"];
+export type MerchantAlert = MerchantAlertBell["items"][number];
 /** "Connect with Facebook" (plan D2b): the login URL, and the Page picker — never a token. */
 export type InboxOAuthStart = Schemas["InboxOAuthStart"];
 export type InboxOAuthPages = Schemas["InboxOAuthPages"];

@@ -1,7 +1,8 @@
 // coding-standard: maintained
 import { renderWithProviders, screen } from "@/tests/test-utils";
 import { describe, expect, it, vi } from "vitest";
-import type { InboxAiFlagRow, PaginatedResponse } from "@/services/api";
+import type { InboxAiFlagRow } from "@/services/api";
+import type { PaginatedResponse } from "@/types";
 import { AiFlagsCard } from "./ai-flags-card";
 
 /** The owner's review list of flagged AI replies: what the customer said, what the AI said, why. */

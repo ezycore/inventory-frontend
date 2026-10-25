@@ -47,15 +47,15 @@ export default function InboxSettingsPage() {
   const canManage = useHasPermission("inbox.manage");
   useRequireAccess([{ allowed: canManage, message: tShell("noPermission") }], "/inbox");
   const { data: connection, isLoading } = useInboxConnection(canManage);
-  const [grant, setGrant] = useState<string | null>(null);
+  // The shell renders this page only after hydration, so the hash can be read on the first render.
+  const [oauthReturn] = useState(() => readOAuthReturn(window.location.hash));
+  const [grant, setGrant] = useState<string | null>(oauthReturn?.grant ?? null);
 
   useEffect(() => {
-    const result = readOAuthReturn(window.location.hash);
-    if (!result) return;
+    if (!oauthReturn) return;
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    if (result.grant) setGrant(result.grant);
-    if (result.error) toast.error(t(`oauth.errors.${result.error}`));
-  }, [t]);
+    if (oauthReturn.error) toast.error(t(`oauth.errors.${oauthReturn.error}`));
+  }, [oauthReturn, t]);
 
   const oauth = Boolean(connection?.oauthAvailable);
   const platform = connection?.connected && connection.source === "platform";

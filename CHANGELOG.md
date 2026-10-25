@@ -10,6 +10,15 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Notification bell** in the top bar: new online orders and chats the AI handed to staff, with
+  an unread count, mark read / mark all read, and per-browser **Play a sound** / **Show a pop-up**.
+  Settings → Notifications gets a **You / In ezycore** column for it. en + bn, help guides updated.
+  Needs inventory-backend with `/api/organization/notifications/bell`.
+- **Inbox — "Text me when a customer waits"** in the AI replies card: one SMS when a handed-over
+  chat has no reply after 5–60 minutes (off by default). The Notifications row links here.
+- **Inbox — who answers each chat, in the chat list.** Every chat is tagged **AI** or **Staff**
+  (amber, so a chat the AI handed over stands out; Staff during the AI's off hours; no tag for a shop
+  without the AI), and a preview the AI wrote starts "AI: ". The name now gets the whole first line, beside a short time (today's time, else the date; the full time on hover). en + bn, help guide updated.
 - **Inbox — "Flag this reply".** A **Flag** button under every AI reply (reason + note; "Other"
   needs a note), shown as "Flagged: …" afterwards, and **Flagged AI replies** on Page settings for
   the owner: the customer's message, the AI's reply, the reason, who flagged it, a link to the chat.

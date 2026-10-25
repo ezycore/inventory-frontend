@@ -1348,7 +1348,8 @@
     },
     "channels": {
       "email": "Email",
-      "sms": "SMS"
+      "sms": "SMS",
+      "inApp": "In ezycore"
     },
     "domains": {
       "all": "All",
@@ -1357,7 +1358,8 @@
       "purchase": "Purchases",
       "inventory": "Inventory",
       "reports": "Reports",
-      "account": "Account"
+      "account": "Account",
+      "inbox": "Inbox"
     },
     "alwaysOn": "Always on",
     "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
@@ -1401,6 +1403,10 @@
         "password_reset": "Password reset",
         "user_invited": "User invited",
         "low_credit": "Low SMS credit"
+      },
+      "inbox": {
+        "handover": "Customer needs a reply (AI handed over a chat)",
+        "unanswered": "Customer still waiting (no reply in time)"
       }
     },
     "log": {
@@ -1533,7 +1539,9 @@
         "courier_name": "Courier",
         "store_phone": "Store phone",
         "stock_status": "Stock status",
-        "orders_count": "Online orders"
+        "orders_count": "Online orders",
+        "reason": "Why the AI handed over",
+        "minutes": "Minutes waited"
       },
       "errors": {
         "SMS_TEMPLATE_NON_GSM": "\"{char}\" can't be sent. Custom SMS supports English letters only — you can write Bangla in English letters (Banglish).",
@@ -1554,6 +1562,8 @@
         "save": "Save",
         "useAutomatic": "Use automatic"
       }
-    }
+    },
+    "managedInInbox": "Manage in Inbox → Page settings",
+    "inAppHint": "Shows in the bell at the top of ezycore, with a sound and pop-up if you switch them on there."
   }
 }

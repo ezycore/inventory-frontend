@@ -80,3 +80,10 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
     inbox api module); "Other" needs a note. Mutations fire `inbox.replyFlagged` (the whole inbox
     root — thread and list). The owner's list is `AiFlagsCard` on Page settings, paged in the URL
     with prefix `flags`, ≤ 50 a page (the backend cap).
+18. **The bell is not the inbox's.** `NotificationBell` (`components/layout/notification-bell.tsx`)
+    shows AI handovers next to new orders; its sentence comes from `useAlertText`
+    (`components/layout/use-alert-text.ts`), shared with the browser pop-up, and its sound/pop-up
+    live in `useAlertChime` (`hooks/use-alert-chime.ts`, per browser, ring once across tabs). A new
+    alert kind is a `case` there plus `layout.bell` strings. **"Text me when a customer waits"** is
+    `UnansweredSmsField` in the AI settings card — its only switch; the Notifications matrix links
+    here (`MANAGED_BY` in `notification-event-cell.tsx`).

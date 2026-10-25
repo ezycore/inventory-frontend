@@ -69,6 +69,8 @@ export interface SaveInboxAiSettingsInput {
   aiInstructions?: string;
   /** AI-off windows on the shop's clock. */
   aiOffHours?: { days: number[]; start: string; end: string }[];
+  /** "Text me when a customer waits" — minutes 5 / 10 / 15 / 30 / 60. */
+  unansweredSms?: { enabled: boolean; minutes: number };
 }
 
 const base = "/inbox";
