@@ -154,13 +154,18 @@ export function useInboxOAuthPages(grant: string | null) {
   });
 }
 
+/**
+ * Waits for the connection to refetch before it counts as done: the picker closes on success, and
+ * closing it over the cached "not connected" view flashed **Connect with Facebook** for a moment
+ * (seen in the App Review recording). Until then the row keeps saying "Connecting…".
+ */
 export function useConnectInboxOAuthPage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ grant, pageId }: { grant: string; pageId: string }) => inboxApi.connectOAuthPage(grant, pageId),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
+      await invalidate(qc, "inbox.connectionChanged");
       handleMutationSuccess(result.message || "Facebook Page connected");
-      invalidate(qc, "inbox.connectionChanged");
     },
     onError: handleMutationError,
   });

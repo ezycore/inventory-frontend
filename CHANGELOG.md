@@ -68,6 +68,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   `docs/help/en/inbox.md`.
 
 ### Fixed
+- **Inbox: no flash of "Connect with Facebook" right after connecting a Page.** The Page list now keeps saying "Connecting…" until the connection has refreshed, instead of closing over the old "not connected" view.
 - Inbox settings: the Page token and App Secret fields use `autocomplete="new-password"`, so Chrome no longer fills them (and the Page ID) with the login email and password.
 
 ### Changed
