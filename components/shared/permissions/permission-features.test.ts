@@ -27,6 +27,8 @@ const ALL_ON: OrganizationFeatures = {
   inventoryTracking: true,
   warranty: true,
   courierPayouts: true,
+  inbox: true,
+  aiChat: true,
 };
 
 const START: OrganizationFeatures = {

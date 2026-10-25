@@ -82,6 +82,12 @@ export const queryKeys = {
       ["organization", "notifications", "sms-template-preview", draft] as const,
   },
 
+  // The top-bar bell. Its own root, not under `organization`: it is per user and polls every
+  // 30 s, and an organization save has nothing to tell it.
+  notificationBell: {
+    all: () => ["notification-bell"] as const,
+  },
+
   profile: {
     all: () => ["profile"] as const,
     twoFactorStatus: () => ["profile", "2fa-status"] as const,
@@ -371,6 +377,25 @@ export const queryKeys = {
     saleSerials: (saleId: string) => ["warranty", "sale-serials", saleId] as const,
     serialCheck: (codes: string, excludeSaleId?: string) =>
       ["warranty", "serial-check", codes, excludeSaleId ?? ""] as const,
+  },
+
+  /**
+   * Inbox — Facebook Messenger chats. `list` = the conversation list, `detail(id)` = one
+   * thread, `summary()` = the sidebar badge; `connection` sits under the root too, so a
+   * (dis)connect drops every chat view with it.
+   */
+  inbox: {
+    ...resourceKeys("inbox"),
+    connection: () => ["inbox", "connection"] as const,
+    /** AI credit — under the root, so a settings save or a reply refreshes it too. */
+    aiCredit: () => ["inbox", "ai-credit"] as const,
+    /** Credit history — under the root too, so a reply refreshes today's row. */
+    aiCreditHistory: (days: number) => ["inbox", "ai-credit", "history", days] as const,
+    aiCreditDay: (date: string) => ["inbox", "ai-credit", "history", "day", date] as const,
+    /** The flagged-AI-replies review list. */
+    aiFlags: (params: Record<string, unknown>) => ["inbox", "ai-flags", params] as const,
+    /** The "Connect with Facebook" Page picker for one sign-in (the encrypted grant). */
+    oauthPages: (grant: string) => ["inbox", "oauth-pages", grant] as const,
   },
 
   /** Courier provider config — a sibling of orders, not a part of them. */

@@ -4,6 +4,7 @@ import { Separator } from "@ui/components/separator";
 import { SidebarTrigger } from "@ui/components/sidebar";
 import { Breadcrumbs } from "../breadcrumbs";
 import { HelpSheet } from "../help/help-sheet";
+import { NotificationBell } from "./notification-bell";
 import SearchInput from "../search-input";
 import { LanguageToggle } from "./language-toggle";
 import { ModeToggle } from "./ThemeToggle/theme-toggle";
@@ -24,6 +25,7 @@ export default function Header() {
         <div className="hidden md:flex">
           <SearchInput />
         </div>
+        <NotificationBell />
         <HelpSheet />
         <ModeToggle />
         <LanguageToggle />

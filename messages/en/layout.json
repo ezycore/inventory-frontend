@@ -45,6 +45,7 @@
       "locations": "Locations",
       "stock-by-location": "Stock by Location",
       "customers": "Customers",
+      "inbox": "Inbox",
       "suppliers": "Suppliers",
       "online-store": "Online Store",
       "online-orders": "Online Orders",
@@ -115,5 +116,29 @@
     "subtitle": "Choose your active location for operations",
     "switched": "Switched to location: {name}",
     "switchFailed": "Failed to switch location"
+  },
+  "bell": {
+    "label": "Notifications",
+    "labelUnread": "Notifications, {count} unread",
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "Nothing new. New online orders and chats that need you show up here.",
+    "customer": "A customer",
+    "order": {
+      "title": "New online order {number}"
+    },
+    "handover": {
+      "title": "{name} needs a reply",
+      "titleNoName": "A customer needs a reply"
+    },
+    "generic": "New notification",
+    "justNow": "just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count} hr ago",
+    "sound": "Play a sound",
+    "soundBlocked": "Your browser blocked the sound. Click anywhere on the page once and it will play next time.",
+    "popup": "Show a pop-up",
+    "popupBlocked": "Pop-ups are blocked for this site in your browser settings.",
+    "thisBrowser": "Sound and pop-up are saved for this browser only. Choose which alerts you get in Settings → Notifications."
   }
 }

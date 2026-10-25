@@ -198,6 +198,28 @@ it is a separate change.
 | Activity log | কার্যক্রমের লগ | added during S29; REVIEW |
 | Move back (a step) | পেছনে নিন | added during S29 — correcting a status; REVIEW |
 
+## Inbox (Facebook Messenger) — added 2026-10-23, REVIEW
+
+What a Bangladeshi Facebook seller already says — these are the words on their phone every day.
+
+| English | Bangla | Decision | Notes |
+|---|---|---|---|
+| Inbox | ইনবক্স | transliterate | how every FB seller says it; REVIEW |
+| Message | মেসেজ | transliterate | বার্তা reads formal; REVIEW |
+| Reply | রিপ্লাই | transliterate | as a noun/button; the verb in a sentence may be উত্তর দিন; REVIEW |
+| Chat / Conversation | চ্যাট | transliterate | কথোপকথন is formal; REVIEW |
+| Page (Facebook) | পেজ | transliterate | ফেসবুক পেজ; REVIEW |
+| Connect / Disconnect (a Page) | সংযুক্ত করুন / সংযোগ বিচ্ছিন্ন করুন | translate | same words as courier connections; REVIEW |
+| Unread | না-পড়া | translate | REVIEW |
+| AI | AI | keep Latin | ✓ owner 2026-10-25: every UI label writes `AI`, never এআই, and never both in one label. Help-guide prose may say এআই, but the inbox guide uses AI throughout |
+| AI replies (the feature) | AI রিপ্লাই | transliterate | ✓ owner 2026-10-25: the feature name and its labels (Customize workspace switch, Page settings card, credit/history/flag labels). A reply as a noun is রিপ্লাই; উত্তর দেওয়া stays the verb |
+| AI credit | AI ক্রেডিট | keep Latin AI | ✓ owner 2026-10-25 (was এআই ক্রেডিট) |
+| ezycore (brand) | ezycore | never translate | ✓ owner 2026-10-25: Latin letters everywhere — ezycore-এ, ezycore-এর, never ইজিকোর |
+| Take over / Give back to AI | নিজে রিপ্লাই দিন / AI-কে ফিরিয়ে দিন | translate | ✓ owner 2026-10-25 |
+| AI off hours | AI বন্ধের সময় | translate | ✓ owner 2026-10-25; explain that the team answers in those hours |
+| "{name} needs a reply" (bell) | {name}-এর মেসেজের উত্তর বাকি | translate | ✓ owner 2026-10-25. Written `-এর` with a hyphen because a name can end in any letter |
+| Customer (in help guides) | ক্রেতা | translate | ✓ owner 2026-10-25: help guides say ক্রেতা; a quoted UI label keeps its own word (the inbox screens say গ্রাহক) until the screen itself changes |
+
 ## Statuses
 
 | English | Bangla |

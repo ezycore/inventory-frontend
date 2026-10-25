@@ -87,6 +87,21 @@ export const EFFECTS = {
   /** A replacement unit left stock for a warranty claim — stock moves, money does not. */
   "warranty.replaced": union([k.warranty.all()], STOCK),
 
+  /** The Facebook Page was connected, re-checked or disconnected. Only inbox views change. */
+  "inbox.connectionChanged": [k.inbox.all()],
+
+  /**
+   * A thread was opened — the server reset its unread count. The list and the badge move; the
+   * thread itself must NOT be in this list (it is the query that fired it, and would refetch forever).
+   */
+  "inbox.threadRead": [k.inbox.lists(), k.inbox.summary()],
+
+  /** A staff reply went out through the Page. The list's preview and the thread both move. */
+  "inbox.replied": [k.inbox.all()],
+
+  /** An AI reply was flagged or unflagged — the thread shows it and the review list holds it. */
+  "inbox.replyFlagged": [k.inbox.all()],
+
   /** Serial / IMEI codes on a posted sale were added or corrected. Nothing else on the sale moves. */
   "sale.serialsChanged": [k.salesOrders.all(), k.warranty.all()],
 

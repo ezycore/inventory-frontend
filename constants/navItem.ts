@@ -185,6 +185,18 @@ export const navGroups: NavGroup[] = [
         isActive: false,
         items: [],
       },
+      {
+        // Facebook Messenger chats (inventory-backend `docs/features/inbox.md`). Under Sell because
+        // a chat is where an f-commerce sale starts. `/inbox/settings` (connecting the Page) needs
+        // `inbox.manage`; that page guards itself with `useRequireAccess`.
+        title: "Inbox",
+        url: "/inbox",
+        permissions: ["inbox.view"],
+        features: ["inbox"],
+        icon: "message-circle",
+        isActive: false,
+        items: [],
+      },
     ],
   },
 

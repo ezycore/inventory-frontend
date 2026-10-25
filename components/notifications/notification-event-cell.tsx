@@ -22,8 +22,10 @@ const AUDIENCES: Audience[] = ["customer", "merchant"];
  * page would get silence, with the send counted as done and nothing to read.
  * So the box becomes a link to whoever actually owns the decision.
  */
-const MANAGED_BY_ROUTE: Record<string, string> = {
-  "storefront.cartRecovery": "/ecommerce/settings?tab=checkout",
+const MANAGED_BY: Record<string, { href: string; label: "managedElsewhere" | "managedInInbox" }> = {
+  "storefront.cartRecovery": { href: "/ecommerce/settings?tab=checkout", label: "managedElsewhere" },
+  // "Text me when a customer waits" — its switch and wait live with the inbox's AI settings.
+  "inbox.unansweredSms": { href: "/inbox/settings", label: "managedInInbox" },
 };
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
@@ -70,13 +72,13 @@ export function NotificationEventCell({
       <div className="text-xs text-muted-foreground">{row.key}</div>
       {/* The row is read-only, so it has to say where the switch IS —
           a locked box with no destination is the dead end, restated. */}
-      {row.managedBy && MANAGED_BY_ROUTE[row.managedBy] ? (
+      {row.managedBy && MANAGED_BY[row.managedBy] ? (
         <Link
-          href={MANAGED_BY_ROUTE[row.managedBy]}
+          href={MANAGED_BY[row.managedBy].href}
           className="mt-1.5 inline-flex items-center gap-1 text-xs text-primary underline-offset-2 hover:underline"
         >
           <SlidersHorizontal className="size-3" />
-          {t("managedElsewhere")}
+          {t(MANAGED_BY[row.managedBy].label)}
         </Link>
       ) : null}
       {/* Only for audiences whose SMS is actually ON — this is the running

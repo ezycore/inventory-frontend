@@ -1,0 +1,246 @@
+{
+  "page": {
+    "title": "Inbox",
+    "subtitle": "Messenger chats from your Facebook Page",
+    "settings": "Page settings"
+  },
+  "notConnected": {
+    "title": "Connect your Facebook Page",
+    "description": "Messages to your Page will show up here, and you can answer them without leaving ezycore.",
+    "action": "Connect Page",
+    "askOwner": "Ask the shop owner to connect the Facebook Page in Inbox settings."
+  },
+  "attention": {
+    "title": "The Facebook connection needs attention",
+    "fix": "Fix connection"
+  },
+  "list": {
+    "search": "Search chats",
+    "unreadOnly": "Unread only",
+    "empty": "No chats yet",
+    "emptyHint": "When a customer messages your Page, the chat shows up here.",
+    "noMatch": "No chat matches",
+    "customer": "Customer",
+    "you": "You: ",
+    "ai": "AI: ",
+    "answeredBy": {
+      "ai": "AI",
+      "staff": "Staff"
+    }
+  },
+  "thread": {
+    "pick": "Select a chat",
+    "pickHint": "Pick a chat on the left to read and reply.",
+    "back": "All chats",
+    "windowOpen": "You can reply until {time}",
+    "windowClosed": "Facebook only allows a reply within 24 hours of the customer's last message. You can reply again when they write.",
+    "pageDisconnected": "This chat came through a Facebook Page that is no longer connected. You can read it, but a reply can only go through the Page the customer wrote to — connect that Page again to answer.",
+    "fromFacebook": "Replied from Facebook",
+    "latestOnly": "Showing the latest 50 messages",
+    "openInMeta": "{type} — open it in Meta Business Suite",
+    "attachment": {
+      "image": "Photo",
+      "video": "Video",
+      "audio": "Voice message",
+      "file": "File",
+      "other": "Attachment"
+    },
+    "fromAi": "AI",
+    "orderPlaced": "AI took an order",
+    "viewOrder": "View order",
+    "owner": {
+      "ai": "AI is answering this chat",
+      "staff": "With staff — {reason}",
+      "staffDefault": "a team member is answering",
+      "aiOff": "AI off hours — your team answers now. The AI replies afterwards if nobody has.",
+      "takeOver": "Take over",
+      "giveBack": "Give back to AI"
+    },
+    "flag": {
+      "action": "Flag",
+      "flagged": "Flagged: {reason}",
+      "title": "What was wrong with this reply?",
+      "reason": {
+        "wrong_info": "Wrong information",
+        "wrong_language": "Wrong language",
+        "tone": "Rude or unprofessional",
+        "missed_handover": "Should have passed to staff",
+        "other": "Other"
+      },
+      "note": "Note",
+      "notePlaceholder": "What should the AI have said? (needed for Other)",
+      "save": "Save flag",
+      "remove": "Remove flag"
+    }
+  },
+  "reply": {
+    "placeholder": "Type a reply…",
+    "send": "Send",
+    "sending": "Sending…"
+  },
+  "settings": {
+    "title": "Inbox settings",
+    "subtitle": "Connect the Facebook Page whose Messenger chats come here",
+    "back": "Back to Inbox",
+    "stepsTitle": "Before you start — in your Meta app",
+    "step1": "On developers.facebook.com, create an app with the “Engage with customers on Messenger” use case, in the same business portfolio as your Page.",
+    "step2": "App settings → Basic: add an icon, a privacy policy URL and a data deletion URL, then copy the App Secret.",
+    "step3": "Messenger → API settings → Generate access tokens: connect your Page, copy its Page ID and generate the Page access token.",
+    "step4": "Paste them below and save. Then paste the Callback URL and Verify token we show you into Configure webhooks.",
+    "step5": "Click Add subscriptions on your Page and tick messages and message_echoes. Then publish the app.",
+    "pageId": "Page ID",
+    "pageIdHint": "The number under your Page's name in Messenger API settings.",
+    "token": "Page access token",
+    "tokenHint": "Starts with EAA. Leave empty to keep the saved one.",
+    "secret": "App Secret",
+    "secretHint": "App settings → Basic → App secret. Leave empty to keep the saved one.",
+    "connect": "Connect Page",
+    "save": "Save",
+    "saving": "Checking with Facebook…",
+    "statusTitle": "Connection",
+    "aiBeta": {
+      "title": "AI replies are in beta",
+      "body": "AI replies are new. Read its answers now and then, and press Flag on any reply it gets wrong — that is how we make it better."
+    },
+    "platformNeedsAttention": "Facebook no longer lets ezycore use this Page — the app was removed in Facebook, or the sign-in expired. Connect with Facebook again and pick the same Page; your chats and settings stay as they are.",
+    "status": {
+      "active": "Connected",
+      "pending": "Not checked yet",
+      "token_invalid": "Needs attention"
+    },
+    "page": "Page",
+    "lastChecked": "Last checked {time}",
+    "lastEvent": "Last message received {time}",
+    "noEventYet": "No message received yet",
+    "webhookTitle": "Point Meta at ezycore",
+    "webhookHint": "In your Meta app: Messenger → API settings → Configure webhooks. Paste these two values and click Verify and save.",
+    "callbackUrl": "Callback URL",
+    "verifyToken": "Verify token",
+    "webhookVerified": "Facebook has checked the webhook",
+    "webhookNotVerified": "Facebook has not checked the webhook yet",
+    "subscribeHint": "Then click Add subscriptions next to your Page and tick messages and message_echoes.",
+    "test": "Check connection",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect this Facebook Page?",
+    "disconnectDescription": "New messages will stop arriving. Chats already received stay here, and reconnecting the same Page continues them.",
+    "cancel": "Cancel",
+    "connectedVia": "Connected with",
+    "viaFacebook": "Connect with Facebook",
+    "viaOwnApp": "Your own Meta app",
+    "oauth": {
+      "title": "Connect with Facebook",
+      "reconnectTitle": "Connect with Facebook again",
+      "description": "Log in with the Facebook account that manages your Page and pick the Page. ezycore sets up the rest — nothing to copy.",
+      "button": "Connect with Facebook",
+      "redirecting": "Opening Facebook…",
+      "pickTitle": "Choose the Page to connect",
+      "pickHint": "These are the Pages you gave ezycore access to on Facebook. One Page per workspace.",
+      "noPages": "Facebook returned no Pages. Connect again and tick the Page in the Facebook window.",
+      "cannotMessage": "Your Facebook role on this Page can't answer messages",
+      "connect": "Connect",
+      "connecting": "Connecting…",
+      "cancel": "Cancel",
+      "expired": "This Facebook sign-in has expired. Click Connect with Facebook again.",
+      "ownAppToggle": "Use your own Meta app instead (advanced)",
+      "errors": {
+        "cancelled": "Facebook sign-in was cancelled.",
+        "INBOX_OAUTH_SESSION_INVALID": "The Facebook sign-in expired. Please try again.",
+        "INBOX_OAUTH_UNAVAILABLE": "Connect with Facebook is not available right now. Use your own Meta app instead.",
+        "failed": "Facebook sign-in didn't work. Please try again."
+      }
+    },
+    "ai": {
+      "title": "AI replies",
+      "beta": "Beta",
+      "unavailable": "AI replies aren't available on your workspace yet. Your team answers every chat.",
+      "workspaceOff": "AI replies are switched off for your workspace. Turn on AI replies in Settings → Customize workspace to use them here.",
+      "enable": "Let AI answer new chats",
+      "enableHint": "The AI answers product, price, stock and delivery questions from your own catalogue, and takes cash-on-delivery orders once the customer confirms the summary. It hands the chat to your team for complaints, advance payments, photos or anything it can't answer. Chats already with your team stay with them — use Give back to AI in the chat.",
+      "holding": "Message when a chat goes to your team",
+      "holdingPlaceholder": "Thanks! A team member will reply shortly.",
+      "holdingHint": "Sent once when the AI hands a chat over and has nothing else to say. Leave empty to send nothing.",
+      "idle": "Give the chat back to AI when your team is quiet for",
+      "idleHint": "After your team replies, the AI stays out of the chat. It answers again when the customer writes after this long without a staff reply.",
+      "autoConfirm": "Confirm AI orders automatically",
+      "autoConfirmHint": "Off: orders the AI takes wait in Orders as Pending for you to confirm. On: they are confirmed straight away and the stock is held — if stock is short, the order stays pending.",
+      "instructions": "Instructions for the AI",
+      "instructionsPlaceholder": "Return policy: exchange within 7 days.\nDelivery outside Dhaka takes 3–5 days.\nGreet customers with \"Assalamu alaikum\".",
+      "instructionsHint": "Your shop's policies, delivery times and how to talk. The AI follows them, but prices, stock, delivery charges and orders always come from your catalogue and checkout. Longer instructions make each reply cost a little more.",
+      "offHours": {
+        "title": "AI off hours",
+        "intro": "During these hours the AI sends nothing and your team answers. Messages nobody answered get an AI reply when the time ends.",
+        "days": "Days",
+        "to": "to",
+        "add": "Add off hours",
+        "remove": "Remove these off hours",
+        "time": "{hour}:{minute} {period, select, am {AM} other {PM}}",
+        "hint": "Times are in your shop's time zone ({timezone}). The same start and end time means the whole day.",
+        "day": {
+          "0": "Sun",
+          "1": "Mon",
+          "2": "Tue",
+          "3": "Wed",
+          "4": "Thu",
+          "5": "Fri",
+          "6": "Sat"
+        }
+      },
+      "idleChoice": {
+        "0": "Never — only when we give it back",
+        "15": "15 minutes",
+        "30": "30 minutes",
+        "60": "1 hour",
+        "240": "4 hours"
+      },
+      "save": "Save AI settings",
+      "saving": "Saving…",
+      "unansweredSms": {
+        "enable": "Text me when a customer waits",
+        "hint": "If the AI hands a chat to your team and nobody replies in time, we send one SMS to your alert number. Off by default.",
+        "after": "Send the SMS when nobody has replied after",
+        "minutes": "{count} minutes",
+        "where": "It goes to the alert number in Settings → Notifications and uses your SMS credit (about 1 SMS each, one per chat).",
+        "whereLink": "Open Notifications"
+      }
+    },
+    "credit": {
+      "title": "AI credit",
+      "validUntil": "Valid until {date}",
+      "repliesLeft": "≈ {count, plural, one {# reply} other {# replies}} left",
+      "repliesLeftHint": "From what your recent replies cost.",
+      "problem": {
+        "no_rates": "AI pricing isn't set up for your workspace yet, so the AI can't reply. Contact ezycore support.",
+        "empty": "Your AI credit is used up. The AI has stopped replying and new chats go to your team. Contact ezycore support to top up.",
+        "expired": "Your AI credit has expired. The AI has stopped replying. A top-up brings the AI back and extends your whole balance."
+      },
+      "topUp": "AI credit is separate from SMS credit. To buy more, contact ezycore support. Only replies that reach the customer are charged.",
+      "rate": "A reply usually costs {low}–{high} paisa — less for a quick answer, more when the AI looks up several products or takes an order",
+      "termsVersion": "Terms {version}"
+    },
+    "history": {
+      "title": "Credit history",
+      "period": "Last {days} days",
+      "totals": "Last {days} days: {replies, plural, one {# AI reply} other {# AI replies}} · {amount}",
+      "noUsage": "No AI replies were charged in this period.",
+      "replies": "{count, plural, one {# reply} other {# replies}}",
+      "unnamed": "Customer",
+      "moreChats": "Only the 100 most expensive chats of this day are listed; the day's total includes all of them.",
+      "creditsTitle": "Credit added and removed",
+      "noCredits": "No credit has been added yet.",
+      "added": "Added {amount}",
+      "removed": "Removed {amount} (expired or corrected)",
+      "balanceAfter": "Balance {amount}"
+    },
+    "flags": {
+      "title": "Flagged AI replies",
+      "intro": "Replies your team marked as wrong, newest first. Flag a reply from its chat with the Flag button under it. We use these to make the AI better.",
+      "empty": "No reply has been flagged yet.",
+      "openChat": "Open chat with {name}",
+      "customer": "the customer",
+      "customerSaid": "Customer:",
+      "aiReplied": "AI:",
+      "flaggedBy": "Flagged by {name} · {date}",
+      "flaggedAt": "Flagged {date}"
+    }
+  }
+}
