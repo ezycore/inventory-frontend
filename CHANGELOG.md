@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-25
+
 ### Added
 - **Inbox: "Connect with Facebook again" on the connection card** when a Page connected with Facebook needs attention, with a plain sentence (en + bn) in place of Meta's raw token error. The same button no longer sits at the bottom of the settings page, below the AI cards, where merchants did not find it.
 - **Inbox help: AI settings are kept across Disconnect** (en + bn) — needs inventory-backend with `inboxsavedsettings`.
@@ -80,6 +82,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - `types/api-generated.ts` regenerated for the inbox endpoints.
 
 ### Deploy notes
+- **Deploy order:** after inventory-backend 1.15.0 (and mission-control 1.1.0 before that).
 - AI credit needs inventory-backend with `GET /api/inbox/ai-credit` and the `aiChat` feature
   (Phase 1b) deployed first.
 - AI replies need inventory-backend with `/api/inbox/ai-settings`; without it the card says AI
