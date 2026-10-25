@@ -21,7 +21,8 @@ const base: InboxAiCredit = {
   expiresAt: "2027-04-22T00:00:00.000Z",
   expired: false,
   repliesLeft: 10_000,
-  typicalReplyPaisa: 5,
+  typicalReplyPaisa: 7,
+  replyPaisaRange: { low: 5, high: 8 },
   rates: RATES,
   terms: TERMS,
 };
@@ -44,7 +45,8 @@ describe("AiCreditCard", () => {
     renderWithProviders(<AiCreditCard />);
     expect(screen.getByText("৳500.00")).toBeInTheDocument();
     expect(screen.getByText(/10,000 replies left/)).toBeInTheDocument();
-    expect(screen.getByText(/about 5 paisa/)).toBeInTheDocument();
+    // A range, never one number (owner 2026-10-25).
+    expect(screen.getByText(/usually costs 5–8 paisa/)).toBeInTheDocument();
   });
 
   it("says the credit is used up instead of counting replies", () => {

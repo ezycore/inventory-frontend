@@ -68,3 +68,15 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
     day chips from the org's `weekStartDay`, 15-minute `SimpleSelect`s, ≤ 5 windows mirroring
     `MAX_AI_OFF_WINDOWS`, never a window with no day). Times are "HH:mm" on the shop's zone — never
     convert them in the browser. `OwnershipBanner` says "AI off hours" while `summary.aiOffNow`.
+16. **AI credit — a price range and a history.** `AiCreditCard` shows `replyPaisaRange` ("usually
+    X–Y paisa"), never one number (owner 2026-10-25). `AiCreditHistory`
+    (`components/inbox/ai-credit-history.tsx`) shows spend per day and the credit in/out; a day's
+    chats load only when it is opened (`useInboxAiCreditDay(date | null)`). Day keys are the
+    backend's shop-calendar `YYYY-MM-DD` — print them with `formatDateOnly`, never re-cut them in
+    the browser. Both keys sit under `inbox.aiCredit()`'s root, so an inbox change refreshes them.
+17. **Flag this reply:** `FlagReply` (`components/inbox/flag-reply.tsx`) renders under an AI reply
+    for holders of `inbox.reply` (`MessageBubble` `canFlag`, passed from `ThreadView`); a read-only
+    viewer still sees "Flagged: …". The reasons mirror the backend's (`INBOX_AI_FLAG_REASONS` in the
+    inbox api module); "Other" needs a note. Mutations fire `inbox.replyFlagged` (the whole inbox
+    root — thread and list). The owner's list is `AiFlagsCard` on Page settings, paged in the URL
+    with prefix `flags`, ≤ 50 a page (the backend cap).

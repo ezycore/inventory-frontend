@@ -49,6 +49,22 @@
       "aiOff": "AI off hours — your team answers now. The AI replies afterwards if nobody has.",
       "takeOver": "Take over",
       "giveBack": "Give back to AI"
+    },
+    "flag": {
+      "action": "Flag",
+      "flagged": "Flagged: {reason}",
+      "title": "What was wrong with this reply?",
+      "reason": {
+        "wrong_info": "Wrong information",
+        "wrong_language": "Wrong language",
+        "tone": "Rude or unprofessional",
+        "missed_handover": "Should have passed to staff",
+        "other": "Other"
+      },
+      "note": "Note",
+      "notePlaceholder": "What should the AI have said? (needed for Other)",
+      "save": "Save flag",
+      "remove": "Remove flag"
     }
   },
   "reply": {
@@ -178,8 +194,33 @@
         "expired": "Your AI credit has expired. The AI has stopped replying. A top-up brings the AI back and extends your whole balance."
       },
       "topUp": "AI credit is separate from SMS credit. To buy more, contact ezycore support. Only replies that reach the customer are charged.",
-      "rate": "A typical reply costs about {paisa} paisa",
+      "rate": "A reply usually costs {low}–{high} paisa — less for a quick answer, more when the AI looks up several products or takes an order",
       "termsVersion": "Terms {version}"
+    },
+    "history": {
+      "title": "Credit history",
+      "period": "Last {days} days",
+      "totals": "Last {days} days: {replies, plural, one {# AI reply} other {# AI replies}} · {amount}",
+      "noUsage": "No AI replies were charged in this period.",
+      "replies": "{count, plural, one {# reply} other {# replies}}",
+      "unnamed": "Customer",
+      "moreChats": "Only the 100 most expensive chats of this day are listed; the day's total includes all of them.",
+      "creditsTitle": "Credit added and removed",
+      "noCredits": "No credit has been added yet.",
+      "added": "Added {amount}",
+      "removed": "Removed {amount} (expired or corrected)",
+      "balanceAfter": "Balance {amount}"
+    },
+    "flags": {
+      "title": "Flagged AI replies",
+      "intro": "Replies your team marked as wrong, newest first. Flag a reply from its chat with the Flag button under it. We use these to make the AI better.",
+      "empty": "No reply has been flagged yet.",
+      "openChat": "Open chat with {name}",
+      "customer": "the customer",
+      "customerSaid": "Customer:",
+      "aiReplied": "AI:",
+      "flaggedBy": "Flagged by {name} · {date}",
+      "flaggedAt": "Flagged {date}"
     }
   }
 }

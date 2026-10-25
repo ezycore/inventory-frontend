@@ -10,6 +10,14 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox — "Flag this reply".** A **Flag** button under every AI reply (reason + note; "Other"
+  needs a note), shown as "Flagged: …" afterwards, and **Flagged AI replies** on Page settings for
+  the owner: the customer's message, the AI's reply, the reason, who flagged it, a link to the chat.
+  en + bn, help guide updated. Needs inventory-backend with `/api/inbox/ai-flags`.
+- **Inbox → Page settings → Credit history.** What the AI spent per day (last 7 / 30 / 90 days, on
+  the shop's time zone), each day opening into its chats with a link to the thread, and the credit
+  added and removed with the balance after each. en + bn, help guide updated. Needs inventory-backend
+  with `GET /api/inbox/ai-credit/history`.
 - **Inbox — instructions and off hours for the AI.** The AI replies card gets **Instructions for the
   AI** (up to 2,000 characters, the merchant's own words) and **AI off hours** (up to five windows,
   days per window, shop time zone); during off hours the thread banner reads "AI off hours — your
@@ -50,6 +58,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Inbox settings: the Page token and App Secret fields use `autocomplete="new-password"`, so Chrome no longer fills them (and the Page ID) with the login email and password.
 
 ### Changed
+- **Inbox — AI credit card shows the price per reply as a range** ("A reply usually costs 10–16
+  paisa — less for a quick answer, more when the AI looks up several products or takes an order")
+  instead of one "about N paisa". Needs inventory-backend with `replyPaisaRange`.
 - `useUrlParam` accepts `"any"` for a free value (the Inbox's open chat id).
 - `types/api-generated.ts` regenerated for the inbox endpoints.
 

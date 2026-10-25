@@ -75,9 +75,10 @@ export function AiCreditCard() {
 
       <p className="text-xs text-muted-foreground">{t("topUp")}</p>
 
-      {credit.terms && credit.typicalReplyPaisa !== null && (
+      {/* A range, never one number: a quick answer and an order step differ by 2× (owner 2026-10-25). */}
+      {credit.terms && credit.replyPaisaRange && (
         <CreditTermsBlock
-          headline={t("rate", { paisa: credit.typicalReplyPaisa })}
+          headline={t("rate", { low: credit.replyPaisaRange.low, high: credit.replyPaisaRange.high })}
           versionLabel={t("termsVersion", { version: credit.terms.version })}
           en={credit.terms.en}
           bn={credit.terms.bn}

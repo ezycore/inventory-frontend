@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { AiCreditCard } from "@/components/inbox/ai-credit-card";
+import { AiCreditHistory } from "@/components/inbox/ai-credit-history";
+import { AiFlagsCard } from "@/components/inbox/ai-flags-card";
 import { AiSettingsCard } from "@/components/inbox/ai-settings-card";
 import { ConnectionForm } from "@/components/inbox/connection-form";
 import { ConnectionStatus } from "@/components/inbox/connection-status";
@@ -104,6 +106,8 @@ export default function InboxSettingsPage() {
           )}
           {/* Only once the AI could run here — a shop without a Page has nothing to spend it on. */}
           {connection?.connected && connection.aiAvailable && <AiCreditCard />}
+          {connection?.connected && connection.aiAvailable && <AiCreditHistory />}
+          {connection?.connected && connection.aiAvailable && <AiFlagsCard />}
           {offerFacebook && <FacebookConnectCard reconnect={Boolean(connection?.connected)} />}
           {oauth ? (
             // Open by default only for a shop already on its own app — that is their setup.

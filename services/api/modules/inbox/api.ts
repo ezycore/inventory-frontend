@@ -3,6 +3,9 @@ import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   InboxAiCredit,
+  InboxAiCreditDay,
+  InboxAiCreditHistory,
+  InboxAiFlagRow,
   InboxConnection,
   InboxConversation,
   InboxMessage,
@@ -14,6 +17,9 @@ import type {
 
 export type {
   InboxAiCredit,
+  InboxAiCreditDay,
+  InboxAiCreditHistory,
+  InboxAiFlagRow,
   InboxConnection,
   InboxConversation,
   InboxMessage,
@@ -22,6 +28,16 @@ export type {
   InboxSummary,
   InboxThread,
 };
+
+/** Why an AI reply was flagged — mirrors the backend's `INBOX_AI_FLAG_REASONS`. */
+export const INBOX_AI_FLAG_REASONS = ["wrong_info", "wrong_language", "tone", "missed_handover", "other"] as const;
+export type InboxAiFlagReason = (typeof INBOX_AI_FLAG_REASONS)[number];
+
+/** Body of `POST /api/inbox/conversations/:id/messages/:messageId/flag`. "Other" needs a note. */
+export interface FlagInboxReplyInput {
+  reason: InboxAiFlagReason;
+  note?: string;
+}
 
 export interface InboxConversationListParams {
   search?: string;
@@ -85,6 +101,14 @@ export const inboxApi = {
   /** The AI-credit balance, ≈ replies left, the price and the terms. */
   getAiCredit: (): Promise<ApiResponse<InboxAiCredit>> => apiClient.get(`${base}/ai-credit`),
 
+  /** AI spend per day on the shop's calendar over the last `days`, and the credit that came in. */
+  getAiCreditHistory: (days: number): Promise<ApiResponse<InboxAiCreditHistory>> =>
+    apiClient.get(`${base}/ai-credit/history${queryString({ days })}`),
+
+  /** One shop-calendar day (`YYYY-MM-DD`): each chat's replies and cost, dearest first. */
+  getAiCreditDay: (date: string): Promise<ApiResponse<InboxAiCreditDay>> =>
+    apiClient.get(`${base}/ai-credit/history/${date}`),
+
   /** Take over (`staff`) or Give back to AI (`ai`). */
   setOwner: (id: string, owner: "ai" | "staff"): Promise<ApiResponse<InboxConversation>> =>
     apiClient.post(`${base}/conversations/${id}/owner`, { owner }),
@@ -109,6 +133,17 @@ export const inboxApi = {
   /** Opening a thread marks it read on the server. `before` pages back through older messages. */
   getThread: (id: string, before?: string): Promise<ApiResponse<InboxThread>> =>
     apiClient.get(`${base}/conversations/${id}${queryString({ before })}`),
+
+  /** Flag (or re-flag) an AI reply as wrong — "flag this reply". */
+  flagReply: (conversationId: string, messageId: string, data: FlagInboxReplyInput): Promise<ApiResponse<InboxMessage>> =>
+    apiClient.post(`${base}/conversations/${conversationId}/messages/${messageId}/flag`, data),
+
+  unflagReply: (conversationId: string, messageId: string): Promise<ApiResponse<InboxMessage>> =>
+    apiClient.delete(`${base}/conversations/${conversationId}/messages/${messageId}/flag`),
+
+  /** The flagged AI replies, newest flag first. */
+  getAiFlags: (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<PaginatedResponse<InboxAiFlagRow>>> =>
+    apiClient.get(`${base}/ai-flags${queryString({ ...params })}`),
 
   reply: (id: string, text: string): Promise<ApiResponse<InboxMessage>> =>
     apiClient.post(`${base}/conversations/${id}/reply`, { text }),

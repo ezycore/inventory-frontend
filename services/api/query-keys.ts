@@ -383,6 +383,11 @@ export const queryKeys = {
     connection: () => ["inbox", "connection"] as const,
     /** AI credit — under the root, so a settings save or a reply refreshes it too. */
     aiCredit: () => ["inbox", "ai-credit"] as const,
+    /** Credit history — under the root too, so a reply refreshes today's row. */
+    aiCreditHistory: (days: number) => ["inbox", "ai-credit", "history", days] as const,
+    aiCreditDay: (date: string) => ["inbox", "ai-credit", "history", "day", date] as const,
+    /** The flagged-AI-replies review list. */
+    aiFlags: (params: Record<string, unknown>) => ["inbox", "ai-flags", params] as const,
     /** The "Connect with Facebook" Page picker for one sign-in (the encrypted grant). */
     oauthPages: (grant: string) => ["inbox", "oauth-pages", grant] as const,
   },

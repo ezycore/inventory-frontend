@@ -7,6 +7,7 @@ import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
 import {
   inboxApi,
+  type FlagInboxReplyInput,
   type InboxConversationListParams,
   type SaveInboxAiSettingsInput,
   type SaveInboxConnectionInput,
@@ -40,6 +41,25 @@ export function useInboxAiCredit(enabled = true) {
     queryFn: () => inboxApi.getAiCredit(),
     select: (data) => data.data,
     enabled,
+  });
+}
+
+/** AI credit history: spend per shop-calendar day and the credit that came in. */
+export function useInboxAiCreditHistory(days: number) {
+  return useQuery({
+    queryKey: queryKeys.inbox.aiCreditHistory(days),
+    queryFn: () => inboxApi.getAiCreditHistory(days),
+    select: (data) => data.data,
+  });
+}
+
+/** One day of the history, by chat — fetched only when a day is opened. */
+export function useInboxAiCreditDay(date: string | null) {
+  return useQuery({
+    queryKey: queryKeys.inbox.aiCreditDay(date ?? ""),
+    queryFn: () => inboxApi.getAiCreditDay(date!),
+    select: (data) => data.data,
+    enabled: !!date,
   });
 }
 
@@ -186,6 +206,35 @@ export function useReplyInbox(conversationId: string) {
   return useMutation({
     mutationFn: (text: string) => inboxApi.reply(conversationId, text),
     onSuccess: () => invalidate(qc, "inbox.replied"),
+    onError: handleMutationError,
+  });
+}
+
+/** The flagged-AI-replies review list (Inbox → Page settings). */
+export function useInboxAiFlags(params: { page: number; limit: number }) {
+  return useQuery({
+    queryKey: queryKeys.inbox.aiFlags(params),
+    queryFn: () => inboxApi.getAiFlags(params),
+    select: (data) => data.data,
+  });
+}
+
+/** Flag an AI reply. No toast: the flag appearing under the reply is the confirmation. */
+export function useFlagInboxReply(conversationId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ messageId, ...data }: FlagInboxReplyInput & { messageId: string }) =>
+      inboxApi.flagReply(conversationId, messageId, data),
+    onSuccess: () => invalidate(qc, "inbox.replyFlagged"),
+    onError: handleMutationError,
+  });
+}
+
+export function useUnflagInboxReply(conversationId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) => inboxApi.unflagReply(conversationId, messageId),
+    onSuccess: () => invalidate(qc, "inbox.replyFlagged"),
     onError: handleMutationError,
   });
 }

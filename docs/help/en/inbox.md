@@ -31,6 +31,10 @@ ui_labels:
   - ecommerce:orderDetail.placedByAi
   - ecommerce:orderDetail.openChat
   - inbox:settings.credit.title
+  - inbox:settings.history.title
+  - inbox:settings.history.creditsTitle
+  - inbox:settings.flags.title
+  - inbox:thread.flag.save
   - inbox:thread.owner.takeOver
   - inbox:thread.owner.giveBack
   - settings:features.names.inbox
@@ -159,6 +163,18 @@ During off hours the AI sends nothing and the chat shows **AI off hours — your
 If someone on your team replies, the chat stays with them. Messages nobody answered get an AI reply
 a few minutes after the off hours end.
 
+### Flag a wrong AI reply
+
+If the AI says something wrong, click **Flag** under its reply in the chat, choose what was wrong
+(wrong information, wrong language, rude or unprofessional, should have passed to staff, or other)
+and add a note — for **Other**, say what was wrong. Click **Save flag**. The reply then shows its
+flag; click it again to change it or **Remove flag**. Only replies the AI wrote can be flagged, and
+anyone who can reply to chats can flag one.
+
+Owners see every flag under **Flagged AI replies** in Inbox → Page settings: what the customer said,
+what the AI answered, why it was flagged and by whom, with a link to the chat. We use these to make
+the AI better.
+
 ### Orders the AI takes
 
 The AI can take **cash-on-delivery** orders. It asks for what is missing — the product and size,
@@ -186,13 +202,23 @@ order stays Pending for you.
 
 Each AI reply is paid for from your **AI credit** — a balance separate from your SMS credit. The
 **AI credit** card under the AI replies card shows how much you have in Taka, how long it is valid,
-and about how many replies it covers at what your recent replies cost. A typical reply costs a few
-paisa; you are only charged for replies that reach the customer.
+and about how many replies it covers at what your recent replies cost. The card also shows what a
+reply usually costs, as a range: a quick answer costs less, and a reply where the AI looks up
+several products or takes an order costs more. You are only charged for replies that reach the
+customer.
 
 - Your workspace gets a small free amount the first time you turn AI replies on.
 - To buy more, contact ezycore support. Every top-up extends the validity of your whole balance.
 - When the credit runs out (or expires), the AI stops replying and new chats go to your team with
   the reason — customer messages still arrive, and you can answer them as usual.
+
+### Credit history
+
+Under the AI credit card, **Credit history** shows what the AI spent each day over the last 7, 30
+or 90 days — the number of replies and the amount — using your shop's own time zone, so a reply at
+12:30 AM counts on that day. Click a day to see its chats, the most expensive first; click a chat
+to open it. **Credit added and removed** lists every top-up and free credit, and any credit taken
+off when it expired or was corrected, with your balance after each one.
 
 ## Who can do what
 

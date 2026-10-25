@@ -68,7 +68,12 @@ export function ThreadView({ conversationId, onBack, className }: ThreadViewProp
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {hasOlder && <p className="text-center text-xs text-muted-foreground">{t("thread.latestOnly")}</p>}
         {messages.map((message) => (
-          <MessageBubble key={message._id ?? message.externalId} message={message} />
+          <MessageBubble
+            key={message._id ?? message.externalId}
+            message={message}
+            conversationId={conversation._id}
+            canFlag={canReply}
+          />
         ))}
         <div ref={bottom} />
       </div>

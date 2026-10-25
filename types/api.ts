@@ -241,6 +241,9 @@ export type InboxThread = Schemas["InboxThread"];
 export type InboxSummary = Schemas["InboxSummary"];
 /** AI credit — whole paisa, shown as ৳ and "≈ N replies left" (backend plan §12 Phase 1b). */
 export type InboxAiCredit = Schemas["InboxAiCredit"];
+export type InboxAiCreditHistory = Schemas["InboxAiCreditHistory"];
+export type InboxAiCreditDay = Schemas["InboxAiCreditDay"];
+export type InboxAiFlagRow = Schemas["InboxAiFlagRow"];
 /** "Connect with Facebook" (plan D2b): the login URL, and the Page picker — never a token. */
 export type InboxOAuthStart = Schemas["InboxOAuthStart"];
 export type InboxOAuthPages = Schemas["InboxOAuthPages"];

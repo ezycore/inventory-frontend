@@ -99,6 +99,9 @@ export const EFFECTS = {
   /** A staff reply went out through the Page. The list's preview and the thread both move. */
   "inbox.replied": [k.inbox.all()],
 
+  /** An AI reply was flagged or unflagged — the thread shows it and the review list holds it. */
+  "inbox.replyFlagged": [k.inbox.all()],
+
   /** Serial / IMEI codes on a posted sale were added or corrected. Nothing else on the sale moves. */
   "sale.serialsChanged": [k.salesOrders.all(), k.warranty.all()],
 

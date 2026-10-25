@@ -8,14 +8,24 @@ import { ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
+import { FlagReply } from "./flag-reply";
 import { attachmentKind } from "./inbox-utils";
 
 /**
  * One message. The customer's sit left, the shop's right. A reply typed in Meta's own inbox
  * (`source: "platform_inbox"`) says so, and so does one the AI wrote (`role: "ai"`) — staff
- * otherwise cannot tell either from one they sent here.
+ * otherwise cannot tell either from one they sent here. Someone who may reply may also flag an AI
+ * reply as wrong (`canFlag`).
  */
-export function MessageBubble({ message }: { message: InboxMessage }) {
+export function MessageBubble({
+  message,
+  conversationId,
+  canFlag = false,
+}: {
+  message: InboxMessage;
+  conversationId?: string;
+  canFlag?: boolean;
+}) {
   const t = useTranslations("inbox.thread");
   const { formatDateTime } = useFormatters();
   const fromShop = message.role !== "customer";
@@ -34,11 +44,22 @@ export function MessageBubble({ message }: { message: InboxMessage }) {
           <Attachment key={index} type={attachment.type} url={attachment.url} />
         ))}
         {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
-        <p className={cn("text-[11px]", fromShop ? "text-primary-foreground/75" : "text-muted-foreground")}>
-          {formatDateTime(message.at)}
-          {message.source === "platform_inbox" && ` · ${t("fromFacebook")}`}
-          {message.role === "ai" && ` · ${t("fromAi")}`}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-3">
+          <p className={cn("text-[11px]", fromShop ? "text-primary-foreground/75" : "text-muted-foreground")}>
+            {formatDateTime(message.at)}
+            {message.source === "platform_inbox" && ` · ${t("fromFacebook")}`}
+            {message.role === "ai" && ` · ${t("fromAi")}`}
+          </p>
+          {message.role === "ai" && canFlag && conversationId && message._id && (
+            <FlagReply conversationId={conversationId} message={message} />
+          )}
+          {/* Read-only viewers still see that someone flagged it. */}
+          {message.role === "ai" && !canFlag && message.aiFlag && (
+            <p className="text-[11px] font-medium text-amber-200">
+              {t("flag.flagged", { reason: t(`flag.reason.${message.aiFlag.reason}`) })}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
