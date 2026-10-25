@@ -96,7 +96,8 @@ call.
 
 **Check connection** re-tests the saved details with Facebook at any time. **Disconnect** stops new
 messages arriving; the chats you already have stay, and reconnecting the same Page carries on in the
-same chats.
+same chats. While another Page is connected, chats from the old one can be read but not answered —
+a reply can only go through the Page the customer wrote to.
 
 ## Read and reply
 

@@ -15,6 +15,8 @@ const MAX_LENGTH = 2000;
 interface ReplyBoxProps {
   conversationId: string;
   canReply: boolean;
+  /** `false`: the chat came through a Page the shop no longer has connected — read-only. */
+  pageConnected: boolean;
   /** The server's `replyWindowClosesAt` — when Facebook stops accepting a reply. */
   windowClosesAt?: string | null;
 }
@@ -25,14 +27,18 @@ interface ReplyBoxProps {
  * replaced by the reason rather than left to fail (backend `docs/features/inbox.md` §4).
  * Enter sends, Shift+Enter is a new line.
  */
-export function ReplyBox({ conversationId, canReply, windowClosesAt }: ReplyBoxProps) {
+export function ReplyBox({ conversationId, canReply, pageConnected, windowClosesAt }: ReplyBoxProps) {
   const t = useTranslations("inbox");
   const { formatDateTime } = useFormatters();
   const [text, setText] = useState("");
   const reply = useReplyInbox(conversationId);
 
   if (!canReply) {
-    return <p className="border-t bg-muted/40 p-3 text-sm text-muted-foreground">{t("thread.windowClosed")}</p>;
+    return (
+      <p className="border-t bg-muted/40 p-3 text-sm text-muted-foreground">
+        {t(pageConnected ? "thread.windowClosed" : "thread.pageDisconnected")}
+      </p>
+    );
   }
 
   const send = () => {

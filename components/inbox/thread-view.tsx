@@ -82,6 +82,7 @@ export function ThreadView({ conversationId, onBack, className }: ThreadViewProp
         <ReplyBox
           conversationId={conversation._id}
           canReply={conversation.canReply}
+          pageConnected={conversation.pageConnected}
           windowClosesAt={conversation.replyWindowClosesAt}
         />
       )}

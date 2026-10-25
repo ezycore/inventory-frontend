@@ -25,7 +25,8 @@ export function OwnershipBanner({ conversation }: { conversation: InboxConversat
   // Inside the merchant's AI-off hours the chat is still the AI's, but the team answers now.
   const aiOff = aiOwns && Boolean(summary?.aiOffNow);
 
-  if (!aiOwns && !aiActive) return null;
+  // A chat kept from a Page no longer connected is read-only: neither the AI nor the team answers it.
+  if (!conversation.pageConnected || (!aiOwns && !aiActive)) return null;
 
   return (
     <div

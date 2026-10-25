@@ -13581,6 +13581,7 @@ export interface components {
             lastStaffAt?: string;
             /** Format: date-time */
             replyWindowClosesAt: string | null;
+            pageConnected: boolean;
             canReply: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -13674,6 +13675,7 @@ export interface components {
                 lastStaffAt?: string;
                 /** Format: date-time */
                 replyWindowClosesAt: string | null;
+                pageConnected: boolean;
                 canReply: boolean;
                 /** Format: date-time */
                 createdAt?: string;
@@ -13751,7 +13753,7 @@ export interface components {
         NotificationEventRow: {
             key: string;
             /** @enum {string} */
-            domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+            domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account" | "inbox";
             /** @enum {string} */
             category: "transactional" | "marketing";
             mandatory: boolean;
@@ -13891,7 +13893,7 @@ export interface components {
             events: {
                 key: string;
                 /** @enum {string} */
-                domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+                domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account" | "inbox";
                 /** @enum {string} */
                 category: "transactional" | "marketing";
                 mandatory: boolean;

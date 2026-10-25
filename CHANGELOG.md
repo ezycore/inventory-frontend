@@ -10,6 +10,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Inbox: chats from a Page no longer connected are read-only** — the reply box says why, and those chats show no AI / Staff tag or banner. Needs inventory-backend with `pageConnected`.
 - **Bangla help for the Inbox**: `docs/help/bn/inbox.md`, and the bell section in the Bangla Notifications guide.
 - **Notification bell** in the top bar: new online orders and chats the AI handed to staff, with
   an unread count, mark read / mark all read, and per-browser **Play a sound** / **Show a pop-up**.

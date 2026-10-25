@@ -98,6 +98,8 @@ function useListTime() {
 type AnsweredBy = "ai" | "staff" | null;
 
 function answeredBy(row: InboxConversation, summary?: { aiActive: boolean; aiOffNow: boolean }): AnsweredBy {
+  // A chat kept from a Page no longer connected: nobody answers it, so no tag claims otherwise.
+  if (!row.pageConnected) return null;
   if (row.owner === "ai") return summary?.aiOffNow ? "staff" : "ai";
   return summary?.aiActive ? "staff" : null;
 }

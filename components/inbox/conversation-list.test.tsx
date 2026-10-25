@@ -28,6 +28,7 @@ const row = (over: Partial<InboxConversation>): InboxConversation =>
     lastMessageAt: "2026-10-25T04:00:00Z",
     unreadCount: 0,
     replyWindowClosesAt: null,
+    pageConnected: true,
     canReply: true,
     ...over,
   }) as InboxConversation;
@@ -46,6 +47,14 @@ describe("ConversationList", () => {
     expect(item("Tasnim").getByText("AI: Ji ache")).toBeInTheDocument();
     expect(item("Karim").getByText("Staff")).toBeInTheDocument();
     expect(item("Karim").getByText("You: Ok")).toBeInTheDocument();
+  });
+
+  it("no AI or Staff tag on a chat kept from a Page no longer connected", () => {
+    state.summary = { unreadConversations: 0, aiActive: true, aiOffNow: false };
+    state.rows = [row({ _id: "c1", customerName: "Tasnim", pageConnected: false, canReply: false })];
+    renderWithProviders(<ConversationList onSelect={() => {}} />);
+    expect(item("Tasnim").queryByText("AI")).not.toBeInTheDocument();
+    expect(item("Tasnim").queryByText("Staff")).not.toBeInTheDocument();
   });
 
   it("keeps the time short so the name fits: today's time, an older year's date", () => {

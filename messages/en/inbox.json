@@ -34,6 +34,7 @@
     "back": "All chats",
     "windowOpen": "You can reply until {time}",
     "windowClosed": "Facebook only allows a reply within 24 hours of the customer's last message. You can reply again when they write.",
+    "pageDisconnected": "This chat came through a Facebook Page that is no longer connected. You can read it, but a reply can only go through the Page the customer wrote to — connect that Page again to answer.",
     "fromFacebook": "Replied from Facebook",
     "latestOnly": "Showing the latest 50 messages",
     "openInMeta": "{type} — open it in Meta Business Suite",
