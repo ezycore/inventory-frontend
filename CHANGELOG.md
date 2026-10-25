@@ -10,6 +10,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- **Bangla help for the Inbox**: `docs/help/bn/inbox.md`, and the bell section in the Bangla Notifications guide.
 - **Notification bell** in the top bar: new online orders and chats the AI handed to staff, with
   an unread count, mark read / mark all read, and per-browser **Play a sound** / **Show a pop-up**.
   Settings → Notifications gets a **You / In ezycore** column for it. en + bn, help guides updated.
@@ -67,6 +68,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Inbox settings: the Page token and App Secret fields use `autocomplete="new-password"`, so Chrome no longer fills them (and the Page ID) with the login email and password.
 
 ### Changed
+- **Bangla wording (owner review 2026-10-25):** UI labels write `AI` and `ezycore` in Latin letters (no more এআই / ইজিকোর); the feature is **AI রিপ্লাই** everywhere and a reply is রিপ্লাই; the bell says "{name}-এর মেসেজের উত্তর বাকি". Rules in `docs/I18N-GLOSSARY.md`.
 - **Inbox — AI credit card shows the price per reply as a range** ("A reply usually costs 10–16
   paisa — less for a quick answer, more when the AI looks up several products or takes an order")
   instead of one "about N paisa". Needs inventory-backend with `replyPaisaRange`.

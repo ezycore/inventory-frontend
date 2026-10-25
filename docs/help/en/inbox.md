@@ -197,8 +197,8 @@ how many, the customer's name, mobile number and address — then shows the cust
 the delivery charge and total from your own checkout, and places the order only after the customer
 says yes.
 
-- The order appears in **Orders** as Pending, with the channel Messenger, like an order you typed in
-  yourself. You get the usual new-order email. Confirm, pack and send it as you always do.
+- The order appears in **Orders** as Pending, with the channel Messenger, like any other order. You
+  get the usual new-order email and a bell alert. Confirm, pack and send it as you always do.
 - In the chat you see **AI took an order** with a **View order** link. On the order, **Taken by AI in
   a Messenger chat** with **Open chat** takes you back to the conversation.
 - The customer gets the order number and a tracking link, and can ask the AI later how the order is
@@ -231,9 +231,11 @@ customer.
 
 Under the AI credit card, **Credit history** shows what the AI spent each day over the last 7, 30
 or 90 days — the number of replies and the amount — using your shop's own time zone, so a reply at
-12:30 AM counts on that day. Click a day to see its chats, the most expensive first; click a chat
-to open it. **Credit added and removed** lists every top-up and free credit, and any credit taken
-off when it expired or was corrected, with your balance after each one.
+12:30 AM counts on that day.
+
+- Click a day to see its chats, the most expensive first; click a chat to open it.
+- **Credit added and removed** lists every top-up and free credit, and any credit taken off when it
+  expired or was corrected, with your balance after each one.
 
 ## Who can do what
 

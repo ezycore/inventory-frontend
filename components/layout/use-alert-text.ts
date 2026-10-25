@@ -23,7 +23,14 @@ export function useAlertText() {
             body: [alert.data.total_amount, customer].filter(Boolean).join(" · "),
           };
         case "inbox.handover":
-          return { title: t("handover.title", { name: customer }), body: alert.data.reason ?? "" };
+          return {
+            // No name yet (Facebook sends it a moment after the first message): a whole sentence,
+            // because "{name}-এর" cannot take a stand-in noun in Bangla.
+            title: alert.data.customer_name
+              ? t("handover.title", { name: alert.data.customer_name })
+              : t("handover.titleNoName"),
+            body: alert.data.reason ?? "",
+          };
         default:
           return { title: t("generic"), body: "" };
       }

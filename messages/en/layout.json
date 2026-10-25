@@ -128,7 +128,8 @@
       "title": "New online order {number}"
     },
     "handover": {
-      "title": "{name} needs a reply"
+      "title": "{name} needs a reply",
+      "titleNoName": "A customer needs a reply"
     },
     "generic": "New notification",
     "justNow": "just now",
