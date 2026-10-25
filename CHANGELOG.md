@@ -12,6 +12,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [1.14.0] - 2026-10-25
 
 ### Added
+- **Inbox: AI replies are marked beta** — a notice at the top of Inbox settings and a **Beta** badge on the AI replies card (en + bn), shown only where AI replies are available. Merchant-facing only; nothing changes in customers' chats.
 - **Inbox: "Connect with Facebook again" on the connection card** when a Page connected with Facebook needs attention, with a plain sentence (en + bn) in place of Meta's raw token error. The same button no longer sits at the bottom of the settings page, below the AI cards, where merchants did not find it.
 - **Inbox help: AI settings are kept across Disconnect** (en + bn) — needs inventory-backend with `inboxsavedsettings`.
 - **Inbox: chats from a Page no longer connected are read-only** — the reply box says why, and those chats show no AI / Staff tag or banner. Needs inventory-backend with `pageConnected`.

@@ -22,6 +22,7 @@ ui_labels:
   - inbox:settings.status.token_invalid
   - inbox:settings.oauth.ownAppToggle
   - inbox:settings.ai.title
+  - inbox:settings.aiBeta.title
   - inbox:settings.ai.enable
   - inbox:settings.ai.idle
   - inbox:settings.ai.autoConfirm
@@ -127,6 +128,10 @@ reply box is replaced by a note saying so — the moment the customer writes aga
 again. Order updates after that window are best sent by SMS.
 
 ## AI replies
+
+AI replies are in beta: Page settings says so at the top (**AI replies are in beta**). Read the AI's
+answers now and then, and flag any it gets wrong (see *Flag a wrong AI reply* below) — that is how
+it gets better.
 
 When your workspace has AI replies, **Inbox → Page settings** shows an **AI replies** card. Turn on
 **Let AI answer new chats** and the AI answers customers' questions about your products, prices,

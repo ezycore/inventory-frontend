@@ -3,6 +3,7 @@
 
 import { useSaveInboxAiSettings, type InboxConnection } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Label } from "@/ui/components/label";
@@ -66,6 +67,7 @@ export function AiSettingsCard({ connection }: { connection: InboxConnection }) 
       <div className="flex items-center gap-2">
         <Bot className="h-4 w-4 text-primary" />
         <h2 className="font-semibold">{t("title")}</h2>
+        {connection.aiAvailable && <Badge variant="secondary">{t("beta")}</Badge>}
       </div>
 
       {!connection.aiAvailable ? (

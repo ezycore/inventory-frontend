@@ -98,6 +98,10 @@
     "save": "Save",
     "saving": "Checking with Facebook…",
     "statusTitle": "Connection",
+    "aiBeta": {
+      "title": "AI replies are in beta",
+      "body": "AI replies are new. Read its answers now and then, and press Flag on any reply it gets wrong — that is how we make it better."
+    },
     "platformNeedsAttention": "Facebook no longer lets ezycore use this Page — the app was removed in Facebook, or the sign-in expired. Connect with Facebook again and pick the same Page; your chats and settings stay as they are.",
     "status": {
       "active": "Connected",
@@ -147,6 +151,7 @@
     },
     "ai": {
       "title": "AI replies",
+      "beta": "Beta",
       "unavailable": "AI replies aren't available on your workspace yet. Your team answers every chat.",
       "workspaceOff": "AI replies are switched off for your workspace. Turn on AI replies in Settings → Customize workspace to use them here.",
       "enable": "Let AI answer new chats",

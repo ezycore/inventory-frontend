@@ -6,6 +6,7 @@ import { AiCreditHistory } from "@/components/inbox/ai-credit-history";
 import { AiFlagsCard } from "@/components/inbox/ai-flags-card";
 import { AiSettingsCard } from "@/components/inbox/ai-settings-card";
 import { ConnectionForm } from "@/components/inbox/connection-form";
+import { AiBetaNotice } from "@/components/inbox/ai-beta-notice";
 import { ConnectionStatus } from "@/components/inbox/connection-status";
 import { FacebookConnectCard } from "@/components/inbox/facebook-connect-card";
 import { FacebookPagePicker } from "@/components/inbox/facebook-page-picker";
@@ -97,6 +98,8 @@ export default function InboxSettingsPage() {
         <Skeleton className="h-48 w-full" />
       ) : (
         <>
+          {/* First on the page: AI replies are new, and this is where the merchant sets them up. */}
+          {connection?.aiAvailable && <AiBetaNotice />}
           {grant && <FacebookPagePicker grant={grant} onDone={() => setGrant(null)} />}
           {connection?.connected && <ConnectionStatus connection={connection} />}
           {connection?.connected && (
