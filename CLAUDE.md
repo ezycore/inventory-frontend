@@ -108,8 +108,9 @@ Mirrors the same section in `inventory-backend/CLAUDE.md`.
 
 ## Commands
 
-**Node 22 LTS (`.nvmrc`) — `nvm use` before anything else.** Next 16 targets 20.9+/22 LTS. A dev
-server on Node 25 (a non-LTS *Current* release, so a newer V8 with different GC behaviour) was seen
+**Node 24 LTS (`.nvmrc`) — `nvm use` before anything else.** It is the same major the `Dockerfile`
+and CI run (moved from Node 20, end-of-life since April 2026, on 2026-10-26), so a local run behaves
+like production. Stay on an LTS line. A dev server on Node 25 (a non-LTS *Current* release, so a newer V8 with different GC behaviour) was seen
 climbing to a **3.9 GB heap and dying** with `Ineffective mark-compacts near heap limit` after ~26
 minutes, having already tripped Next's own "approaching the used memory threshold, restarting"
 guard. That restart is also what produces a `ChunkLoadError` in an open tab: the recompile emits new
