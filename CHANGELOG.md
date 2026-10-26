@@ -9,6 +9,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-10-26
+
+### Changed
+- **Runtime moved from Node 20 to Node 24 LTS** (Node 20 has been end-of-life since April 2026). Docker image `node:20-slim` → `node:24-slim`, CI on Node 24, `@types/node` ^24, and `.nvmrc` now says `24`, so local dev matches production instead of running Node 22.
+
 ## [1.14.0] - 2026-10-25
 
 ### Added
