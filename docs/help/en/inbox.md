@@ -158,6 +158,19 @@ click **Give back to AI**.
 If the card says AI replies are switched off for your workspace, turn on **AI replies** under
 **Settings → Customize workspace** first.
 
+### What the AI already knows
+
+When a customer asks to see a product, the AI sends **product cards** in Messenger: the photo, name,
+price and stock, with a **View** button that opens the product on your website. You see the same
+cards in the chat.
+
+It also reads your product descriptions, and what your online store already shows customers: your
+phone, address, WhatsApp and social links, delivery times and charges, store pickup and the offers
+running now. Keep those filled in under the online store's settings, and the AI answers those
+questions itself instead of handing them to your team. It does not read the notices on your checkout
+page — anything from them the AI should tell customers, write in its instructions below. When a customer asks what
+you sell, it names only the categories that have products in stock.
+
 ### Tell the AI about your shop
 
 **Instructions for the AI** is a box in the AI replies card where you write, in your own words,

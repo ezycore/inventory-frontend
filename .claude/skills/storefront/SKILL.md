@@ -9,6 +9,11 @@ Every organization publishes a public online store — the product's headline fe
 to the back office. One codebase serves every store; **the host picks the store**.
 
 - **Tenant hosts**: `{slug}.domain/shop` (dev: `http://rmc41.localhost:3000/shop`). Link base = `/shop`.
+  The slug read off the host is only a guess — every `*.ezycore.com` name reaches the frontend, and
+  scanners invent hundreds. `proxy.ts` asks `lookupWorkspaceExists` (`store-by-host?slug=`, same
+  60s cache entry as the canonical-host lookup) and answers a self-contained **404**
+  (`lib/workspace-not-found-page.ts`) for a slug no workspace owns, before anything renders. `null`
+  ("could not tell") serves the request as before: a backend blip must never 404 a real workspace.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
   host → slug **via `lib/storefront-host-map.ts`** (the shared rules — `app/robots.ts` and
   `app/sitemap.ts` use the same module, since the proxy matcher skips dotted paths) and injects
@@ -3019,6 +3024,13 @@ cached entry on the `/sites` route (see "Cached store pages").
   Sitemap data comes from BE `GET /:slug/sitemap` (`lib/storefront-server.ts` `getStoreSitemap`,
   cached 1h) which returns **identifiers**; the URLs are built here because only this side knows
   whether the base is `/shop` or `""`. A non-store host gets a bare `Disallow: /` and an empty sitemap.
+- **`/feeds/products.xml`** — the product feed (backend `docs/plan/product-feed.md`), the third
+  dotted host-root route: `app/feeds/products.xml/route.ts` resolves the host through the same
+  `lib/storefront-host-map.ts`, reads `publicStorefront.getStoreProductFeed` (never the preview set —
+  an unpublished shop must not leak its catalog), builds canonical links via `canonicalTarget`, and
+  writes Google product RSS with `lib/product-feed-xml.ts` (pure, tested). 404 while the merchant's
+  switch is off; **503, never an empty feed**, when the API is down — readers treat an empty feed as
+  every product removed. Cached 1h under `catalog` + `site`; the switch's save flushes `site`.
 - **Structured data (JSON-LD)** — builders in `lib/storefront-jsonld.ts` (pure, tested in
   `storefront-jsonld.test.ts`), rendered by `<JsonLd>` (`components/storefront/json-ld.tsx`, a
   **server** component — the markup must be in the SSR HTML). PDP emits `Product` + `BreadcrumbList`;

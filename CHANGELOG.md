@@ -9,6 +9,25 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-10-27
+
+### Added
+- **Product feed.** Store Settings → Marketing → **Product feed**: turn it on and copy the link (`https://<shop>/feeds/products.xml`, the custom domain when the shop has one) into Facebook Commerce Manager, Google Merchant Center, TikTok or Pinterest. The link is served on the shop's own host like `/sitemap.xml`, 404s while the feed is off, and answers 503 rather than an empty catalog when the API is down. Help guide in en + bn.
+
+### Deploy notes
+- Needs inventory-backend with the product feed endpoints (`/api/storefront/:slug/product-feed`).
+
+## [1.16.0] - 2026-10-27
+
+### Added
+- **Inbox: product cards in the chat.** When the AI shows a customer products, the thread shows the same cards — photo, name, price, stock and **View on website** (en + bn). Needs inventory-backend with the product-cards change (the `attachments[].title/subtitle/imageUrl/productId` fields).
+
+### Fixed
+- **Made-up subdomains now get a 404.** Scanners try names like `gitlab.ezycore.com` or `exchange.ezycore.com`, and each one used to load the full admin app or shop and fire several backend calls that all failed with "Store not found" (about 10,000 requests in two hours on 2026-10-27). The proxy now checks the workspace exists (cached for a minute) and answers a small "Workspace not found" page before anything renders. Real workspaces are unaffected, and if the check itself fails the page is served as before.
+
+### Deploy notes
+- The Inbox product cards need inventory-backend ≥ 1.17.0. Without it the thread shows the AI's text with no cards; nothing breaks. The 404 for unknown subdomains needs no backend change.
+
 ## [1.15.0] - 2026-10-26
 
 ### Changed

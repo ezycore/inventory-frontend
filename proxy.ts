@@ -12,6 +12,7 @@ import {
   isHostLookupUnavailable,
   lookupCanonicalHostByHost,
   lookupCanonicalHostBySlug,
+  lookupWorkspaceExists,
 } from "@/lib/storefront-domain-lookup";
 import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
 import {
@@ -31,6 +32,7 @@ import {
   sitesPreviewPath,
 } from "@/lib/storefront-sites";
 import { storeHomePageExists, storePageExists } from "@/lib/storefront-page-lookup";
+import { workspaceNotFoundHtml } from "@/lib/workspace-not-found-page";
 
 /**
  * Option A routing + admin auth gate.
@@ -132,6 +134,22 @@ export async function proxy(request: NextRequest) {
         "Retry-After": "10",
         "Cache-Control": "no-store",
         "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
+
+  // Every `*.ezycore.com` name reaches us, so a subdomain slug is only a guess
+  // until the backend confirms it. Scanners invent hundreds of them; without
+  // this each one rendered the admin app or the shop and fanned out into
+  // backend calls that all failed with STOREFRONT_NOT_FOUND. `null` ("could not
+  // tell") serves the request as before — a backend blip must never 404 a real
+  // workspace.
+  if (store?.base === "/shop" && (await lookupWorkspaceExists(store.slug)) === false) {
+    return new NextResponse(workspaceNotFoundHtml(), {
+      status: 404,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "text/html; charset=utf-8",
       },
     });
   }
