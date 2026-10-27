@@ -4,7 +4,7 @@
 import { useFormatters } from "@/hooks/use-formatters";
 import type { InboxMessage } from "@/services/api";
 import { cn } from "@/ui/lib/utils";
-import { ShoppingBag } from "lucide-react";
+import { ExternalLink, ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,7 +15,7 @@ import { attachmentKind } from "./inbox-utils";
  * One message. The customer's sit left, the shop's right. A reply typed in Meta's own inbox
  * (`source: "platform_inbox"`) says so, and so does one the AI wrote (`role: "ai"`) — staff
  * otherwise cannot tell either from one they sent here. Someone who may reply may also flag an AI
- * reply as wrong (`canFlag`).
+ * reply as wrong (`canFlag`). Product cards the AI sent show as the customer saw them.
  */
 export function MessageBubble({
   message,
@@ -31,6 +31,8 @@ export function MessageBubble({
   const fromShop = message.role !== "customer";
 
   if (message.role === "system" && message.orderId) return <OrderNote message={message} />;
+  const cards = message.attachments.filter((attachment) => attachment.type === "product");
+  const others = message.attachments.filter((attachment) => attachment.type !== "product");
 
   return (
     <div className={cn("flex", fromShop ? "justify-end" : "justify-start")}>
@@ -40,9 +42,10 @@ export function MessageBubble({
           fromShop ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm bg-muted",
         )}
       >
-        {message.attachments.map((attachment, index) => (
+        {others.map((attachment, index) => (
           <Attachment key={index} type={attachment.type} url={attachment.url} />
         ))}
+        {cards.length > 0 && <ProductCards cards={cards} />}
         {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
         <div className="flex flex-wrap items-center justify-between gap-x-3">
           <p className={cn("text-[11px]", fromShop ? "text-primary-foreground/75" : "text-muted-foreground")}>
@@ -83,6 +86,46 @@ function OrderNote({ message }: { message: InboxMessage }) {
           {t("viewOrder")}
         </Link>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The cards `reply_with_products` sent: photo, name, the line under it, and the product's page on the
+ * shop's website. Light cards on the shop's dark bubble, so they read like the customer's Messenger.
+ */
+function ProductCards({ cards }: { cards: InboxMessage["attachments"] }) {
+  const t = useTranslations("inbox.thread");
+  return (
+    <div role="list" aria-label={t("productCards")} className="flex gap-2 overflow-x-auto pb-1">
+      {cards.map((card, index) => (
+        <div
+          key={card.productId ?? index}
+          role="listitem"
+          className="w-40 shrink-0 overflow-hidden rounded-lg border bg-background text-foreground"
+        >
+          {card.imageUrl && (
+            // A plain <img>: the shop's own image host, not on Next's image allow-list.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card.imageUrl} alt={card.title ?? ""} className="aspect-square w-full object-cover" />
+          )}
+          <div className="space-y-0.5 p-2">
+            <p className="line-clamp-2 text-xs font-medium">{card.title}</p>
+            {card.subtitle && <p className="text-[11px] text-muted-foreground">{card.subtitle}</p>}
+            {card.url && (
+              <a
+                href={card.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {t("viewOnWebsite")}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

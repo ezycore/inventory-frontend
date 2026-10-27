@@ -60,6 +60,30 @@ describe("MessageBubble", () => {
     expect(screen.queryByText(/AI placed order ORD-1/)).not.toBeInTheDocument();
   });
 
+  it("shows the product cards the AI sent, each opening the product on the shop's website", () => {
+    const url = "https://shop.ezycore.com/shop/products/black-kurti";
+    renderWithProviders(
+      <MessageBubble
+        message={message({
+          role: "ai",
+          attachments: [
+            { type: "product", url, title: "Black Kurti", subtitle: "৳1,450 · In stock", imageUrl: "https://img.test/k.webp", productId: "p1" },
+            { type: "product", url: `${url}-2`, title: "Red Kurti", productId: "p2" },
+          ],
+        })}
+      />,
+    );
+    const cards = screen.getAllByRole("listitem");
+    expect(cards).toHaveLength(2);
+    expect(screen.getByText("৳1,450 · In stock")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Black Kurti" })).toHaveAttribute("src", "https://img.test/k.webp");
+    const links = screen.getAllByRole("link", { name: /View on website/ });
+    expect(links[0]).toHaveAttribute("href", url);
+    expect(links[0]).toHaveAttribute("target", "_blank");
+    // A card is never mistaken for an expired Meta attachment.
+    expect(screen.queryByText(/Meta Business Suite/)).not.toBeInTheDocument();
+  });
+
   it("names a voice message instead of showing a broken player", () => {
     renderWithProviders(<MessageBubble message={message({ attachments: [{ type: "audio", url: "https://x" }] })} />);
     expect(screen.getByText("Voice message — open it in Meta Business Suite")).toBeInTheDocument();
