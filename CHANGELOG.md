@@ -9,6 +9,14 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-10-27
+
+### Added
+- **The order page says when a courier no longer recognises a parcel.** The backend's status sweep now stops polling a parcel the courier rejects six times in a row while the shop's key works — most often one deleted in the courier's own panel. The tracking card shows an amber notice ("Steadfast no longer recognises this parcel … check it there, then return or update this order"), in English and Bangla. Refresh still works and clears it once the courier answers.
+
+### Deploy notes
+- Needs inventory-backend with the courier lockout guard (the `courier.pollParkedAt` field); against an older backend the notice simply never shows.
+
 ## [1.17.0] - 2026-10-27
 
 ### Added
@@ -16,6 +24,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ### Deploy notes
 - Needs inventory-backend with the product feed endpoints (`/api/storefront/:slug/product-feed`).
+
 
 ## [1.16.0] - 2026-10-27
 
