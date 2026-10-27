@@ -46,6 +46,8 @@
       "other": "অ্যাটাচমেন্ট"
     },
     "fromAi": "AI",
+    "productCards": "গ্রাহককে দেখানো প্রোডাক্ট কার্ড",
+    "viewOnWebsite": "ওয়েবসাইটে দেখুন",
     "orderPlaced": "AI একটি অর্ডার নিয়েছে",
     "viewOrder": "অর্ডার দেখুন",
     "owner": {

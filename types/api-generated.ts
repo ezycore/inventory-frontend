@@ -13606,6 +13606,10 @@ export interface components {
             attachments: {
                 type: string;
                 url?: string;
+                title?: string;
+                subtitle?: string;
+                imageUrl?: string;
+                productId?: string;
             }[];
             externalId?: string;
             sentBy?: string | null;
@@ -13697,6 +13701,10 @@ export interface components {
                 attachments: {
                     type: string;
                     url?: string;
+                    title?: string;
+                    subtitle?: string;
+                    imageUrl?: string;
+                    productId?: string;
                 }[];
                 externalId?: string;
                 sentBy?: string | null;

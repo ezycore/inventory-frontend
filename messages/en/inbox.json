@@ -46,6 +46,8 @@
       "other": "Attachment"
     },
     "fromAi": "AI",
+    "productCards": "Product cards the customer saw",
+    "viewOnWebsite": "View on website",
     "orderPlaced": "AI took an order",
     "viewOrder": "View order",
     "owner": {

@@ -9,6 +9,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Inbox: product cards in the chat.** When the AI shows a customer products, the thread shows the same cards — photo, name, price, stock and **View on website** (en + bn). Needs inventory-backend with the product-cards change (the `attachments[].title/subtitle/imageUrl/productId` fields).
+
 ## [1.15.0] - 2026-10-26
 
 ### Changed
