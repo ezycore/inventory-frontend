@@ -5,12 +5,14 @@ import {
   useGetClaritySettings,
   useGetGa4Settings,
   useGetMetaSettings,
+  useGetProductFeedSettings,
 } from "@/services/api";
 import { ClaritySettingsCard } from "./clarity-settings-tab";
 import { CookieBannerCard } from "./cookie-banner-card";
 import { Ga4SettingsCard } from "./ga4-settings-card";
 import { MarketingToolRow, type ToolStatus } from "./marketing-tool-row";
 import { MetaSettingsCard } from "./meta-settings-tab";
+import { ProductFeedCard } from "./product-feed-card";
 
 /**
  * Store Settings → Marketing (backend `docs/plan/storefront-ga4.md` §6).
@@ -28,6 +30,7 @@ export function MarketingSettingsTab() {
   const { data: meta } = useGetMetaSettings();
   const { data: ga4 } = useGetGa4Settings();
   const { data: clarity } = useGetClaritySettings();
+  const { data: productFeed } = useGetProductFeedSettings();
 
   const metaStatus: ToolStatus | undefined = !meta
     ? undefined
@@ -57,6 +60,12 @@ export function MarketingSettingsTab() {
         subtitle="Session recordings and heatmaps"
         status={clarity ? (clarity.ready ? ON : OFF) : undefined}
         renderBody={(onDirtyChange) => <ClaritySettingsCard onDirtyChange={onDirtyChange} />}
+      />
+      <MarketingToolRow
+        title="Product feed"
+        subtitle="Your products on Facebook, Instagram, Google and TikTok"
+        status={productFeed ? (productFeed.enabled ? ON : OFF) : undefined}
+        renderBody={(onDirtyChange) => <ProductFeedCard onDirtyChange={onDirtyChange} />}
       />
     </div>
   );

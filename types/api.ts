@@ -297,6 +297,11 @@ export type ClarityCookieConsent = ClaritySettings["cookieConsent"];
 
 /** Google Analytics 4 (backend `docs/plan/storefront-ga4.md`). No secret — the id is public. */
 export type Ga4Settings = Schemas["Ga4Settings"];
+/** Product feed switch (backend `docs/plan/product-feed.md`). */
+export type ProductFeedSettings = Schemas["ProductFeedSettings"];
+/** The data `/feeds/products.xml` is built from. */
+export type ProductFeed = Schemas["ProductFeed"];
+export type ProductFeedItem = Schemas["ProductFeedItem"];
 /** Store-level marketing settings: the cookie banner every measurement tool shares. */
 export type MarketingSettings = Schemas["MarketingSettings"];
 /** `"off" | "eu" | "always"` — taken from the spec, never hand-written. */
