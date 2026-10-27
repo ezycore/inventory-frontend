@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-10-27
+
 ### Added
 - **Product feed.** Store Settings → Marketing → **Product feed**: turn it on and copy the link (`https://<shop>/feeds/products.xml`, the custom domain when the shop has one) into Facebook Commerce Manager, Google Merchant Center, TikTok or Pinterest. The link is served on the shop's own host like `/sitemap.xml`, 404s while the feed is off, and answers 503 rather than an empty catalog when the API is down. Help guide in en + bn.
 
