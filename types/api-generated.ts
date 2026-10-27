@@ -12683,6 +12683,11 @@ export interface components {
                     partialDelivery?: boolean;
                     paidReturn?: boolean;
                     collectedAmount?: number;
+                    /** Format: date-time */
+                    lastPolledAt?: string | null;
+                    pollAuthFailures?: number;
+                    /** Format: date-time */
+                    pollParkedAt?: string | null;
                     deliveryReceived?: number;
                     history?: {
                         status: string;
@@ -12920,6 +12925,11 @@ export interface components {
                 partialDelivery?: boolean;
                 paidReturn?: boolean;
                 collectedAmount?: number;
+                /** Format: date-time */
+                lastPolledAt?: string | null;
+                pollAuthFailures?: number;
+                /** Format: date-time */
+                pollParkedAt?: string | null;
                 deliveryReceived?: number;
                 history?: {
                     status: string;
@@ -13147,6 +13157,11 @@ export interface components {
                     partialDelivery?: boolean;
                     paidReturn?: boolean;
                     collectedAmount?: number;
+                    /** Format: date-time */
+                    lastPolledAt?: string | null;
+                    pollAuthFailures?: number;
+                    /** Format: date-time */
+                    pollParkedAt?: string | null;
                     deliveryReceived?: number;
                     history?: {
                         status: string;
