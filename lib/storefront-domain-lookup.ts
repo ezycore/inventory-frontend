@@ -16,6 +16,11 @@
  *    and a registered `www.` twin makes three. Only one of them may be the
  *    indexed site; this is how the proxy learns which, so it can 301 the rest.
  *    `null` means the serving host is already the answer — the common case.
+ *  - **does this workspace exist?** Every `*.ezycore.com` name reaches the
+ *    frontend, so a slug read off the host is only a guess. Scanners invent
+ *    hundreds (`gitlab.`, `mail.`, `exchange.`…) and each one used to render
+ *    the admin app or the shop, fanning out into backend calls that all ended in
+ *    STOREFRONT_NOT_FOUND. The slug form answers that too, from the same entry.
  *
  * Answers are cached in module memory so steady-state traffic costs no extra
  * request: hits and misses for 60s (matches the endpoint's Cache-Control),
@@ -153,4 +158,20 @@ export async function lookupCanonicalHostBySlug(
   slug: string,
 ): Promise<string | null> {
   return (await bySlug(slug)).canonicalHost;
+}
+
+/**
+ * Whether a workspace with this slug exists: `true`, `false`, or `null` when the
+ * API gave no answer and none was cached ("could not tell" — the proxy must then
+ * serve the request as before, never 404 a real store over a backend blip).
+ * Shares the cache entry with `lookupCanonicalHostBySlug`, so a real store pays
+ * no extra fetch, and a scanner's invented slug costs one per minute, not one
+ * per request.
+ */
+export async function lookupWorkspaceExists(
+  slug: string,
+): Promise<boolean | null> {
+  const answer = await bySlug(slug);
+  if (!cache.get(`s:${slug}`)?.known) return null;
+  return answer.slug !== null;
 }

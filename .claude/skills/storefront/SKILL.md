@@ -9,6 +9,11 @@ Every organization publishes a public online store — the product's headline fe
 to the back office. One codebase serves every store; **the host picks the store**.
 
 - **Tenant hosts**: `{slug}.domain/shop` (dev: `http://rmc41.localhost:3000/shop`). Link base = `/shop`.
+  The slug read off the host is only a guess — every `*.ezycore.com` name reaches the frontend, and
+  scanners invent hundreds. `proxy.ts` asks `lookupWorkspaceExists` (`store-by-host?slug=`, same
+  60s cache entry as the canonical-host lookup) and answers a self-contained **404**
+  (`lib/workspace-not-found-page.ts`) for a slug no workspace owns, before anything renders. `null`
+  ("could not tell") serves the request as before: a backend blip must never 404 a real workspace.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
   host → slug **via `lib/storefront-host-map.ts`** (the shared rules — `app/robots.ts` and
   `app/sitemap.ts` use the same module, since the proxy matcher skips dotted paths) and injects
