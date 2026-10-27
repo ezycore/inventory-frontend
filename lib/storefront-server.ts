@@ -46,7 +46,7 @@ import {
   type ProductsDataRequest,
   type SectionData,
 } from "@/lib/storefront-builder/section-data";
-import type { StorefrontPublicPage } from "@/types/api";
+import type { ProductFeed, StorefrontPublicPage } from "@/types/api";
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -238,6 +238,11 @@ function fetchersFor(read: StorefrontRead) {
      *  catalog and content tags still flush it on an admin edit. */
     getStoreSitemap: (slug: string) =>
       read<StorefrontSitemap>(slug, "/sitemap", 3600, ["catalog", "content"]),
+
+    /** The product feed's data, for `/feeds/products.xml`. Cached 1h like the sitemap: readers
+     *  fetch daily. A product edit flushes `catalog`; the on/off switch flushes `site`. */
+    getStoreProductFeed: (slug: string) =>
+      read<ProductFeed>(slug, "/product-feed", 3600, ["catalog", "site"]),
   };
 }
 
