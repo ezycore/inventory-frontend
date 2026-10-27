@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { Truck } from "lucide-react";
+import { AlertTriangle, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
   useRefreshTracking,
@@ -110,6 +110,19 @@ export function CourierTrackingSummary({
               </span>
             ) : null}
           </div>
+        ) : null}
+
+        {/* Parked by the status sweep: the courier rejected this parcel six times in a row
+            while the shop's key worked — usually a parcel deleted in the courier's own panel.
+            Refresh still asks, and an answer clears it. */}
+        {!isManual && courier?.pollParkedAt ? (
+          <p
+            role="status"
+            className="flex items-start gap-2 rounded-md bg-amber-50 p-2.5 text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"
+          >
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-none" />
+            {t("parked", { carrier })}
+          </p>
         ) : null}
       </div>
 

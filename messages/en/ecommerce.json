@@ -96,7 +96,8 @@
     "courierReports": "Courier reports",
     "refresh": "Refresh",
     "reDispatch": "Re-dispatch",
-    "courier": "Courier"
+    "courier": "Courier",
+    "parked": "{carrier} no longer recognises this parcel — it may have been deleted in {carrier}'s own panel. Automatic updates have stopped. Check it there, then return or update this order."
   },
   "phone": {
     "copied": "Phone number copied",
