@@ -82,3 +82,42 @@ describe("storefront domain lookup", () => {
     vi.unstubAllEnvs();
   });
 });
+
+/**
+ * Scanners invent `*.ezycore.com` names by the hundred; the proxy 404s a slug
+ * the backend says does not exist. A backend blip must never read as "absent".
+ */
+describe("workspace exists lookup", () => {
+  beforeEach(() => vi.useRealTimers());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("answers true for a real workspace", async () => {
+    const { lookupWorkspaceExists } = await load(STORE);
+    expect(await lookupWorkspaceExists("uriibaba")).toBe(true);
+  });
+
+  it("answers false for an invented slug", async () => {
+    const { lookupWorkspaceExists } = await load("absent");
+    expect(await lookupWorkspaceExists("exchange")).toBe(false);
+  });
+
+  it("answers null, never false, when the API gives no answer", async () => {
+    for (const failure of [429, 503, new Error("ECONNREFUSED")]) {
+      const { lookupWorkspaceExists } = await load(failure);
+      expect(await lookupWorkspaceExists("uriibaba")).toBeNull();
+    }
+  });
+
+  it("asks once per minute per slug, however often a scanner repeats it", async () => {
+    const { lookupWorkspaceExists, fetchMock } = await load("absent");
+    for (let i = 0; i < 5; i++) await lookupWorkspaceExists("exchange");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares the entry with the canonical-host lookup, so a real store pays no extra fetch", async () => {
+    const { lookupWorkspaceExists, lookupCanonicalHostBySlug, fetchMock } = await load(STORE);
+    await lookupWorkspaceExists("uriibaba");
+    await lookupCanonicalHostBySlug("uriibaba");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

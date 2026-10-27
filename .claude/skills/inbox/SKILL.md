@@ -32,7 +32,10 @@ description: 'The EzyCore INBOX screens (FE side): /inbox (Facebook Messenger ch
 4. **No profile photos.** Facebook does not give them without App Review — the avatar is
    `initialsOf(name)`.
 5. **Attachment URLs expire.** `MessageBubble` shows an image until it errors, then a "open it in
-   Meta Business Suite" line; non-image types never try to render.
+   Meta Business Suite" line; non-image types never try to render. The one exception is
+   `type: "product"` — a card the AI sent (`ProductCards`): its `url` is the product page on the
+   shop's own website, which does not expire, so it renders as a card with **View on website**
+   (backend skill rule 43).
 6. **The open chat is `?chat=<id>`** via `useUrlParam("chat", "any", "")`. The thread is keyed by it
    so a half-typed reply does not follow the merchant into another chat.
 7. **The sidebar badge is the one special case in `app-sidebar.tsx`** (`item.url === "/inbox"`). A
