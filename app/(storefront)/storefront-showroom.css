@@ -574,7 +574,13 @@
     margin: 0;
     padding: 44px 0 32px;
   }
-  .sf-shell[data-skin="showroom"] .sf-fb-row:has(> .sf-fb > .sf-newsletter) {
+  /* The band treatment below is for a newsletter that LEADS the row, full
+     width and shown here. A newsletter placed as a column (the "Newsletter"
+     layout seeds it second, narrow) or switched off for computers keeps the
+     plain column look — matching any newsletter used to zero the row's top
+     padding, which sat every block flush against the footer's top border, and
+     ran the band's window-wide hairline through the middle of the columns. */
+  .sf-shell[data-skin="showroom"] .sf-fb-row:has(> .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter) {
     padding-top: 0;
   }
   .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb {
@@ -585,12 +591,12 @@
     flex-basis: 100%;
   }
   /* 33px under it: the hairline drawn below takes the last pixel. */
-  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter) {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden):has(> .sf-newsletter) {
     position: relative;
     margin-bottom: 44px;
     padding: 32px 0 33px;
   }
-  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter)::after,
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden):has(> .sf-newsletter)::after,
   .sf-shell[data-skin="showroom"] .sf-footer-bottom::before {
     content: "";
     position: absolute;
@@ -599,16 +605,16 @@
     height: 1px;
     background: var(--border);
   }
-  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter)::after {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden):has(> .sf-newsletter)::after {
     bottom: 0;
   }
-  .sf-shell[data-skin="showroom"] .sf-newsletter {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
     column-gap: 20px;
     align-items: center;
   }
-  .sf-shell[data-skin="showroom"] .sf-newsletter > div:first-child {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter > div:first-child {
     grid-column: 1;
     margin: 0 !important;
     font-size: 20px !important;
@@ -617,20 +623,20 @@
     letter-spacing: normal !important;
     text-transform: none !important;
   }
-  .sf-shell[data-skin="showroom"] .sf-newsletter > p:not([role]) {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter > p:not([role]) {
     grid-column: 1;
     max-width: none !important;
     font-size: 14px !important;
     line-height: 1.5 !important;
   }
-  .sf-shell[data-skin="showroom"] .sf-newsletter > form {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter > form {
     grid-column: 2;
     grid-row: 1 / span 2;
     max-width: none !important;
     margin: 0 !important;
     gap: 8px !important;
   }
-  .sf-shell[data-skin="showroom"] .sf-newsletter > p[role] {
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full:first-child:not(.sf-mobile-only, .sf-strip-hidden) > .sf-newsletter > p[role] {
     grid-column: 2;
   }
   .sf-shell[data-skin="showroom"] .sf-footer-bottom {

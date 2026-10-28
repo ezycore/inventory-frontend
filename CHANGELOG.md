@@ -25,6 +25,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ### Fixed
 - **Abandoned-cart recovery had no on-switch.** The "Email shoppers who leave items behind" card was dropped from Store Settings → Checkout when the duplicate settings tabs were removed (2026-08-10), so no merchant could turn the reminders on, and the Settings → Notifications link pointed at a tab without it. It is back on the Checkout tab and saves with the tab's Save button.
 - **The product page heart showed on every shop, even ones with nowhere to see the saved list** (accounts off). It now follows the Wishlist switch.
+- **Showroom footer: blocks sat flush against the footer's top border** whenever the footer held a newsletter block anywhere but first and full width (the "Newsletter" layout puts it second), or one hidden on computers. The newsletter band styling — and its window-wide hairline, which ran through the middle of the columns — now applies only to a newsletter leading the footer; elsewhere it is a plain column with the normal 44px above.
 
 ### Deploy notes
 - Needs inventory-backend with `nav.wishlist`, the `/wishlist` sync routes, `/api/ecommerce/wishlists/*`, `wishlistAlerts` and `POST /api/public/unsubscribe`. Deploy the backend first. Without it, saving the Wishlist switch is refused, sync calls 404 (silently: the list stays local), and the Wishlists page errors.
