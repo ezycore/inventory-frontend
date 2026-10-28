@@ -659,7 +659,7 @@ reads as two filters at once.
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
   (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
   `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always goes
-  straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
+  straight to `/checkout?buy=1` with only its own line (see **Buy now orders ONE line** above). Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
   - **A page that renders a per-page variant reads it through
@@ -803,6 +803,28 @@ reads as two filters at once.
   `mergedCount > 0`: signing in folds in the cart this shopper left on another device, server-side,
   and if the client kept its own items the next debounced sync would push them over the merge and
   undo it. Adoption is what makes cross-device carts actually work — it is not a nicety.
+- **Buy now orders ONE line and never touches the cart** (2026-10-28). Every Buy now — product
+  page, Single product section, card, quick-buy sheet — goes through `useStartBuyNow`
+  (`services/storefront/use-buy-now.ts`): the line goes into `useBuyNowStore`
+  (`services/stores/use-buy-now-store.ts`, **`sessionStorage`** key `ezy-sf-buy-now`) and the
+  shopper lands on **`/checkout?buy=1`**. Until then Buy now *added to the cart* and opened
+  checkout, so a shopper with saved items ordered all of them — on COD, a refused parcel. Rules:
+  - **Checkout orders the buy-now line only when BOTH say so** — the held line and `?buy=1`
+    (`useBuyNowLine`, read in `CheckoutPageView`, never in `useCheckout`: that hook also runs in
+    the order-form island on cached `/sites` pages, where `useSearchParams` does not belong).
+    Every cart "Checkout" link stays a plain `/checkout` and orders the cart, so no entry point has
+    to remember to end a buy-now. Reload keeps it (URL + session); a new tab does not.
+  - `useCheckout({ buyNow })`: the cart is not ordered, not emptied and sends no `anonymousId`
+    (closing the mirrored cart would mark an unordered cart converted); `InitiateCheckout` fires on
+    arrival; a placed order calls `useBuyNowStore.end()`. A coupon quote is dropped whenever the
+    ordered lines change.
+  - **`BuyNowCartNote`** (`components/storefront/checkout/buy-now-cart-note.tsx`) says "You also
+    have N other item(s) in your cart" with **Add them to this order**, which folds the line into
+    the cart (`useBuyNowCartMerge` — a line the cart already holds keeps the LARGER quantity, not
+    the sum) and `replace`s to `/checkout`.
+  - `CartSync` skips the "reached checkout" stamp on a `?buy=1` checkout, and the buy-now line is
+    **not mirrored** — a shopper who abandons a Buy now checkout leaves no abandoned cart, though
+    the guest contact capture still records who they are.
 - **API client**: `lib/storefront-client.ts` — `sfFetch` (no auth header unless `token` passed).
   Error payloads carry the message in `json.error`. On **401 with a token that is still the
   current session token, the shopper session is dropped** (self-healing stale sessions).

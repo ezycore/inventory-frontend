@@ -318,3 +318,61 @@ describe("lines — a landing page's order form", () => {
     expect(trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout")).toHaveLength(1);
   });
 });
+
+/**
+ * Buy now orders the one line the shopper pressed it on. The cart — which may
+ * hold things they saved last week — is not ordered, not emptied and not closed
+ * on the server, and the coupon quote never outlives the lines it priced.
+ */
+describe("buyNow — one line, cart untouched", () => {
+  const buyNow = { productId: "p7", slug: "oil", name: "Oil", price: 300, quantity: 2, maxQty: 9 };
+  const openStore = {
+    currency: "BDT",
+    allowedPaymentMethods: ["cod"],
+    checkout: { requiredFields: ["name", "phone", "address"] },
+  };
+
+  it("orders the buy-now line instead of the cart and leaves the cart alone", async () => {
+    store = openStore;
+    const { useBuyNowStore } = await import("@/services/stores/use-buy-now-store");
+    useBuyNowStore.getState().start("rmc", buyNow);
+    const { result } = renderHook(() => useCheckout({ buyNow }));
+    expect(result.current.items).toEqual([buyNow]);
+    expect(result.current.subtotal).toBe(600);
+
+    fillStepOne(result.current);
+    act(() => result.current.submit());
+
+    const [body, callbacks] = placeOrder.mock.calls[0];
+    expect(body.items).toEqual([{ productId: "p7", variantId: undefined, quantity: 2 }]);
+    expect(body.anonymousId).toBeUndefined();
+
+    act(() => callbacks.onSuccess({ orderNumber: "ORD-3" }));
+    expect(clearCart).not.toHaveBeenCalled();
+    expect(useBuyNowStore.getState().line).toBeNull();
+  });
+
+  it("reports InitiateCheckout on arrival, like any checkout-page visit", () => {
+    store = openStore;
+    renderHook(() => useCheckout({ buyNow }));
+    expect(trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout")).toHaveLength(1);
+  });
+
+  it("drops a coupon quote when the lines it priced change", async () => {
+    store = openStore;
+    const { storefrontApi } = await import("@/lib/storefront-client");
+    vi.mocked(storefrontApi.validateCoupon).mockResolvedValue({ code: "EID", discountAmount: 50 } as never);
+    const { result, rerender } = renderHook(
+      (props: { buyNow?: typeof buyNow }) => useCheckout(props),
+      { initialProps: { buyNow } },
+    );
+    act(() => result.current.setCoupon("EID"));
+    await act(async () => result.current.applyCoupon());
+    expect(result.current.discount).toBe(50);
+
+    // The shopper took the rest of the cart in: the order is now the cart.
+    rerender({ buyNow: undefined });
+    expect(result.current.items).toEqual(cartItems);
+    expect(result.current.discount).toBe(0);
+  });
+});

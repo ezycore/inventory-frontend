@@ -11,7 +11,8 @@ import {
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore, type CartItem } from "@/services/stores/use-cart-store";
+import { cartLineKey, useCartStore, type CartItem } from "@/services/stores/use-cart-store";
+import { useBuyNowStore } from "@/services/stores/use-buy-now-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { storefrontApi } from "@/lib/storefront-client";
 import type {
@@ -72,8 +73,17 @@ const emptyGeo = (): GeoValue => ({ district: "", area: "" });
  * (plan storefront-builder §9). Everything above still applies; what changes is
  * only what belongs to the cart: the basket is neither read nor emptied, no
  * mirrored cart is closed, and `InitiateCheckout` waits for the first edit.
+ *
+ * **`buyNow`** is the checkout page ordering the one line a shopper pressed
+ * Buy now on (`useBuyNowLine`). Like `lines`, the cart is neither ordered,
+ * emptied nor closed on the server; unlike it, the shopper has arrived at
+ * checkout, so `InitiateCheckout` fires on arrival, and a placed order ends the
+ * buy-now session.
  */
-export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
+export function useCheckout({
+  lines,
+  buyNow,
+}: { lines?: CartItem[]; buyNow?: CartItem } = {}) {
   const { slug, base } = useStoreContext();
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
@@ -91,14 +101,17 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
+  const endBuyNow = useBuyNowStore((s) => s.end);
 
   const cartItems = storeSlug === slug ? allItems : [];
+  // The lines this checkout orders when they are not the cart's.
+  const ownLines = lines ?? (buyNow ? [buyNow] : undefined);
   /* The editor's frame again — see `useCartPage`. A checkout previewed with an
      empty basket renders two lines of text where the whole form belongs, so the
      layout picker on the `checkout-form` section changes nothing on screen. Off
-     for a landing page's form, which brings its own `lines`. */
-  const preview = usePreviewCart(cartItems, !lines);
-  const items = lines ?? preview?.items ?? cartItems;
+     for a landing page's form and a buy-now, which bring their own lines. */
+  const preview = usePreviewCart(cartItems, !ownLines);
+  const items = ownLines ?? preview?.items ?? cartItems;
   const currency = store?.currency;
   const methods = store?.allowedPaymentMethods ?? ["cod"];
   const savedAddresses = shopper?.addresses ?? [];
@@ -158,6 +171,17 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
   const [step, setStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [placed, setPlaced] = useState<StorefrontOrder | null>(null);
+
+  // A coupon is quoted for the lines it was applied to. When they change — a
+  // buy-now checkout taking in the rest of the cart — the quote no longer
+  // describes this order, so it is dropped rather than shown against the new
+  // total (render-time adjust).
+  const linesKey = items.map((i) => `${cartLineKey(i)}x${i.quantity}`).join(",");
+  const [quotedLines, setQuotedLines] = useState(linesKey);
+  if (quotedLines !== linesKey) {
+    setQuotedLines(linesKey);
+    if (applied) setApplied(null);
+  }
 
   // Fulfillment: courier delivery (default) or in-store pickup (when the store
   // offers it). Pickup drops the whole delivery address + shipping fee.
@@ -475,8 +499,9 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
         // conversion funnel, and eventually eligible for a "you left these behind"
         // reminder about a parcel that already arrived. `null` here is normal
         // (Safari private mode), and the order must not depend on it.
-        // A landing page's form orders its own lines, so it has no cart to close.
-        anonymousId: lines ? undefined : (cartAnonymousId(slug) ?? undefined),
+        // A landing page's form and a buy-now order their own lines, so the cart
+        // they would close is still the shopper's, unordered.
+        anonymousId: ownLines ? undefined : (cartAnonymousId(slug) ?? undefined),
         // Meta attribution, snapshotted HERE and replayed by the backend when the order reaches
         // the merchant's purchase trigger. It has to travel in the body: `_fbp`/`_fbc` are
         // first-party cookies on the storefront's host and the API is on another one, so a
@@ -503,8 +528,10 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
           // GA4 `purchase`, from the same once-per-placement moment, with its own send-once
           // guard. Not gated on Meta's switch: the two tools are configured independently.
           trackGa4Purchase(store, order);
-          // The shopper's basket is not what a landing page's form ordered.
-          if (!lines) clear();
+          // The shopper's basket is not what a landing page's form or a buy-now
+          // ordered, so it stays exactly as it was.
+          if (buyNow) endBuyNow();
+          else if (!lines) clear();
           setPlaced(order);
           toast.success(t.orderPlaced);
         },
