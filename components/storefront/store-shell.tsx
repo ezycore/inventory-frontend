@@ -93,6 +93,11 @@ export function StoreShell({
   // The shop's languages and colour schemes, handed to the UI provider — above
   // the `isError` return with the other hooks.
   const schemeAttr = useApplyLanguageTheme(store);
+  // The Showroom header carries its whole theme's finish with it: every rule in
+  // `storefront-showroom.css` is scoped to `data-skin`, so no other store's
+  // pages change. Draft first, so choosing the header repaints the page. Above
+  // the `isError` return with the other hooks.
+  const headerVariant = useHeaderVariant(store);
 
   /* The admin's Collections panel streams its unsaved draft; prefer it so
      reordering/hiding previews live instead of waiting on a save + refetch.
@@ -151,10 +156,6 @@ export function StoreShell({
   // rule as the brand colour above; `designAttrs` omits an axis left at default.
   const design = resolveDesign(previewDesign ?? store?.theme?.design);
   const designAttributes = designAttrs(design);
-  // The Showroom header carries its whole theme's finish with it: every rule in
-  // `storefront-showroom.css` is scoped to this attribute, so no other store's
-  // pages change. Draft first, so choosing the header repaints the page.
-  const headerVariant = useHeaderVariant(store);
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.
