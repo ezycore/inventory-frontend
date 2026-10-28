@@ -64,6 +64,8 @@ export const queryKeys = {
     storefrontGa4: () => ["organization", "storefront", "ga4"] as const,
     storefrontMarketing: () =>
       ["organization", "storefront", "marketing"] as const,
+    storefrontProductFeed: () =>
+      ["organization", "storefront", "product-feed"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,

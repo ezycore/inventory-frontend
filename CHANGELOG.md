@@ -32,6 +32,23 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - "Start the home page from this theme" needs inventory-backend with `POST /api/ecommerce/pages/home/theme` and the page's `draftTheme` (regenerated `types/api-generated.ts`). **Ship the backend first**: without it the dialog's second option answers with an error, and the look-only path works as before.
 - Markup only, no visible change on non-Showroom stores: sections now carry `data-type` (and `data-styled-padding` / `data-styled-bg` when the merchant chose either), a strip's arrow with nowhere to go is rendered disabled and hidden instead of left out, and the footer's payment row carries a hidden "We accept" label.
 
+## [1.17.1] - 2026-10-27
+
+### Added
+- **The order page says when a courier no longer recognises a parcel.** The backend's status sweep now stops polling a parcel the courier rejects six times in a row while the shop's key works — most often one deleted in the courier's own panel. The tracking card shows an amber notice ("Steadfast no longer recognises this parcel … check it there, then return or update this order"), in English and Bangla. Refresh still works and clears it once the courier answers.
+
+### Deploy notes
+- Needs inventory-backend with the courier lockout guard (the `courier.pollParkedAt` field); against an older backend the notice simply never shows.
+
+## [1.17.0] - 2026-10-27
+
+### Added
+- **Product feed.** Store Settings → Marketing → **Product feed**: turn it on and copy the link (`https://<shop>/feeds/products.xml`, the custom domain when the shop has one) into Facebook Commerce Manager, Google Merchant Center, TikTok or Pinterest. The link is served on the shop's own host like `/sitemap.xml`, 404s while the feed is off, and answers 503 rather than an empty catalog when the API is down. Help guide in en + bn.
+
+### Deploy notes
+- Needs inventory-backend with the product feed endpoints (`/api/storefront/:slug/product-feed`).
+
+
 ## [1.16.0] - 2026-10-27
 
 ### Added
