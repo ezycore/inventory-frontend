@@ -159,7 +159,9 @@ export function CategoryTileRow({
   return tileRow.strip ? (
     renderStrip({ align: row.align, gap: "var(--gap)", vars: tileRow.style, arrows, children: tiles })
   ) : (
-    <div className={tileRow.className} style={tileRow.style}>
+    /* `data-align` is a theme sheet's hook: the row's own alignment rides
+       `--sf-ct-justify`, which CSS cannot select on (storefront-showroom.css). */
+    <div className={tileRow.className} style={tileRow.style} data-align={row.align}>
       {tiles}
     </div>
   );
@@ -293,6 +295,7 @@ function CategoryTile({
            screen reader reads out in a list of links — so a captionless circle
            carries it here, as the tile and overlay branches do. */
         aria-label={showLabel ? undefined : name}
+        className="sf-cat-circle"
         style={{
           ...flowStyle,
           display: "flex",
@@ -312,6 +315,7 @@ function CategoryTile({
           radius={999}
           fit={imageFit}
           ratio="1 / 1"
+          className="sf-cat-circle-photo"
           style={{ borderRadius: 999 }}
         />
         {showLabel ? (

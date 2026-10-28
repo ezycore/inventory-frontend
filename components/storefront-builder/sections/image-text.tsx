@@ -4,10 +4,12 @@ import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { SfImage } from "@/components/storefront/sf-image";
+import { Icon } from "@/components/storefront/sf-icons";
 import { SectionLink } from "@/components/storefront-builder/section-link";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["image-text"]["settings"];
+type BlockSpec = (typeof SECTION_SPECS)["image-text"]["blocks"]["settings"];
 
 /** A button draws only with both a label and a link — never as a dead button. */
 const button = (label: string | undefined, href: string | undefined) =>
@@ -26,7 +28,7 @@ const button = (label: string | undefined, href: string | undefined) =>
  * means `cover` — the crop this section has always drawn. A **fitted**
  * photograph needs the field written rather than left to the default.
  */
-export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) {
+export function ImageTextSection({ settings, blocks, context }: SectionViewProps<Spec, BlockSpec>) {
   const primary = button(settings.buttonLabel, settings.buttonHref);
   const secondary = button(settings.secondaryLabel, settings.secondaryHref);
 
@@ -77,6 +79,16 @@ export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) 
           <p style={{ fontSize: 15.5, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.65, margin: "16px 0 0", maxWidth: 460, whiteSpace: "pre-line" }}>
             {settings.text}
           </p>
+        ) : null}
+        {blocks.length > 0 ? (
+          <ul className="sfb-points">
+            {blocks.map((block) => (
+              <li key={block.id}>
+                <Icon name="check" size={20} />
+                {block.settings.text}
+              </li>
+            ))}
+          </ul>
         ) : null}
         {primary || secondary ? (
           <div className="sfb-actions">

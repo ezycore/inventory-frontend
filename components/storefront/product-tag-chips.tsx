@@ -66,13 +66,14 @@ export function ProductTagChips({
     >
       {shown.map((tag) =>
         base == null ? (
-          <span key={tag._id} style={chipStyle(tag, tone)}>
+          <span key={tag._id} className="sf-tag-chip" style={chipStyle(tag, tone)}>
             {tag.name}
           </span>
         ) : (
           <Link
             key={tag._id}
             href={storeHref(base, `/products?tags=${encodeURIComponent(tag.slug!)}`)}
+            className="sf-tag-chip"
             style={chipStyle(tag, tone)}
           >
             {tag.name}

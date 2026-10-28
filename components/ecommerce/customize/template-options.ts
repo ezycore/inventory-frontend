@@ -71,6 +71,7 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
   ],
   header: [
     { value: "classic", label: "Classic", description: "Logo, search box and cart on one line, menu underneath" },
+    { value: "showroom", label: "Showroom", description: "Logo, a centred search box, wishlist and a cart button, with a bolder menu underneath" },
     { value: "minimal", label: "Minimal", description: "Logo, menu links and icons on one line — no search box" },
     { value: "centered", label: "Centered", description: "Logo centred, menu underneath" },
     { value: "search-first", label: "Search first", description: "White bar built around a big search box — for large everyday catalogues" },

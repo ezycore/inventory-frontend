@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { storeHref } from "@/lib/storefront-links";
 import { Brand } from "@/components/storefront/logo-mark";
@@ -14,9 +15,11 @@ import { HeaderNav } from "@/components/storefront/header-nav";
 import {
   AccountLink,
   CartButton,
+  CartPill,
   CategoryRow,
   LangBtn,
   ThemeBtn,
+  WishlistLink,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
 
@@ -29,9 +32,13 @@ import {
  * boutique wants it out of the way entirely. Getting that wrong is most of why
  * three "different" themes can still feel like the same website.
  *
- * Adding one: add it here, add its id to `HEADER_VARIANTS` in `store-header.tsx`
- * and to `TEMPLATE_OPTIONS.header`. `templates.header` is a loose string on the
- * backend, so no contract change is needed.
+ * Adding one: add it here (the theme-switch test in `desktop-variants.test.tsx`
+ * only sees anatomies in this file) and register its id in `DESKTOP_VARIANTS`
+ * (`store-header.tsx`), `HEADER_VARIANTS` (`use-utility-bar.ts`), `HEADER`
+ * (`lib/storefront-templates.ts`), the `StoreTemplates["header"]` union,
+ * `TEMPLATE_OPTIONS.header` and a `header:<id>` sketch in `template-sketch.tsx`.
+ * `templates.header` is a loose string on the backend, so no contract change is
+ * needed.
  */
 
 /** Classic — logo, search, labelled account + cart, category row. The utility
@@ -58,6 +65,60 @@ export function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
       </div>
       <CategoryRow ctx={ctx} />
     </>
+  );
+}
+
+/**
+ * Showroom — Classic's anatomy with the finish of the default starter design
+ * (2026-10-26): the search box centred at a readable width instead of stretched
+ * to the icons, a wishlist heart, a soft cart button that carries its count, and
+ * a larger, darker menu row (`.sf-hdr-showroom` / `.sf-search-soft` in
+ * storefront.css). The utility bar above it is on by default, as Classic's is.
+ *
+ * Its own anatomy rather than a restyle of Classic, because Classic is the reset
+ * every existing shop wears: new stores' starters choose this one, and any
+ * merchant can, without a live shop changing under its owner.
+ */
+/** Showroom's menu row: pills 4px apart, flush under the bar, 10px below. */
+const SHOWROOM_MENU_ROW: CSSProperties = {
+  maxWidth: "var(--maxw)",
+  margin: "0 auto",
+  padding: "0 var(--pad) 10px",
+  display: "flex",
+  gap: 4,
+  alignItems: "center",
+};
+
+export function ShowroomDesktop({ ctx }: { ctx: HeaderCtx }) {
+  const { base, name, logo } = ctx;
+  return (
+    <div className="sf-hdr-showroom">
+      <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "16px var(--pad)", display: "flex", alignItems: "center", gap: 24 }}>
+        <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
+          <Brand name={name} logo={logo} markSize={38} nameSize={20} />
+        </Link>
+        {/* Gated wrapper, as Search-first's is: it is `flex: 1`, so with no
+            field it would hold the middle of the bar open as a gap. */}
+        {ctx.showSearch ? (
+          <div className="sf-search-soft" style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 0 }}>
+            <HeaderSearchBar categories={ctx.cats} />
+          </div>
+        ) : (
+          <div style={{ flex: 1 }} />
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flex: "none" }}>
+          {/* `sf-hdr-toggle` gives the pair the row's 44px targets (storefront-showroom.css). */}
+          <span className="sf-hdr-toggle" style={{ display: "contents" }}>
+            {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
+            {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
+          </span>
+          <AccountLink ctx={ctx} withLabel strong />
+          <WishlistLink ctx={ctx} />
+          <CartPill ctx={ctx} />
+        </div>
+      </div>
+      <CategoryRow ctx={ctx} rowStyle={SHOWROOM_MENU_ROW} />
+    </div>
   );
 }
 

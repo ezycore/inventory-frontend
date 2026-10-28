@@ -263,9 +263,9 @@ describe("ready-made themes", () => {
     }
   });
 
-  it("Classic resets to the storefront's own chrome", () => {
-    const classic = READY_MADE_THEMES.find((t) => t.id === "classic");
-    expect(classic?.templates.mobile).toBe("tabs");
+  it("the Default resets to the storefront's own chrome", () => {
+    const theDefault = READY_MADE_THEMES.find((t) => t.id === "showroom");
+    expect(theDefault?.templates.mobile).toBe("tabs");
   });
 });
 

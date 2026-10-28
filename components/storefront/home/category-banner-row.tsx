@@ -353,6 +353,13 @@ export function CategoryBannerRow({
             cannot know which screen is reading it. */}
         {nameOnly ? null : (
           <span className="sf-banner-body">
+            {/* The collection over a title of the card's own — hidden here
+                (`.sf-banner-eyebrow` in storefront.css) and shown by a theme
+                that draws one (`storefront-showroom.css`). Only when the
+                title says something else, so a name is never printed twice. */}
+            {name !== category.name ? (
+              <span className="sf-banner-eyebrow">{category.name}</span>
+            ) : null}
             <span
               className="sf-display"
               style={{
@@ -381,6 +388,7 @@ export function CategoryBannerRow({
                 destination. */}
             {showCta && buttonLabel ? (
               <span
+                className="sf-banner-cta"
                 style={{
                   ...brandButton({ radius: "var(--radius-sm)", padding: "8px 16px", fontSize: 13 }, { overPhoto: true }),
                   marginTop: 12,

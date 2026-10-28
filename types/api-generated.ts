@@ -8353,13 +8353,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages
-         * @description Defined in `src/routes/storefront-pages.routes.ts:33`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:36`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages"];
         put?: never;
         /**
          * POST /api/ecommerce/pages
-         * @description Defined in `src/routes/storefront-pages.routes.ts:39`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:42`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages"];
         delete?: never;
@@ -8379,7 +8379,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/images
-         * @description Defined in `src/routes/storefront-pages.routes.ts:55`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:58`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_images"];
         delete?: never;
@@ -8398,10 +8398,30 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/home
-         * @description Defined in `src/routes/storefront-pages.routes.ts:65`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:68`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_home"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/home/theme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/home/theme
+         * @description Defined in `src/routes/storefront-pages.routes.ts:79`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_pages_home_theme"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8417,21 +8437,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:71`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:85`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:83`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:97`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:77`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:91`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_pages_id"];
         trace?: never;
@@ -8446,13 +8466,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:90`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:104`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_id_draft"];
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:96`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:110`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id_draft"];
         options?: never;
@@ -8471,7 +8491,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/publish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:102`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:116`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_publish"];
         delete?: never;
@@ -8491,7 +8511,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/unpublish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:109`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:123`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_unpublish"];
         delete?: never;
@@ -8511,7 +8531,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/duplicate
-         * @description Defined in `src/routes/storefront-pages.routes.ts:115`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:129`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_duplicate"];
         delete?: never;
@@ -8529,7 +8549,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id/revisions
-         * @description Defined in `src/routes/storefront-pages.routes.ts:122`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:136`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id_revisions"];
         put?: never;
@@ -8551,7 +8571,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/revisions/:version/restore
-         * @description Defined in `src/routes/storefront-pages.routes.ts:128`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:142`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_revisions_version_restore"];
         delete?: never;
@@ -16236,6 +16256,7 @@ export interface components {
                 updatedAt: string;
             } | null;
             draftVersion: number;
+            draftTheme?: string | null;
             stats: {
                 sectionCount: number;
                 configBytes: number;
@@ -16272,6 +16293,8 @@ export interface components {
                 afterEndPageId: string | null;
             };
             hasDraft: boolean;
+            draftTheme: string | null;
+            draftVersion: number;
             publishedVersion: number | null;
             /** Format: date-time */
             publishedAt: string | null;
@@ -49955,6 +49978,65 @@ export interface operations {
             };
         };
     };
+    post_api_ecommerce_pages_home_theme: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    theme: "showroom";
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_ecommerce_pages_id: {
         parameters: {
             query?: never;
@@ -50267,7 +50349,9 @@ export interface operations {
     };
     delete_api_ecommerce_pages_id_draft: {
         parameters: {
-            query?: never;
+            query?: {
+                draftVersion?: number;
+            };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
                 "X-Active-Location"?: string;
@@ -50340,7 +50424,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": unknown | {
+                    draftVersion?: number;
+                };
+            };
+        };
         responses: {
             /** @description Success */
             200: {

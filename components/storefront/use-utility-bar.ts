@@ -19,6 +19,7 @@ import { useLanguageTheme } from "@/components/storefront/use-language-theme";
 /** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
 export const HEADER_VARIANTS: readonly string[] = [
   "classic",
+  "showroom",
   "minimal",
   "centered",
   "search-first",

@@ -63,6 +63,19 @@ describe("image-banner", () => {
     expect(container.querySelector(".sfb-banner-box")?.hasAttribute("data-frame")).toBe(false);
   });
 
+  it("draws its small capitals over the heading, and nothing without them", () => {
+    const { container } = renderPage([
+      section("b1", "image-banner", { image, badge: "Gift ideas", heading: "Gifts for every occasion" }),
+      section("b2", "image-banner", { image, heading: "No badge" }),
+    ]);
+    const [withBadge, without] = container.querySelectorAll("section");
+    expect(withBadge.querySelector(".sfb-banner-badge")?.textContent).toBe("Gift ideas");
+    expect(without.querySelector(".sfb-banner-badge")).toBeNull();
+    // A badge alone is copy enough to draw the words layer.
+    const alone = renderPage([section("b3", "image-banner", { image, badge: "New" })]).container;
+    expect(alone.querySelector(".sfb-banner-copy")).not.toBeNull();
+  });
+
   it("puts the words and a button over it, and is not a link itself", () => {
     const { container } = renderPage([
       section("b1", "image-banner", { image, heading: "Eid sale", text: "Up to 30% off", buttonLabel: "Shop", link: "/eid" }),

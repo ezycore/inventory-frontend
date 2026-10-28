@@ -58,6 +58,7 @@ const PAGES: { id: PreviewPage; label: string }[] = [
 export function BrowserPreview({
   slug,
   published,
+  showPageDrafts = false,
   draft,
   logo,
   mobileLogo = null,
@@ -75,9 +76,16 @@ export function BrowserPreview({
   /**
    * Whether the shop is live. Drives owner preview: an unpublished shop is a 404
    * to the public API, so previewing one needs a minted token — and a published
-   * one must not pay for a token it has no use for.
+   * one must not pay for a token it has no use for, unless `showPageDrafts`.
    */
   published: boolean;
+  /**
+   * Draw the shop's pages from their drafts even though it is live. Customize
+   * sets it while the home page holds a draft a theme started: that draft goes
+   * live with the look (`SitePublishBar`), so the merchant must see it first,
+   * and only owner preview draws a draft.
+   */
+  showPageDrafts?: boolean;
   draft: CustomizeDraft;
   /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
   logo: Image | null;
@@ -149,9 +157,11 @@ export function BrowserPreview({
      Before this, everything below was a 404 until the merchant published: the
      preview iframes the REAL storefront, and the public API does not serve an
      unpublished shop. So "set the shop up properly, then go live" meant going
-     live first and theming in front of shoppers. See `lib/storefront-preview.ts`. */
+     live first and theming in front of shoppers. See `lib/storefront-preview.ts`.
+     A live shop needs one too while it has page drafts to show. */
+  const needsToken = !published || showPageDrafts;
   const { data: preview, isPending: mintingToken } =
-    useStorefrontPreviewToken(!published);
+    useStorefrontPreviewToken(needsToken);
 
   /* Registered during RENDER rather than in an effect, and ABOVE the query that
      needs it. `useStoreProducts` queues its fetch from its own effect, which — as
@@ -164,14 +174,14 @@ export function BrowserPreview({
      nothing re-published it. This line is the only writer and it runs every
      render, which is what makes the value correct; one left behind after the
      editor closes is inert — `sfFetch` on the admin origin is only reached from
-     these editors, and the API ignores a token for a shop that is published. */
-  setStorefrontPreviewToken(published ? null : (preview?.token ?? null));
+     these editors. */
+  setStorefrontPreviewToken(needsToken ? (preview?.token ?? null) : null);
 
   /* Don't ask about products until we know whether we may. Firing early against
      an unpublished shop caches the 404, and the answer arriving afterwards would
      not re-run it — leaving the Product tab permanently disabled on exactly the
      shops this feature exists for. */
-  const previewReady = published || !mintingToken;
+  const previewReady = !needsToken || !mintingToken;
 
   // One listed product is enough to preview the product page; without one the
   // tab is disabled rather than opening a 404.
@@ -200,12 +210,13 @@ export function BrowserPreview({
   // makes the "open in a new tab" link beside it work pre-launch, which is the
   // only way to see the shop at full size before going live.
   const params = new URLSearchParams({ preview: "1" });
-  if (preview?.token) params.set(PREVIEW_TOKEN_PARAM, preview.token);
-  // Published shops mint no token, so the frame no longer needs one — and the
-  // cookie a PREVIOUS session left on the shop's host is now pure overhead that
-  // would otherwise sit there for up to four hours. This is the only request the
-  // admin makes to that origin, so it is the only chance to ask it to forget.
-  if (published) params.set(PREVIEW_CLEAR_PARAM, "1");
+  if (needsToken && preview?.token) params.set(PREVIEW_TOKEN_PARAM, preview.token);
+  // A live shop with no drafts to show mints no token, so the frame no longer
+  // needs one — and the cookie a PREVIOUS session left on the shop's host is now
+  // pure overhead that would otherwise sit there for up to four hours. This is
+  // the only request the admin makes to that origin, so it is the only chance to
+  // ask it to forget. Publishing the theme's home lands here, and ends it.
+  if (!needsToken) params.set(PREVIEW_CLEAR_PARAM, "1");
   const url = slug ? `${storefrontUrl(slug)}${path}?${params}` : "";
 
   // Built by the same module as the save payload, so the preview cannot promise

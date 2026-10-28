@@ -32,6 +32,7 @@ import {
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
 import { RailShell } from "@/components/storefront/shells/rail-shell";
 import { useHasMobileTabs } from "@/components/storefront/mobile/mobile-chrome";
+import { useHeaderVariant } from "@/components/storefront/use-utility-bar";
 import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
@@ -92,6 +93,11 @@ export function StoreShell({
   // The shop's languages and colour schemes, handed to the UI provider — above
   // the `isError` return with the other hooks.
   const schemeAttr = useApplyLanguageTheme(store);
+  // The Showroom header carries its whole theme's finish with it: every rule in
+  // `storefront-showroom.css` is scoped to `data-skin`, so no other store's
+  // pages change. Draft first, so choosing the header repaints the page. Above
+  // the `isError` return with the other hooks.
+  const headerVariant = useHeaderVariant(store);
 
   /* The admin's Collections panel streams its unsaved draft; prefer it so
      reordering/hiding previews live instead of waiting on a save + refetch.
@@ -191,6 +197,7 @@ export function StoreShell({
            media query, and an inline style would outrank it and freeze the
            reservation on at desktop widths too. */
         data-sf-tabs={hasMobileTabs ? "1" : "0"}
+        data-skin={headerVariant === "showroom" ? "showroom" : undefined}
         {...schemeAttr}
         {...designAttributes}
         style={{

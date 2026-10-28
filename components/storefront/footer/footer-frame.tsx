@@ -26,10 +26,14 @@ export function PaymentBadges({
   className?: string;
 }) {
   return (
-    <div className={className} style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+    <div className={className ? `sf-pay-badges ${className}` : "sf-pay-badges"} style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+      {/* "We accept" — hidden (`.sf-pay-label` in storefront.css) unless a
+          theme sheet shows it, as the Showroom footer does. */}
+      <span className="sf-pay-label">{t.weAccept}</span>
       {(store?.allowedPaymentMethods ?? ["cod", "bank"]).map((m) => (
         <span
           key={m}
+          className="sf-pay-badge"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",

@@ -114,8 +114,15 @@ const renderBanners = (
 ) =>
   withClient(<Banners categories={categories} config={config} />);
 
+/* The words the card SHOWS: the eyebrow (`.sf-banner-eyebrow`) is in the markup
+   but hidden unless a theme sheet draws it, so it is left out here and
+   asserted on its own below. */
 const cardNames = () =>
-  screen.getAllByRole("link").map((a) => a.textContent?.split("Shop now")[0]?.trim());
+  screen.getAllByRole("link").map((a) => {
+    const shown = a.cloneNode(true) as HTMLElement;
+    shown.querySelectorAll(".sf-banner-eyebrow").forEach((eyebrow) => eyebrow.remove());
+    return shown.textContent?.split("Shop now")[0]?.trim();
+  });
 
 describe("CategoryBannerRow", () => {
   it("links each card at its own collection", () => {
@@ -207,6 +214,18 @@ describe("CategoryBannerRow", () => {
         cards: [{ categoryId: "a", title: "Winter skin" }],
       });
       expect(cardNames()).toEqual(["Winter skinCleansers and serums"]);
+    });
+
+    // The collection over a title of the card's own — the Showroom eyebrow.
+    // Drawn only when the title says something else, so no name prints twice.
+    it("names the collection over a title of the card's own", () => {
+      renderBanners({
+        key: "k",
+        categoryIds: ["a", "b"],
+        cards: [{ categoryId: "a", title: "Winter skin" }],
+      });
+      const eyebrows = [...document.querySelectorAll(".sf-banner-eyebrow")].map((e) => e.textContent);
+      expect(eyebrows).toEqual(["Skin care"]);
     });
 
     it("leaves a card with no overrides exactly as it was", () => {

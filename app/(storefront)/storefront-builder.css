@@ -406,12 +406,16 @@
  * stylesheets load in; a single class would be a coin toss.
  *
  * A rail without arrows never reaches this rule: `ProductRailTrack` keeps its
- * own inline track there.
+ * own inline track there — and the two must stay the same width rule.
+ *
+ * ⚠ `max()`, never `minmax()`: a rail always overflows, so a `minmax(150px, …)`
+ * track settles on its 150px minimum and "cards per view" (`--cols`) did
+ * nothing until 2026-10-26. See `product-rail-track.tsx`.
  */
 .sf-cat-strip-track.sf-rail-track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)));
+  grid-auto-columns: max(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)));
   scroll-snap-type: x mandatory;
   padding: 2px 0 10px;
 }
@@ -513,6 +517,16 @@
   background: rgb(0 0 0 / var(--sfb-banner-scrim, 0%));
 }
 
+/* The small capitals over the heading — the image-text section's badge, on a picture. */
+.sfb-banner-badge {
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
 .sfb-banner-heading {
   margin: 0;
   font-size: var(--h2);
@@ -578,6 +592,29 @@
   display: grid;
   gap: clamp(20px, 4vw, 52px);
   align-items: center;
+}
+
+/* The section's ticked points (its blocks), between the paragraph and the
+   buttons. The tick is green in every theme: it says "yes", not "brand". */
+.sfb-points {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.sfb-points > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sfb-points > li > svg {
+  flex: none;
+  color: #16a34a;
+  stroke-width: 2;
+}
+.sf-root[data-theme="dark"] .sfb-points > li > svg {
+  color: #4ade80;
 }
 
 .sfb-split-media {

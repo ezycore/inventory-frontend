@@ -1345,6 +1345,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: block;
   padding: 14px 16px 16px;
 }
+/* The collection's name over the card's own title. Only a theme that draws
+   an eyebrow shows it (`storefront-showroom.css`); every other card is as it
+   was. */
+.sf-banner-eyebrow {
+  display: none;
+}
 /* Two lines, then an ellipsis. The merchant writes this once and it is printed
    at four different widths across this block's breakpoints, so a long line has
    to stop somewhere the card can absorb; the full text heads the collection
@@ -1872,6 +1878,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
   .sf-cat-strip-arrow[data-edge="end"] {
     right: -6px;
+  }
+  /* The arrow with nowhere to go — at the start of the row, or at its end. */
+  .sf-cat-strip-arrow:disabled {
+    display: none;
   }
 }
 /* ⚠ **Phone WIDTH, on top of the pointer test above.** The pointer rule is the
@@ -4870,6 +4880,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    a stacked column of links, and both would break a 12px line that reads as one
    sentence. Inherits its colour so the credit stays one phrase until it is
    pointed at. */
+/* The payment row's own label. Off unless a theme sheet draws it
+   (`storefront-showroom.css`), so every other bottom bar is unchanged. */
+.sf-pay-label {
+  display: none;
+}
 .sf-powered-link {
   color: inherit;
   text-decoration: none;
