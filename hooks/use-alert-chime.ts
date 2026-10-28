@@ -140,6 +140,7 @@ export function useAlertChime(
       } catch {
         // Android Chrome has `Notification` and grants it, but the constructor throws — it only
         // shows pop-ups through a service worker, which this app has none of. Hide the switch.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the browser's answer, once: the switch hides for good
         setPermission("unsupported");
       }
     }
