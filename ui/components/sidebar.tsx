@@ -92,9 +92,16 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
-  // Adds a keyboard shortcut to toggle the sidebar.
+  // Adds a keyboard shortcut to toggle the sidebar. Skipped while typing in a
+  // field, or when an editor already used the key (Ctrl+B is bold in TipTap).
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      const isTyping =
+        target?.isContentEditable ||
+        target?.closest("input, textarea, select, [contenteditable='true']")
+      if (isTyping || event.defaultPrevented) return
+
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
         (event.metaKey || event.ctrlKey)

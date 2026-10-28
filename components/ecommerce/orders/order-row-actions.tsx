@@ -2,7 +2,7 @@
 // coding-standard: maintained
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ExternalLink, Eye, MoreHorizontal, Trash2, X } from "lucide-react";
+import { Check, Copy, ExternalLink, Eye, MoreHorizontal, Trash2, X } from "lucide-react";
 import {
   useConfirmOrder,
   useDeleteOrder,
@@ -21,6 +21,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
+import { OrderCopyDialog } from "./order-copy-dialog";
 import { confirmOrderPrompt } from "./order-detail-helpers";
 
 /**
@@ -42,9 +43,9 @@ export function OrderRowActions({
   order: AdminStorefrontOrder;
   onOpen: () => void;
 }) {
-  const [dialog, setDialog] = useState<"confirm" | "reject" | "delete" | null>(
-    null,
-  );
+  const [dialog, setDialog] = useState<
+    "confirm" | "reject" | "delete" | "copy" | null
+  >(null);
   const tAll = useTranslations("ecommerce");
   const t = useTranslations("ecommerce.rowActions");
   const confirm = useConfirmOrder();
@@ -98,6 +99,11 @@ export function OrderRowActions({
               {t("newTab")}
             </a>
           </DropdownMenuItem>
+          {/* Any status: a rejected order is as good a template as a live one. */}
+          <DropdownMenuItem onSelect={() => setDialog("copy")}>
+            <Copy className="h-4 w-4" />
+            {tAll("orderCopy.menu")}
+          </DropdownMenuItem>
           {isPending && (
             <>
               <DropdownMenuSeparator />
@@ -142,6 +148,11 @@ export function OrderRowActions({
         {...confirmOrderPrompt(itemCount, isPickup, tAll)}
         cancelLabel={t("notYet")}
         onConfirm={() => confirm.mutate(order._id)}
+      />
+      <OrderCopyDialog
+        order={order}
+        open={dialog === "copy"}
+        onOpenChange={(o) => setDialog(o ? "copy" : null)}
       />
       <OrderCancelDialog
         order={order}

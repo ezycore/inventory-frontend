@@ -82,7 +82,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
   const onPublish = async () => {
     // Publish takes the saved draft, so the edits on screen go in first.
     if (!(await autosave.flush())) return;
-    publish.mutate(page._id, { onSuccess: (response) => response.data && autosave.adopt(response.data) });
+    publish.mutate({ id: page._id }, { onSuccess: (response) => response.data && autosave.adopt(response.data) });
   };
 
   return (
@@ -209,7 +209,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
         destructive
         onConfirm={() => {
           setConfirming(null);
-          discard.mutate(page._id, { onSuccess: (response) => takeServerDraft(response.data) });
+          discard.mutate({ id: page._id }, { onSuccess: (response) => takeServerDraft(response.data) });
         }}
       />
       <OrderConfirmDialog

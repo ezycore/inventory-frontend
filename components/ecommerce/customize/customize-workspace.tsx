@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { StorefrontSite } from "@/services/api";
+import { useStoreHomePageRow, type StorefrontSite } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
 import type { StorefrontSettings } from "@/types";
@@ -61,6 +61,7 @@ export function CustomizeWorkspace({
     [savedSettings, site],
   );
   const api = useCustomizeDraft(settings, site);
+  const { themeHome } = useStoreHomePageRow();
 
   // ?part= deep-links a part open — the retired /ecommerce/navigation route and
   // the catalog's collections tab both point here.
@@ -184,6 +185,9 @@ export function CustomizeWorkspace({
         <BrowserPreview
           slug={slug}
           published={settings.published}
+          // The home a theme started goes live with the look, so a live shop
+          // shows it here before Publish rather than the home shoppers see now.
+          showPageDrafts={!!themeHome}
           draft={api.draft}
           page={page}
           onPageChange={setPage}

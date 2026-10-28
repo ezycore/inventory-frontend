@@ -4,6 +4,7 @@ import { responsiveVars } from "./responsive";
 import { readImage, type Responsive } from "./settings";
 import {
   ANCHOR_PATTERN,
+  BACKGROUND_KINDS,
   MAX_BORDER_WIDTH,
   MAX_OVERLAY,
   MIN_BORDER_WIDTH,
@@ -117,6 +118,19 @@ export interface SectionFrame {
    * nobody has styled must not move.
    */
   styledWidth: boolean;
+  /**
+   * The merchant chose a padding on the Style tab — for the desktop, the phone
+   * or both — rather than leaving the section its type's own.
+   *
+   * `styledWidth`'s question for spacing, and for the same reason: **CSS cannot
+   * ask whether a custom property was set**, and `--sfb-pt` is emitted either
+   * way. A theme sheet that gives unstyled sections a rhythm of its own (the
+   * Showroom finish, `storefront-showroom.css`) must leave a merchant's numbers
+   * alone, and this is how it tells them apart.
+   */
+  styledPadding: boolean;
+  /** The same question for the background: any kind chosen, `none` included. */
+  styledBackground: boolean;
 }
 
 /**
@@ -318,5 +332,7 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     anchor: typeof style.anchor === "string" && ANCHOR.test(style.anchor) ? style.anchor : undefined,
     // A section that owns its width has no Width control to obey.
     styledWidth: !defaults?.ownsWidth && oneOf(SECTION_WIDTHS, style.width) !== undefined,
+    styledPadding: base !== undefined || mobile !== undefined,
+    styledBackground: oneOf(BACKGROUND_KINDS, background.kind) !== undefined,
   };
 }

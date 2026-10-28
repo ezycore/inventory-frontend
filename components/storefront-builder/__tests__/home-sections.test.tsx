@@ -302,6 +302,21 @@ describe("image-text", () => {
     expect(bare.querySelectorAll("a")).toHaveLength(0);
   });
 
+  it("ticks off its points under the text, and draws no list without any", () => {
+    const { container } = renderPage([
+      section("i1", "image-text", { image, heading: "Our promise" }, [
+        { id: "p1", settings: { text: "Tracking on every parcel" } },
+        { id: "p2", settings: { text: "Real people on chat" } },
+      ]),
+      section("i2", "image-text", { image, heading: "No points" }),
+    ]);
+    const [withPoints, without] = container.querySelectorAll("section");
+    const items = [...withPoints.querySelectorAll(".sfb-points > li")];
+    expect(items.map((li) => li.textContent)).toEqual(["Tracking on every parcel", "Real people on chat"]);
+    expect(items[0].querySelector("svg")).not.toBeNull();
+    expect(without.querySelector(".sfb-points")).toBeNull();
+  });
+
   /* ---- Phase 3: the Hero's per-device treatment ---- */
 
   it("renders exactly as before when none of the new settings is given", () => {

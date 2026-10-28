@@ -26,6 +26,7 @@ import {
   ClinicalDesktop,
   MinimalDesktop,
   SearchFirstDesktop,
+  ShowroomDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
 import { storePages } from "@/lib/storefront-page-controls";
@@ -39,6 +40,7 @@ import { useDesktopHeader } from "@/components/storefront/use-language-theme";
 
 const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.ReactNode> = {
   classic: ClassicDesktop,
+  showroom: ShowroomDesktop,
   minimal: MinimalDesktop,
   centered: CenteredDesktop,
   "search-first": SearchFirstDesktop,
