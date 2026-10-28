@@ -7,7 +7,7 @@ import {
   HeroFullBleedView,
   type HeroFullBleedFallback,
 } from "@/components/storefront/home/hero-fullbleed";
-import type { HeroFrame } from "@/components/storefront/home/hero-static";
+import type { HeroBadgeTone, HeroFrame } from "@/components/storefront/home/hero-static";
 
 /**
  * A full-width builder hero drawn as the store's banner hero: the store
@@ -37,6 +37,7 @@ export function HeroFullBleedStoreIsland({
   nav,
   interval,
   frame,
+  badgeTone,
   slides,
   fallback,
 }: {
@@ -49,6 +50,7 @@ export function HeroFullBleedStoreIsland({
   nav?: "dots" | "arrows" | "both";
   interval?: number;
   frame?: HeroFrame;
+  badgeTone?: HeroBadgeTone;
   slides: StoreHeroSlide[];
   /** The store banner and how to crop it — no copy; the slides carry that. */
   fallback: HeroFullBleedFallback;
@@ -73,6 +75,7 @@ export function HeroFullBleedStoreIsland({
       nav={nav}
       interval={interval}
       frame={frame}
+      badgeTone={badgeTone}
     />
   );
 }

@@ -43,6 +43,9 @@ export function resolveUtilityBar(
   const nowhere =
     config?.showOnDesktop === false && config?.showOnMobile === false;
   return {
+    // Classic only. Showroom has Classic's anatomy but not its strip: the
+    // language and dark-mode buttons sit in its own row, and "Track your
+    // order" in the footer's Help column (2026-10-28).
     enabled: config?.enabled ?? headerVariant === "classic",
     showOnDesktop: nowhere ? true : (config?.showOnDesktop ?? true),
     showOnMobile: nowhere ? false : (config?.showOnMobile ?? false),

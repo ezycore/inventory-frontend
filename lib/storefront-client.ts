@@ -702,7 +702,7 @@ export interface StoreTemplates {
    * anchored body that `columns` renders. See `StoreFooter`.
    */
   footer: "columns" | "simple" | "rich" | "contact" | "newsletter";
-  header: "classic" | "minimal" | "centered" | "search-first" | "clinical" | "boutique";
+  header: "classic" | "showroom" | "minimal" | "centered" | "search-first" | "clinical" | "boutique";
   productCard: "standard" | "compact" | "bold" | "editorial";
   /**
    * Which actions the product card offers, and in what form. Independent of

@@ -15,6 +15,10 @@ import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
+import { useWishlistStore } from "@/services/stores/use-wishlist-store";
+import { storePages } from "@/lib/storefront-page-controls";
+import { useHeaderVariant } from "@/components/storefront/use-utility-bar";
+import { Icon } from "@/components/storefront/sf-icons";
 import { cardBadgeTags, discountBadgeText } from "@/components/storefront/card-badges";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { CardChips } from "@/components/storefront/social-proof/card-chips";
@@ -101,6 +105,17 @@ export function ProductCard({
   const ctaOwnsImage = layoutOwnsImage(actions);
   const qb = useCardQuickBuy(product, ctaOwnsImage);
 
+  /* The Showroom card's wishlist heart, top right of the photo. Theme-specific
+     on purpose (2026-10-28): it is part of that design, not a card option. Only
+     where the shop has customer accounts — the saved list lives under Account,
+     and the header's own heart (`WishlistLink`) asks the same question. */
+  const headerVariant = useHeaderVariant(store);
+  const showWish = headerVariant === "showroom" && !editorial && storePages(store).accounts;
+  const toggleWish = useWishlistStore((s) => s.toggle);
+  const wished = useWishlistStore(
+    (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product._id),
+  );
+
   const soldOut = qb.soldOut;
   const thumb = cardImageUrl(product.images?.[0]);
   const href = storeHref(base, `/products/${product.slug}`);
@@ -142,6 +157,7 @@ export function ProductCard({
      beside it is a saving the shopper cannot check. */
   const priceRow = (
     <div
+      className="sf-card-price"
       style={{
         display: "flex",
         alignItems: "baseline",
@@ -155,9 +171,10 @@ export function ProductCard({
       }}
     >
       {showFrom ? (
-        <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
+        <span className="sf-card-from" style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
       ) : null}
       <span
+        className="sf-card-now"
         style={{
           fontSize: compactLayout ? 14 : bold ? 16.5 : 14.5,
           fontWeight: 700,
@@ -168,7 +185,7 @@ export function ProductCard({
         {money(price, currency)}
       </span>
       {pct > 0 && actions !== "iconOnly" ? (
-        <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
+        <span className="sf-card-was" style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
           {money(compareAt, currency)}
         </span>
       ) : null}
@@ -207,6 +224,7 @@ export function ProductCard({
               most (Customize → Badges) — a third turns a mobile card into a wall
               of pills — and which two is each tag's own card switch + priority. */}
           <span
+            className="sf-card-badges"
             style={{
               position: "absolute",
               top: 9,
@@ -220,6 +238,7 @@ export function ProductCard({
           >
             {discountBadge ? (
               <span
+                className="sf-card-discount"
                 style={{
                   // A campaign label ("Eid Sale", ≤16 chars) is wider than "-25%":
                   // it keeps its size but truncates past 60% of the row, so the
@@ -254,8 +273,34 @@ export function ProductCard({
         {/* Only one of these can occupy the image bottom, which is exactly why
             `layoutOwnsImage` sends `reveal` products to the sheet instead. */}
         {ctaOwnsImage ? <CardRevealActions qb={qb} /> : <CardVariantFlyout qb={qb} />}
+        {/* A sibling of the link for the flyout's reason: a button inside an
+            <a> is invalid markup. */}
+        {showWish ? (
+          <button
+            type="button"
+            className="sf-card-wish"
+            onClick={() =>
+              toggleWish(slug, {
+                productId: product._id,
+                slug: product.slug,
+                name: product.name,
+                price: product.price,
+                compareAtPrice: product.compareAtPrice,
+                image: thumb ?? undefined,
+                hasVariants,
+                availableQuantity: product.availableQuantity,
+                outOfStockBehavior: product.outOfStockBehavior,
+              })
+            }
+            aria-label={t.tabWishlist}
+            aria-pressed={wished}
+          >
+            <Icon name={wished ? "heartFill" : "heart"} size={18} />
+          </button>
+        ) : null}
       </div>
       <div
+        className="sf-card-body"
         style={{
           padding: editorial ? "14px 0 0" : "12px 13px 14px",
           textAlign: editorial ? "center" : undefined,
@@ -266,6 +311,7 @@ export function ProductCard({
       >
         <Link
           href={href}
+          className="sf-card-name"
           style={{
             fontSize: 13.5,
             fontWeight: 500,

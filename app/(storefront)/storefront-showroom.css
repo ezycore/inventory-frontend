@@ -1,0 +1,941 @@
+/* ==========================================================================
+   The Showroom theme's finish — the default starter design (2026-10-26),
+   replicated to the pixel.
+
+   Every rule is scoped to `.sf-shell[data-skin="showroom"]`, which
+   `StoreShell` stamps only while the store wears the Showroom header
+   (`templates.header: "showroom"`). No other store's pages change, and
+   Classic — every existing shop's reset — is untouched.
+
+   This is the one deliberately theme-specific sheet: where the shared
+   sections draw something the design does not, the difference is settled
+   here rather than as a new merchant setting. Loaded last
+   (`app/(storefront)/layout.tsx`), so it wins any tie of specificity with
+   `storefront.css` and `storefront-builder.css`.
+   ========================================================================== */
+
+/* ---- The column: the design's 1200px of content in 24px gutters ----
+   Only at the default width and density: a merchant who chose "wide" or a
+   density keeps theirs. */
+@media (min-width: 1000px) {
+  .sf-shell[data-skin="showroom"]:not([data-width]):not([data-density]) {
+    --maxw: 1248px;
+    --pad: 24px;
+  }
+}
+
+/* ---- Type: Inter at its own tracking ----
+   `.sf-root` tightens every word by 0.006em; the design sets none, and over a
+   button's label that is the 2px between the two. Headings keep their own
+   negative tracking, which they set themselves. */
+.sf-shell[data-skin="showroom"] {
+  letter-spacing: normal;
+}
+
+/* ---- Announcement bar: 13px on 9px of padding (12px / 8px on a phone) ---- */
+.sf-shell[data-skin="showroom"] [data-sf-strip="announcement"] {
+  --strip-font: 12px;
+  --strip-pad-y: 8px;
+  line-height: 1.5;
+}
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] [data-sf-strip="announcement"] {
+    --strip-font: 13px;
+    --strip-pad-y: 9px;
+  }
+}
+
+/* ---- Header search (`.sf-search-soft`, `ShowroomDesktop`) ----
+   Centred at 560px instead of stretched to the icons, 44px tall, on the page's
+   lighter ground. `!important` for `.sf-search-pill`'s reason — `SearchInput`
+   sets its box inline. The 14px text is desktop-only by construction: this
+   header never renders on a phone, where the input's 16px floor stops iOS
+   zooming in. */
+.sf-search-soft > * {
+  max-width: 560px;
+}
+.sf-search-soft .sf-search-box {
+  height: 44px !important;
+  border-radius: 10px !important;
+  background: var(--page) !important;
+}
+.sf-search-soft .sf-search-box input {
+  font-size: 14px !important;
+}
+/* A 20px glass in the muted ink, 14px in from the edge, the words at 45px. */
+.sf-search-soft .sf-search-box {
+  padding: 0 15px 0 13px !important;
+  gap: 11px !important;
+}
+.sf-search-soft .sf-search-box > span:first-child {
+  color: var(--muted) !important;
+}
+.sf-search-soft .sf-search-box > span:first-child > svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---- Header menu row ----
+   Pills at rest geometry (7px 12px), 4px apart, slate text; the page being
+   shown is filled. `margin: 0` undoes the highlight hover's negative margin,
+   which exists to keep OTHER headers' rows from moving. */
+.sf-shell[data-skin="showroom"] .sf-hdr-showroom .sf-nav-bar {
+  font-size: 14px;
+}
+/* Colour only at rest: the hover rules (`[data-nav-hover] … :hover`) set no
+   padding, so they still read over this; the current page is restated below
+   because `.sf-shell .sf-nav-top.sf-current` gives it a geometry of its own.
+
+   ⚠ The current page's light pill is the theme's, and it outranks the
+   merchant's "current page" colour (`theme.design.navActive*`) on this skin —
+   one of the few choices the Showroom keeps for itself. */
+.sf-shell[data-skin="showroom"] .sf-hdr-showroom .sf-nav-top {
+  padding: 7px 12px;
+  margin: 0;
+  border-radius: 8px;
+  color: #334155;
+  line-height: 1.5;
+}
+.sf-root[data-theme="dark"] .sf-shell[data-skin="showroom"] .sf-hdr-showroom .sf-nav-top {
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+}
+.sf-shell[data-skin="showroom"] .sf-hdr-showroom .sf-nav-top.sf-current {
+  padding: 7px 12px;
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+/* The offers link reads as one, in the sale colour. */
+.sf-shell[data-skin="showroom"] .sf-hdr-showroom .sf-nav-top[href*="sort=discount"] {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* ---- Language and dark-mode buttons: the row's 44px targets ---- */
+.sf-hdr-showroom .sf-hdr-toggle > button {
+  height: 44px;
+  min-width: 44px;
+  padding: 0 10px;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* ---- Section rhythm ----
+   One beat for the home page's sections: 56px above each, 8px below, so a
+   heading sits 64px under whatever came before it; the last one keeps 72px
+   clear of the footer. The promises band is a strip, 22px each way.
+
+   Only sections the merchant left at their own padding — `data-styled-padding`
+   is stamped the moment they choose one — and only the types the design
+   draws, by `data-type`. `!important` because the frame's padding arrives as
+   inline custom properties (`section-style.ts`); an important declaration in a
+   sheet is the one thing that outranks a normal inline one. */
+.sf-shell[data-skin="showroom"]
+  .sfb-sec:not([data-styled-padding]):is(
+    [data-type="category-tiles"],
+    [data-type="product-grid"],
+    [data-type="category-promo-cards"],
+    [data-type="product-carousel"],
+    [data-type="campaign-offers"],
+    [data-type="image-text"],
+    [data-type="image-banner"]
+  ) {
+  --sfb-pt: clamp(36px, 6vw, 56px) !important;
+  --sfb-pb: 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec:not([data-styled-padding]):last-child {
+  --sfb-pb: clamp(48px, 7.5vw, 72px) !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"]:not([data-styled-padding]) {
+  --sfb-pt: 22px !important;
+  --sfb-pb: 22px !important;
+}
+/* The band is the card's white, not the accent tint every other theme draws —
+   unless the merchant picked a background, `none` included. */
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"]:not([data-styled-bg]) {
+  --sfb-bg: var(--card) !important;
+}
+
+/* ---- Section headings (`SectionTitle`, `SectionHeading`) ----
+   26px over a 15px line, 24px clear of what follows, the link at the right
+   sitting on the LAST line of the pair rather than the first. With a subheading
+   the wrapper (`.sfb-title`) becomes a two-column grid and the row dissolves
+   into it (`display: contents`), so the link can span both lines; the heading
+   still answers the Style tab's alignment through `--sfb-title-justify`. */
+.sf-shell[data-skin="showroom"] .sfb-title-row {
+  align-items: flex-end !important;
+  gap: 16px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-title-row:not(.sfb-title > *) {
+  margin-bottom: 24px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-title-row > h2 {
+  letter-spacing: -0.015em !important;
+  line-height: 1.5;
+}
+.sf-shell[data-skin="showroom"] .sfb-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: end;
+  margin-bottom: 24px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-title > .sfb-title-row {
+  display: contents !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-title > .sfb-title-row > h2 {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: var(--sfb-title-justify, start);
+}
+.sf-shell[data-skin="showroom"] .sfb-title > .sfb-title-row > :not(h2) {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.sf-shell[data-skin="showroom"] .sfb-title > p {
+  grid-column: 1;
+  grid-row: 2;
+  margin-top: 4px !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+/* The link: 14px in the text's own colour, lucide's arrow 6px after it. */
+.sf-shell[data-skin="showroom"] .sfb-heading-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px !important;
+  line-height: 1.5;
+  color: inherit !important;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.sf-shell[data-skin="showroom"] .sfb-heading-arrow {
+  display: none;
+}
+.sf-shell[data-skin="showroom"] .sfb-heading-link::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---- Category circles: 128px photos on a hairline, 14px names ----
+   Left (the design, and the starter's): the design's own track list, empty
+   tracks and all. ⚠ That list leaves no free space — `auto-fill` keeps the empty
+   tracks and `1fr` takes the rest — so `justify-content`, which the row's
+   Alignment drives (`--sf-ct-justify`), has nothing to move. Centred or right
+   therefore gets `auto-fit` tracks of the same width, which collapse when
+   empty and let the row move. */
+@media (min-width: 681px) {
+  .sf-shell[data-skin="showroom"] .sf-cat-tiles:not(.sf-cat-tiles--controlled):has(> .sf-cat-circle) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px;
+  }
+  .sf-shell[data-skin="showroom"] .sf-cat-tiles:not(.sf-cat-tiles--controlled):not([data-align="left"]):has(> .sf-cat-circle) {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 132px));
+  }
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle {
+  gap: 12px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle .sf-cat-circle-photo {
+  max-width: 130px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle > span:last-child {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* ---- Product cards (`product-card.tsx`) ----
+   White pills on the photo, top left: the sale in red, the tag in the card's
+   own white with a hairline — one neutral chip whatever the tag's colour, so a
+   grid of them reads as one row rather than a box of sweets. The wishlist
+   heart takes the top right (`.sf-card-wish`, drawn only on this skin).
+
+   Under the photo: 14px of padding, the name at 15px, the price at 17px and
+   the two buttons 40px tall, 8px apart. Price and buttons sit on the card's
+   floor (`margin-top: auto`), so a one-line name and a two-line one still
+   line their prices up across the row. `!important` throughout — the card
+   is styled inline. */
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-grid"] {
+    --gap: 20px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sf-card-badges {
+  top: 10px !important;
+  left: 10px !important;
+  right: 10px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-qb-card:has(.sf-card-wish) .sf-card-badges {
+  right: 52px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-badges > span:not(.sf-card-discount) {
+  justify-content: flex-start !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-badges .sf-tag-chip {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid #e5e7eb;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  padding: 3px 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-discount {
+  background: #dc2626 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.5;
+  padding: 3px 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-wish {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+.sf-shell[data-skin="showroom"] .sf-card-wish[aria-pressed="true"] {
+  color: #dc2626;
+}
+.sf-shell[data-skin="showroom"] .sf-card-body {
+  padding: 14px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-name {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  min-height: 0 !important;
+  margin: 0 0 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-price {
+  margin-top: auto;
+  margin-bottom: 8px !important;
+  gap: 2px 0 !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-from,
+.sf-shell[data-skin="showroom"] .sf-card-now {
+  font-size: 17px !important;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text) !important;
+}
+/* "From ৳1,150" reads as one phrase — a word space, not the row's gap. */
+.sf-shell[data-skin="showroom"] .sf-card-from::after {
+  content: "\00a0";
+}
+.sf-shell[data-skin="showroom"] .sf-card-was {
+  margin-left: 8px;
+  font-size: 13px !important;
+  color: var(--muted) !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-ctas {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-card-ctas > button {
+  height: 40px;
+  min-height: 40px !important;
+  padding: 0 8px !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+/* ---- Category promo cards (`category-banner-row.tsx`) ----
+   A tinted panel, no outline: the words in a 32px-padded column centred
+   beside the photograph — the collection in small capitals, a 26px title, a
+   14px line, a 42px button. The split, the picture's height and the corners
+   are the section's own settings; this is only the finish. */
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] {
+  --gap: 20px;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-card {
+  background: var(--surface) !important;
+  border: 0 !important;
+}
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-card--split-d .sf-banner-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    padding: 32px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-body > .sf-display {
+  font-size: 26px !important;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-copy {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475569;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] .sf-banner-cta {
+  display: inline-flex !important;
+  align-items: center;
+  height: 42px;
+  margin-top: 8px !important;
+  padding: 0 18px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+.sf-root[data-theme="dark"] .sf-shell[data-skin="showroom"] .sfb-sec[data-type="category-promo-cards"] :is(.sf-banner-eyebrow, .sf-banner-copy) {
+  color: var(--muted);
+}
+
+/* ---- Image and text: one white card, the photograph its left half ----
+   The picture loses its own corners and shape and fills its half of the card
+   — at least 380px, otherwise as tall as the words. `height: 0` with a
+   `min-height` that resolves against the cell is what keeps a tall photograph
+   from setting the card's height instead: a 4:5 picture's own height would
+   otherwise be the row's. The words sit in a 48px-padded column 14px apart. */
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split {
+    gap: 0;
+    align-items: stretch;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split-media {
+    aspect-ratio: auto;
+    height: 0;
+    min-height: max(380px, 100%);
+    border-radius: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 48px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split > div > span:first-child {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.5;
+  letter-spacing: 0.08em !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split h2 {
+  margin: 0 !important;
+  font-size: 32px !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split p {
+  margin: 0 !important;
+  max-width: none !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #475569 !important;
+}
+.sf-root[data-theme="dark"] .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-split p {
+  color: var(--muted) !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-points {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-actions {
+  margin-top: 10px;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-text"] .sfb-button {
+  height: 46px;
+  padding: 0 22px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---- Image banner ----
+   With no shape of its own on a computer the picture covers a box at least
+   340px tall, and the words decide the rest — the photograph no longer sets
+   the height. The words run 460px wide, 56px down and 48px in: small
+   capitals, a 36px heading, a 16px line and the button, 12px apart. A dark
+   Text colour (Style tab) reaches the words here, where the shared banner
+   always draws them white. */
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-box:not([data-frame]) {
+    min-height: 340px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-box:not([data-frame]) .sfb-banner-media {
+    position: absolute;
+    inset: 0;
+    object-position: var(--sfb-banner-focal, 50% 50%);
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy {
+    gap: 12px;
+    padding: 56px 48px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy > * {
+    max-width: 460px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-badge {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  opacity: 1;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-heading {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-button {
+  height: 46px;
+  margin-top: 8px;
+  padding: 0 22px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"][data-tone="dark"] .sfb-banner {
+  color: #0f172a;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"][data-tone="dark"] :is(.sfb-banner-badge, .sfb-banner-text) {
+  color: #334155;
+}
+
+/* ---- Footer (block layout, `footer-blocks.tsx`) ----
+   Flush under the page. The newsletter is a band of its own — the pitch at
+   the left, the form at the right, a hairline under it across the window —
+   then the blocks as columns of one width, headed in plain 14px bold, and the
+   bottom bar on a hairline of its own: the credit and the currency at the
+   left, "We accept" and the payment methods at the right.
+
+   The full-window hairlines are drawn by pseudo-elements running far past the
+   column (`overflow-x: clip` on the footer keeps them from scrolling the page),
+   because the band and the bar sit inside the content column. */
+.sf-shell[data-skin="showroom"] .sf-footer {
+  margin-top: 0;
+  overflow-x: clip;
+}
+@media (min-width: 680px) {
+  /* The bands carry the rhythm, so the frame's own padding is what the
+     merchant added past "regular" (36px / 28px, `footerFrame`), never less. */
+  .sf-shell[data-skin="showroom"] .sf-footer-in {
+    padding-top: max(0px, calc(var(--ft-pt, 36px) - 36px));
+    padding-bottom: max(0px, calc(var(--ft-pb, 28px) - 28px));
+  }
+  /* Columns of one width however many blocks show — a flex row rather than
+     an `auto-fit` grid, because the full-width newsletter would occupy every
+     track and stop the empty ones collapsing. */
+  .sf-shell[data-skin="showroom"] .sf-fb-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 32px;
+    margin: 0;
+    padding: 44px 0 32px;
+  }
+  .sf-shell[data-skin="showroom"] .sf-fb-row:has(> .sf-fb > .sf-newsletter) {
+    padding-top: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb {
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sf-fb-row > .sf-fb-full {
+    flex-basis: 100%;
+  }
+  /* 33px under it: the hairline drawn below takes the last pixel. */
+  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter) {
+    position: relative;
+    margin-bottom: 44px;
+    padding: 32px 0 33px;
+  }
+  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter)::after,
+  .sf-shell[data-skin="showroom"] .sf-footer-bottom::before {
+    content: "";
+    position: absolute;
+    left: -100vw;
+    right: -100vw;
+    height: 1px;
+    background: var(--border);
+  }
+  .sf-shell[data-skin="showroom"] .sf-fb:has(> .sf-newsletter)::after {
+    bottom: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sf-newsletter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    column-gap: 20px;
+    align-items: center;
+  }
+  .sf-shell[data-skin="showroom"] .sf-newsletter > div:first-child {
+    grid-column: 1;
+    margin: 0 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.5;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-newsletter > p:not([role]) {
+    grid-column: 1;
+    max-width: none !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-newsletter > form {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    max-width: none !important;
+    margin: 0 !important;
+    gap: 8px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-newsletter > p[role] {
+    grid-column: 2;
+  }
+  .sf-shell[data-skin="showroom"] .sf-footer-bottom {
+    position: relative;
+    justify-content: flex-start !important;
+    gap: 16px 18px !important;
+    /* 19px over it, the hairline being the first pixel. */
+    padding: 19px 0 18px;
+    border-top: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sf-footer-bottom::before {
+    top: 0;
+  }
+  .sf-shell[data-skin="showroom"] .sf-footer-bottom > .sf-pay-badges {
+    order: 1;
+    margin-left: auto;
+  }
+}
+.sf-shell[data-skin="showroom"] .sf-newsletter input {
+  height: 46px;
+  padding: 0 14px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-newsletter button {
+  height: 46px;
+  padding: 0 22px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-footer-col-head {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+}
+@media (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sf-footer-col-head {
+    padding-bottom: 14px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sf-footer-col-body > li {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sf-shell[data-skin="showroom"] .sf-footer-col-body a {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475569;
+}
+.sf-root[data-theme="dark"] .sf-shell[data-skin="showroom"] .sf-footer-col-body a {
+  color: var(--muted);
+}
+.sf-shell[data-skin="showroom"] .sf-footer-blurb {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+.sf-shell[data-skin="showroom"] .sf-footer-bottom {
+  font-size: 13px;
+  color: var(--muted);
+}
+.sf-shell[data-skin="showroom"] .sf-pay-badges {
+  align-items: center;
+  gap: 8px !important;
+}
+.sf-shell[data-skin="showroom"] .sf-pay-label {
+  display: inline;
+  margin-right: 4px;
+}
+.sf-shell[data-skin="showroom"] .sf-pay-badge {
+  background: transparent !important;
+  border-radius: 6px !important;
+  padding: 3px 9px !important;
+  font-size: 13px !important;
+  line-height: 1.5;
+  color: #334155 !important;
+}
+.sf-root[data-theme="dark"] .sf-shell[data-skin="showroom"] .sf-pay-badge {
+  color: var(--text) !important;
+}
+
+/* ---- Product carousel ----
+   The paging arrows leave the track's sides for the heading row's right end —
+   44px rounds, the one with nowhere to go greyed out rather than gone — and
+   the cards are a size smaller than the grid's: 12px of padding, a 14px name,
+   a 16px price, 38px buttons 6px apart. */
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] > .sfb-inner {
+  position: relative;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip {
+  position: static;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-rail-track {
+  padding: 0 0 4px;
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 680px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip-arrow {
+    display: inline-flex;
+    /* On the floor of the heading block: a 39px heading, 4px, a 22.5px line. */
+    top: 21.5px;
+    left: auto;
+    right: var(--sfb-pi, var(--pad));
+    width: 44px;
+    height: 44px;
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border-strong);
+    background: var(--card);
+    color: var(--text);
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip-arrow[data-edge="start"] {
+    right: calc(var(--sfb-pi, var(--pad)) + 52px);
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip-arrow:disabled {
+    border-color: var(--border);
+    color: var(--faint);
+    cursor: default;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip-arrow > svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+  }
+  /* A row that fits has nothing to page: no arrows at all. */
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-cat-strip:not(:has(.sf-cat-strip-arrow:enabled)) .sf-cat-strip-arrow {
+    display: none;
+  }
+  /* A "View all" link keeps clear of them. */
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"]:has(.sf-cat-strip-arrow:enabled) .sfb-heading-link {
+    margin-right: 104px;
+  }
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-body {
+  padding: 12px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-name {
+  font-size: 14px !important;
+  margin-bottom: 6px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-price {
+  margin-bottom: 6px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-from,
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-now {
+  font-size: 16px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-ctas {
+  gap: 6px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="product-carousel"] .sf-card-ctas > button {
+  height: 38px;
+  min-height: 38px !important;
+  font-size: 12px !important;
+}
+
+/* ---- Promises band: 44px discs, a 15px promise over its 13px detail ---- */
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-list {
+  gap: 16px;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-row:not(.sf-trust-row--bare):not(.sf-trust-row--plain) {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-icon-disc {
+  width: 44px !important;
+  height: 44px !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-icon-disc > svg {
+  width: 22px;
+  height: 22px;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-row > span:last-child,
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-title {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-detail {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  font-weight: 400;
+}
+/* The phone's band (the mobile design): two across in 16px of padding, 36px
+   discs, the promise alone at 13px — a second line in a 170px column is a
+   paragraph. */
+@media (max-width: 679px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"]:not([data-styled-padding]) {
+    --sfb-pt: 16px !important;
+    --sfb-pb: 16px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-list {
+    gap: 14px 12px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-row:not(.sf-trust-row--bare):not(.sf-trust-row--plain) {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-icon-disc {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-icon-disc > svg {
+    width: 18px;
+    height: 18px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-row > span:last-child,
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-title {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="promises-band"] .sf-trust-detail {
+    display: none !important;
+  }
+}
+
+/* ---- Full-width hero ----
+   The copy centred in the photograph rather than sat on its floor, under one
+   even shade instead of the bottom-weighted gradient, on a box that grows with
+   the window to 580px. Desktop only: below 641px the hero has its own phone
+   layout (storefront.css), which the design keeps.
+
+   `!important` throughout for the hero's own reason — its type is styled
+   inline (`hero-fullbleed.tsx`). */
+@media (min-width: 641px) {
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed {
+    align-items: center;
+  }
+  /* The height, where the merchant set neither a height nor a shape. */
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed:not([data-h]):not([data-frame]) {
+    min-height: clamp(420px, 40vw, 580px);
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-scrim {
+    background: rgba(15, 23, 42, 0.52);
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-copy {
+    padding: 48px var(--pad);
+  }
+  /* A block as wide as its words, so no line box adds a strut under it. */
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-copy > .sf-hero-badge {
+    --hb-ground: #fff;
+    --hb-text: #0f172a;
+    display: block;
+    width: fit-content;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-box: none;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed[data-align="center"] .sf-hero-fullbleed-copy > .sf-hero-badge {
+    margin-inline: auto;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-title {
+    font-size: clamp(34px, 4.4vw, 58px) !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
+    max-width: 640px !important;
+    margin-block: 18px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-sub {
+    font-size: 18px !important;
+    line-height: 1.5 !important;
+    color: #e2e8f0 !important;
+    max-width: 520px !important;
+    margin-bottom: 24px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-cta {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+    vertical-align: middle;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-cta:not(.sf-hero-fullbleed-cta-2) {
+    color: #0f172a !important;
+  }
+  /* The primary button's arrow, drawn by the sheet so no other store's hero
+     grows one: lucide's arrow-right as a mask, painted in the text colour. */
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-cta:not(.sf-hero-fullbleed-cta-2)::after {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  /* Dots: centred under the copy, 6px tall, the current one a 28px bar. */
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-dots {
+    left: 0;
+    right: 0 !important;
+    bottom: 22px !important;
+    justify-content: center;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-dots > button {
+    width: 8px !important;
+    height: 6px !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-dots > button[aria-current="true"] {
+    width: 28px !important;
+    background: #fff !important;
+  }
+}

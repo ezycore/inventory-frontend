@@ -149,7 +149,8 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
   "image-text": {
     label: "Image and text",
     group: "Content",
-    description: "A picture beside a headline, a paragraph and up to two buttons.",
+    description: "A picture beside a headline, a paragraph, a few ticked points and up to two buttons.",
+    item: "Point",
     addable: true,
   },
   "shop-by-tag": {
@@ -398,6 +399,7 @@ const FIELD_LABELS: Record<string, string> = {
   "collection-grid.heading": "Heading (all collections)",
   "collection-grid.hideHeading": "Hide the heading",
   "product-description.hideHeading": "Hide the heading",
+  "promises-band.detail": "Second line",
   "collection-grid.hideCount": "Hide the results count",
   "collection-grid.cardImageRatio": "Card photo shape",
   "collection-grid.cardImageFit": "Card photo fit",
@@ -484,6 +486,7 @@ const HINTS: Record<string, string> = {
   openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
   flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
   "testimonials.columns": "How many reviews sit side by side. On a phone this needs the row set to Wrap — a swipe row has no columns.",
+  "promises-band.detail": "A smaller line under the promise, such as “Inside Dhaka next day”. Leave it empty for a single line.",
   "promises-band.columns": "How many promises sit side by side. Empty follows your shop — three on a computer, one on a phone; switch the preview to the phone to give it its own count.",
   /* Section-keyed like its neighbours: only the hero has this field today, but a
      bare key is the collision `frame` already walked into — see `"hero.frame"`. */
@@ -584,7 +587,7 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
   cardButtons: { solid: "Solid", outline: "Outline", soft: "Soft" },
   cardCorners: { sharp: "Sharp", soft: "Soft", round: "Round" },
   // The same three words as the footer's promises block (`footer-block-inspector.tsx`).
-  iconStyle: { disc: "In a circle", plain: "Icon only", none: "No icons" },
+  iconStyle: { disc: "In a circle", soft: "In a soft circle", plain: "Icon only", none: "No icons" },
   mobileFirst: {
     picture: "The picture",
     text: "The text",

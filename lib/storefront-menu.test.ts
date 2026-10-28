@@ -181,6 +181,16 @@ describe("isNodeActive", () => {
     // `/phones-cases` is not under `/phones` — the sidebar's old `includes()` said it was.
     expect(isNodeActive(phones, "/phones-cases")).toBe(false);
   });
+
+  it("marks a Home link current on the home page only", () => {
+    const home = { key: "home", label: "Home", href: "/shop", external: false, children: [] };
+    expect(isNodeActive(home, "/shop")).toBe(true);
+    expect(isNodeActive(home, "/shop/")).toBe(true);
+    expect(isNodeActive(home, "/shop/products")).toBe(false);
+    // A custom domain's home is the bare root.
+    expect(isNodeActive({ ...home, href: "/" }, "/")).toBe(true);
+    expect(isNodeActive({ ...home, href: "/" }, "/products")).toBe(false);
+  });
 });
 
 describe("initialOpenKeys", () => {

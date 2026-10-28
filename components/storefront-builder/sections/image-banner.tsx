@@ -35,11 +35,12 @@ function bannerVars(settings: Settings): CSSProperties {
  * so the phone's shape paints in the first byte.
  */
 export function ImageBannerSection({ settings, context }: SectionViewProps<Spec>) {
+  const badge = settings.badge?.trim();
   const heading = settings.heading?.trim();
   const text = settings.text?.trim();
   const buttonLabel = settings.buttonLabel?.trim();
   const button = buttonLabel && settings.link ? { label: buttonLabel, href: settings.link } : undefined;
-  const hasCopy = !!(heading || text || button);
+  const hasCopy = !!(badge || heading || text || button);
 
   const body: ReactNode = (
     <>
@@ -67,6 +68,7 @@ export function ImageBannerSection({ settings, context }: SectionViewProps<Spec>
           data-valign-m={settings.verticalAlign?.mobile}
           data-scrim={settings.scrim !== undefined ? "" : undefined}
         >
+          {badge ? <span className="sfb-banner-badge">{badge}</span> : null}
           {heading ? <h2 className="sfb-banner-heading">{heading}</h2> : null}
           {text ? <p className="sfb-banner-text">{text}</p> : null}
           {button ? (

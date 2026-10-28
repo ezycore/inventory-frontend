@@ -3,10 +3,14 @@
 
 import { useState } from "react";
 import { History, Loader2 } from "lucide-react";
+import { getReadyMadeTheme } from "@/lib/storefront-themes";
 import {
+  useDiscardStorefrontPageDraft,
   useDiscardStorefrontSiteDraft,
+  usePublishStorefrontPage,
   usePublishStorefrontSite,
   useRestoreStorefrontSiteRevision,
+  useStoreHomePageRow,
   useStorefrontSiteRevisions,
   type StorefrontSite,
 } from "@/services/api";
@@ -33,18 +37,52 @@ export function SitePublishBar({
   const publish = usePublishStorefrontSite();
   const discard = useDiscardStorefrontSiteDraft();
   const restore = useRestoreStorefrontSiteRevision();
+  const publishHome = usePublishStorefrontPage();
+  const discardHome = useDiscardStorefrontPageDraft();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const { data: revisions = [], isLoading } = useStorefrontSiteRevisions(historyOpen);
-  const busy = publish.isPending || discard.isPending || restore.isPending;
-  const hasDraft = site.draft !== null;
+  /* The home page a theme started (Themes → Apply → "start the home page from
+     this theme") goes live, or goes away, WITH the look — one decision. Only
+     while its draft is still exactly the theme's: an edit by hand clears
+     `draftTheme`, and that draft is then published from the page editor like
+     any other, never swept up from here. */
+  const { home } = useStoreHomePageRow();
+  const themeHome = home?.hasDraft && home.draftTheme ? home : undefined;
+  const themeLabel = getReadyMadeTheme(themeHome?.draftTheme)?.label;
+  const themeName = themeLabel ? `the ${themeLabel} theme` : "a theme";
+  const busy =
+    publish.isPending || discard.isPending || restore.isPending || publishHome.isPending || discardHome.isPending;
+  const hasDraft = site.draft !== null || !!themeHome;
+
+  /* The look first, then the home page: if the second fails, shoppers have the
+     new look over their old home — a working shop — and the home is still
+     waiting here to publish. Each mutation reports its own error. */
+  const publishAll = async () => {
+    try {
+      if (site.draft) await publish.mutateAsync();
+      if (themeHome) await publishHome.mutateAsync(themeHome._id);
+    } catch {
+      // Reported by the mutation that failed.
+    }
+  };
+  const discardAll = async () => {
+    try {
+      if (site.draft) await discard.mutateAsync();
+      if (themeHome) await discardHome.mutateAsync(themeHome._id);
+    } catch {
+      // Reported by the mutation that failed.
+    }
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-card px-3.5 py-2.5 shadow-sm">
       {hasDraft ? (
         <span role="status" className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
           <span className="h-1.5 w-1.5 flex-none rounded-full bg-amber-500" />
-          Unpublished changes — shoppers still see the last published look
+          {themeHome
+            ? `Unpublished changes, including your home page started from ${themeName} — shoppers still see the last published version`
+            : "Unpublished changes — shoppers still see the last published look"}
         </span>
       ) : (
         <span role="status" className="text-xs text-muted-foreground">
@@ -71,9 +109,9 @@ export function SitePublishBar({
           type="button"
           size="sm"
           disabled={busy || unsavedEdits || !hasDraft}
-          onClick={() => publish.mutate()}
+          onClick={() => void publishAll()}
         >
-          {publish.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+          {publish.isPending || publishHome.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
           {hasDraft ? "Publish changes" : "Published"}
         </Button>
       </span>
@@ -99,12 +137,16 @@ export function SitePublishBar({
         open={confirmingDiscard}
         onOpenChange={(open) => !open && setConfirmingDiscard(false)}
         title="Discard your changes?"
-        description="Your store's look goes back to what shoppers see now. Everything saved since the last publish is lost."
+        description={
+          themeHome
+            ? `Your store's look goes back to what shoppers see now, and your home page goes back to its live version instead of the layout from ${themeName}. Everything saved since the last publish is lost.`
+            : "Your store's look goes back to what shoppers see now. Everything saved since the last publish is lost."
+        }
         actionLabel="Discard"
         destructive
         onConfirm={() => {
           setConfirmingDiscard(false);
-          discard.mutate();
+          void discardAll();
         }}
       />
     </div>

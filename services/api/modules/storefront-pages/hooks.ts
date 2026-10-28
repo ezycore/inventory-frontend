@@ -30,6 +30,16 @@ export const useStorefrontPages = (params: StorefrontPageListParams = {}) =>
     select: (r) => r.data,
   });
 
+/**
+ * The store's own home page (the Customize home) as its list row — whether it
+ * has unpublished changes, and whether a theme wrote them (`draftTheme`). The
+ * same query the Pages screen's home card runs, so the two share one cache.
+ */
+export const useStoreHomePageRow = () => {
+  const { data, isLoading } = useStorefrontPages({ kind: "system", limit: 10 });
+  return { home: data?.items.find((page) => page.systemKey === "home"), isLoading };
+};
+
 export const useStorefrontPage = (id: string | undefined) =>
   useQuery({
     queryKey: queryKeys.storefrontPages.detail(id ?? ""),
@@ -169,6 +179,22 @@ export const useSetStorefrontHomePage = () => {
       invalidate(qc, "storefront.home.changed");
     },
     onError: handleMutationError,
+  });
+};
+
+/**
+ * Themes → Apply → "start the home page from this theme" — into the DRAFT. No
+ * toasts: the dialog says what happened, and shows a refusal
+ * (`STOREFRONT_HOME_HAS_DRAFT`) in place rather than as a popup.
+ */
+export const useStartHomeFromTheme = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (theme: string) => storefrontPagesApi.startHomeFromTheme(theme),
+    onSuccess: (res) => {
+      storePage(qc, res);
+      invalidate(qc, "storefront.page.drafted");
+    },
   });
 };
 

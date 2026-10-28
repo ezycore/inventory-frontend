@@ -73,6 +73,36 @@ describe("a section's own column against the Style tab's Width", () => {
   });
 });
 
+/* A theme sheet finishes sections by kind and only where the merchant left
+   them alone (`storefront-showroom.css`), so the element says both. */
+describe("what a section tells a theme sheet", () => {
+  const richText = (style?: unknown): PageSectionInstance => ({
+    id: "rt1",
+    type: "rich-text",
+    v: 1,
+    enabled: true,
+    settings: { body: JSON.stringify({ type: "doc", content: [{ type: "paragraph" }] }) },
+    ...(style ? { style } : {}),
+  });
+
+  it("names its type, and stamps nothing it was not given", () => {
+    const { container } = renderPage([richText()]);
+    const section = container.querySelector(".sfb-sec") as HTMLElement;
+    expect(section.dataset.type).toBe("rich-text");
+    expect(section.hasAttribute("data-styled-padding")).toBe(false);
+    expect(section.hasAttribute("data-styled-bg")).toBe(false);
+  });
+
+  it("says when the merchant chose a padding or a background", () => {
+    const { container } = renderPage([
+      richText({ padding: { base: { top: "lg", bottom: "lg" } }, background: { kind: "none" } }),
+    ]);
+    const section = container.querySelector(".sfb-sec") as HTMLElement;
+    expect(section.hasAttribute("data-styled-padding")).toBe(true);
+    expect(section.hasAttribute("data-styled-bg")).toBe(true);
+  });
+});
+
 describe("prepareSections", () => {
   it("skips instances that cannot render, without breaking the rest", () => {
     const prepared = prepareSections([

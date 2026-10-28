@@ -32,6 +32,7 @@ import {
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
 import { RailShell } from "@/components/storefront/shells/rail-shell";
 import { useHasMobileTabs } from "@/components/storefront/mobile/mobile-chrome";
+import { useHeaderVariant } from "@/components/storefront/use-utility-bar";
 import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
@@ -150,6 +151,10 @@ export function StoreShell({
   // rule as the brand colour above; `designAttrs` omits an axis left at default.
   const design = resolveDesign(previewDesign ?? store?.theme?.design);
   const designAttributes = designAttrs(design);
+  // The Showroom header carries its whole theme's finish with it: every rule in
+  // `storefront-showroom.css` is scoped to this attribute, so no other store's
+  // pages change. Draft first, so choosing the header repaints the page.
+  const headerVariant = useHeaderVariant(store);
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.
@@ -191,6 +196,7 @@ export function StoreShell({
            media query, and an inline style would outrank it and freeze the
            reservation on at desktop widths too. */
         data-sf-tabs={hasMobileTabs ? "1" : "0"}
+        data-skin={headerVariant === "showroom" ? "showroom" : undefined}
         {...schemeAttr}
         {...designAttributes}
         style={{

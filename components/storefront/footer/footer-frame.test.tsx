@@ -9,6 +9,7 @@ const t = {
   cod: "Cash on Delivery",
   bankTransfer: "Bank Transfer",
   customPayment: "Custom payment",
+  weAccept: "We accept",
 } as FooterT;
 
 const store = {
@@ -27,6 +28,16 @@ describe("footer payment methods", () => {
       "sf-mobile-only",
       "sf-strip-hidden",
     );
+  });
+
+  // Hidden by the shared stylesheet (`.sf-pay-label`); a theme sheet that
+  // draws it — Showroom — finds it beside the methods it names.
+  it("carries its own \"We accept\" label for a theme to show", () => {
+    render(<BottomBar name="Acme" store={store} t={t} />);
+    const label = screen.getByText("We accept");
+    expect(label).toHaveClass("sf-pay-label");
+    expect(label.parentElement).toHaveClass("sf-pay-badges");
+    expect(screen.getByText("Cash on Delivery")).toHaveClass("sf-pay-badge");
   });
 
   it("shows the merchant's own title for a method they defined", () => {

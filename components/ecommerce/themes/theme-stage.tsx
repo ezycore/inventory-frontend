@@ -17,6 +17,7 @@ import {
   type CustomizeDraft,
 } from "@/components/ecommerce/customize/use-customize-draft";
 import { Button } from "@/ui/components/button";
+import { ApplyThemeDialog } from "@/components/ecommerce/themes/apply-theme-dialog";
 
 /**
  * The selected theme, rendered as **the merchant's own shop** — permanently on
@@ -48,6 +49,11 @@ export function ThemeStage({
   // store-specific logo previews with a blank header.
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   const [page, setPage] = useState<PreviewPage>("home");
+  const [applying, setApplying] = useState(false);
+  // A theme with a home page of its own asks whether to start the home page
+  // from it too (`ApplyThemeDialog`); every other theme goes straight to
+  // Customize, as applying a theme always has.
+  const asks = !!theme.homeLayout && !active;
 
   const draft = useMemo<CustomizeDraft | null>(() => {
     if (!settings) return null;
@@ -71,13 +77,28 @@ export function ThemeStage({
             {theme.tagline}
           </p>
         </div>
-        <Button asChild variant={active ? "outline" : "default"} className="flex-none">
-          <Link href={`/ecommerce/customize?theme=${theme.id}`}>
+        {asks ? (
+          <Button className="flex-none" onClick={() => setApplying(true)}>
             <Sparkles className="h-3.5 w-3.5" />
-            {active ? "Customize" : "Apply this theme"}
-          </Link>
-        </Button>
+            Apply this theme
+          </Button>
+        ) : (
+          <Button asChild variant={active ? "outline" : "default"} className="flex-none">
+            <Link href={`/ecommerce/customize?theme=${theme.id}`}>
+              <Sparkles className="h-3.5 w-3.5" />
+              {active ? "Customize" : "Apply this theme"}
+            </Link>
+          </Button>
+        )}
       </div>
+      {asks ? (
+        <ApplyThemeDialog
+          theme={theme}
+          open={applying}
+          onOpenChange={setApplying}
+          landingIsHomepage={!!settings?.homePageId}
+        />
+      ) : null}
 
       {draft ? (
         <BrowserPreview

@@ -9,6 +9,29 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Showroom header** (Customize → Header → Computer). Classic's layout with the search box centred at a readable width, the language and dark-mode buttons in the same row, a wishlist heart, a cart button that carries its count, and a bigger, darker menu row. No top strip by default (Classic keeps its own); a merchant can still switch it on. Existing stores keep their header; new stores get this one from the backend starter.
+- **The Showroom finish** — the default design (2026-10-26), drawn to the pixel on any store that wears the Showroom header, and on no other: a 1248px column; 56px between home sections; a hero that grows to 580px with its words centred over an even shade, an arrow on its first button and centred dots; a white promises band with 44px discs; section headings with their link on the line under the title; 128px category circles; product cards with white tag pills, a wishlist heart, a 17px price and 40px buttons; tinted promo cards; the carousel's arrows in its heading row; the image-and-text section as one white card; the image banner with dark words on a light photograph; and a footer with a sign-up band, even columns and "We accept" beside the payment methods. All of it is one stylesheet (`app/(storefront)/storefront-showroom.css`) and only finishes what the merchant left alone — a section given its own padding or background keeps it.
+- **Promises band: a second line per promise** ("Fast delivery" over "All over Bangladesh"), in the band's own rows. A promise without one draws as before.
+- **Image and text: ticked points** under the paragraph — up to six, each its own row in the page editor ("Point"). A section without any draws as before.
+- **Image banner: a badge** — a short line in small capitals over the heading ("Gift ideas").
+- **Category tiles: a link beside the heading** ("All categories" to the catalogue), drawn with both a label and a destination, like a product row's.
+- **The Default theme is now the Showroom look** (Online Store → Themes, first in the list). It replaces Classic, which is no longer offered; a store wearing Classic keeps it, and the built-in look of a store that never applied a theme is unchanged. New stores open on the Default and the Themes page shows it Live. It is also the theme suggested for online shops (it was Muslin).
+- **Applying a theme can start your home page from it.** For a theme with a home page of its own (Showroom so far), **Apply this theme** asks: *Change the look only* (recommended — what applying a theme has always done) or *Change the look and start the home page from this theme*. The second puts the theme's layout, with sample photos and words, into the home page's draft; Customize previews it, and **Publish** there sends the look and the home page live together (**Discard** drops both). The live home stays in the page's history. It is refused while the home page has unpublished edits of the merchant's own, and a home draft edited by hand afterwards is never published from Customize.
+
+- **The full-width hero honours a badge colour and a second button.** With a badge colour chosen, its badge is the same chip the card and open heroes draw (unset keeps the spaced capitals); a slide's second button now shows beside the first. Both controls appear for full-width heroes in the page editor.
+- **Promises band: "In a soft circle"** icon style — the icon on a light neutral disc instead of the solid accent one.
+
+### Fixed
+- **Product carousels show the number of cards per view they are set to.** Every carousel drew 150px cards — seven across a desktop row — whatever "cards per view" said, because a scrolling grid never had room to grow its columns past their minimum. Existing carousels change: they now show their configured count (four across by default on desktop), with bigger cards.
+
+### Deploy notes
+- Either order with inventory-backend: a store whose starter names `showroom` draws Classic until this release ships.
+- The promises band's `soft` icon style needs inventory-backend with the regenerated section manifest; ship the backend first or together, or a merchant choosing it in the editor is refused on save.
+- The same goes for the promise's second line (`detail`), the image-and-text points (its blocks), the banner's `badge` and the category tiles' `ctaLabel` / `ctaHref`: **ship inventory-backend first**. Until it is live, saving a page that uses any of them is refused; pages that do not are unaffected.
+- "Start the home page from this theme" needs inventory-backend with `POST /api/ecommerce/pages/home/theme` and the page's `draftTheme` (regenerated `types/api-generated.ts`). **Ship the backend first**: without it the dialog's second option answers with an error, and the look-only path works as before.
+- Markup only, no visible change on non-Showroom stores: sections now carry `data-type` (and `data-styled-padding` / `data-styled-bg` when the merchant chose either), a strip's arrow with nowhere to go is rendered disabled and hidden instead of left out, and the footer's payment row carries a hidden "We accept" label.
+
 ## [1.16.0] - 2026-10-27
 
 ### Added

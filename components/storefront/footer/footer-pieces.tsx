@@ -195,7 +195,7 @@ export function FooterBrand({
         </div>
       ) : null}
       {blurb ? (
-        <p style={{ ...footerBlurb, maxWidth: 340 }}>
+        <p className="sf-footer-blurb" style={{ ...footerBlurb, maxWidth: 340 }}>
           {blurb}
         </p>
       ) : null}

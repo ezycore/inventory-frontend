@@ -106,55 +106,51 @@ describe("the theme catalogue", () => {
     }
   });
 
-  /* ------------------------------------------------------------------ reset
-     Classic doubles as "reset to default", which is only true if its bundle
-     really IS the built-in default. If it drifts, applying Classic silently
-     restyles a shop that was already on the stock look — the one failure mode
-     where the merchant did nothing and the shop changed anyway. Each assertion
-     compares against the value the storefront resolves for a store that has
-     never opened Customize. */
-  describe("Classic is the built-in default", () => {
-    const classic = getReadyMadeTheme("classic")!;
+  /* ---------------------------------------------------------------- default
+     The Default (the Showroom look, 2026-10-28) is listed first and is the
+     reset: applying it stamps every axis, so it must write every key the other
+     bundles write, or a reset from another theme would leave that theme's value
+     in place — the shop looking *nearly* right, the hardest bug to see. */
+  describe("the Default is the look new stores start on, and the reset", () => {
+    const fallback = getReadyMadeTheme("showroom")!;
 
-    it("is listed first", () => {
-      expect(READY_MADE_THEMES[0].id).toBe("classic");
-    });
-
-    it("carries the default design tokens", () => {
-      expect(classic.design).toEqual(DEFAULT_DESIGN);
+    it("is listed first, as the Default", () => {
+      expect(READY_MADE_THEMES[0].id).toBe("showroom");
+      expect(READY_MADE_THEMES[0].label).toBe("Default");
     });
 
     it("carries the default colour preset", () => {
-      expect({
-        brandColor: classic.brandColor,
-        accentColor: classic.accentColor,
-      }).toEqual(resolveThemeColors({ preset: "default" }));
+      expect({ brandColor: fallback.brandColor, accentColor: fallback.accentColor }).toEqual(
+        resolveThemeColors({ preset: "default" }),
+      );
     });
 
-    /* The bundle stores RAW admin ids ("grid-4"), the storefront consumes
-       resolved variant names ("grid4"), so the comparison has to go through
-       `resolveTemplates` — comparing the raw strings would pass while the two
-       vocabularies drifted. */
-    it("resolves to exactly DEFAULT_TEMPLATES", () => {
-      const resolved = resolveTemplates({ templates: classic.templates });
-      for (const key of Object.keys(classic.templates)) {
-        expect(
-          resolved[key as keyof typeof resolved],
-          `classic.${key}`,
-        ).toBe(DEFAULT_TEMPLATES[key as keyof typeof DEFAULT_TEMPLATES]);
-      }
+    it("differs from the storefront's own defaults only where the Showroom does", () => {
+      expect(fallback.design).toEqual({ ...DEFAULT_DESIGN, navHover: "highlight" });
+      const resolved = resolveTemplates({ templates: fallback.templates });
+      const differs = Object.keys(fallback.templates).filter(
+        (key) => resolved[key as keyof typeof resolved] !== DEFAULT_TEMPLATES[key as keyof typeof DEFAULT_TEMPLATES],
+      );
+      expect(differs.sort()).toEqual(["header", "imageFit"]);
     });
 
-    /* Every key a theme is allowed to write must be present, or applying
-       Classic would leave the previous theme's value in place and the reset
-       would be partial — the hardest kind of bug to see, because the shop
-       looks *nearly* right. */
     it("writes every key the other themes write", () => {
       for (const theme of READY_MADE_THEMES) {
-        expect(Object.keys(classic.templates).sort()).toEqual(
-          Object.keys(theme.templates).sort(),
-        );
+        expect(Object.keys(fallback.templates).sort()).toEqual(Object.keys(theme.templates).sort());
       }
+    });
+  });
+
+  /* ⚠ The Default is NOT the storefront's built-in fallback. A shop that never
+     applied a theme renders these, and every live shop that never opened
+     Customize is one: if they moved, those shops would restyle with nobody
+     touching anything. Retiring Classic as the Default (2026-10-28) must not
+     have moved them. */
+  describe("the built-in look a store with no theme renders", () => {
+    it("is still the Classic header and its defaults", () => {
+      expect(DEFAULT_TEMPLATES.header).toBe("classic");
+      expect(DEFAULT_TEMPLATES.imageFit).toBe("fit");
+      expect(resolveThemeColors({ preset: "default" })).toEqual({ brandColor: "#111827", accentColor: "#2563eb" });
     });
   });
 });

@@ -29,11 +29,17 @@ describe("field visibility", () => {
     expect(shown("storeWords", { layout: "full-bleed" })).toBe(false);
   });
 
-  it("offers the running offer and the second button to the card and open heroes only", () => {
-    for (const field of ["campaignBadge", "secondaryLabel", "secondaryLink"]) {
-      expect(shown(field, { layout: "card" })).toBe(true);
-      expect(shown(field, { layout: "open" })).toBe(true);
-      expect(shown(field, { layout: "full-bleed" })).toBe(false);
+  it("offers the running offer to the card and open heroes only", () => {
+    expect(shown("campaignBadge", { layout: "card" })).toBe(true);
+    expect(shown("campaignBadge", { layout: "open" })).toBe(true);
+    expect(shown("campaignBadge", { layout: "full-bleed" })).toBe(false);
+  });
+
+  it("offers the second button on every layout, full-bleed included", () => {
+    for (const field of ["secondaryLabel", "secondaryLink"]) {
+      for (const layout of ["card", "open", "full-bleed"]) {
+        expect(shown(field, { layout })).toBe(true);
+      }
     }
   });
 
@@ -49,6 +55,8 @@ describe("field visibility", () => {
     expect(shown("badgeTone", { layout: "card", campaignBadge: true })).toBe(true);
     expect(shown("badgeTone", { layout: "open" }, [{}, { badge: "New in" }])).toBe(true);
     expect(shown("badgeTone", { layout: "full-bleed", campaignBadge: true })).toBe(false);
+    // A full-bleed slide's own badge can be drawn as the chip.
+    expect(shown("badgeTone", { layout: "full-bleed" }, [{ badge: "New season" }])).toBe(true);
   });
 
   it("offers the promises to the card alone, which is the only hero with a footer", () => {
@@ -718,8 +726,6 @@ describe("field visibility", () => {
         "hero.mobileFirst",
         "hero.nav",
         "hero.promises",
-        "hero.secondaryLabel",
-        "hero.secondaryLink",
         "hero.slideshow",
         "hero.storeWords",
         "call-to-action.style.align",

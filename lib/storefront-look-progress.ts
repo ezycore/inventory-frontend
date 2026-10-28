@@ -38,7 +38,7 @@ export function lookProgress(input: {
      this too. Left on the built-in white with no theme applied is the state
      being reported — not a merchant's decision to use white, but the absence of
      a decision. A merchant who genuinely wants Clean white reaches it through
-     Classic, which counts. */
+     the Default theme, which counts. */
   const palette = theme || (!!input.surface && input.surface !== DEFAULT_DESIGN.surface);
   const logo = input.hasLogo;
   return { theme, logo, palette, done: theme && logo && palette };

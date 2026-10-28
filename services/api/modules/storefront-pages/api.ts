@@ -101,6 +101,14 @@ export const storefrontPagesApi = {
    */
   setHome: (pageId: string | null): Promise<ApiResponse<StorefrontHomePage>> =>
     apiClient.put(`${base}/home`, { pageId }),
+  /**
+   * Start the home page's DRAFT from a ready-made theme's own layout (Themes →
+   * Apply). The page answers with `draftTheme` set; nothing is live until it is
+   * published. Refused (409 `STOREFRONT_HOME_HAS_DRAFT`) over the merchant's own
+   * unpublished home edits. Only themes with `homeLayout` are accepted.
+   */
+  startHomeFromTheme: (theme: string): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/home/theme`, { theme }),
   revisions: (id: string): Promise<ApiResponse<StorefrontPageRevision[]>> =>
     apiClient.get(`${base}/${id}/revisions`),
   /** Copies the revision into the draft; the live page is unchanged until the next publish. */
