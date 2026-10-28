@@ -16,6 +16,7 @@ import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { storePages } from "@/lib/storefront-page-controls";
 import { useHeaderVariant } from "@/components/storefront/use-utility-bar";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -112,9 +113,13 @@ export function ProductCard({
   const headerVariant = useHeaderVariant(store);
   const showWish = headerVariant === "showroom" && !editorial && storePages(store).accounts;
   const toggleWish = useWishlistStore((s) => s.toggle);
-  const wished = useWishlistStore(
+  // The saved list is in localStorage, which the server never sees: masked until
+  // hydrated, so a saved product's card renders as the server drew it first.
+  const hydrated = useHydrated();
+  const saved = useWishlistStore(
     (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product._id),
   );
+  const wished = hydrated && saved;
 
   const soldOut = qb.soldOut;
   const thumb = cardImageUrl(product.images?.[0]);
