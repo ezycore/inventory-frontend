@@ -20,7 +20,7 @@ import { EditorialCheckout } from "@/components/storefront/checkout/layouts/edit
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 import { PreviewCartNotice } from "@/components/storefront/preview-cart-notice";
-import { useBuyNowLine } from "@/services/storefront/use-buy-now";
+import { useBuyNowLine, useOnBuyNowUrl } from "@/services/storefront/use-buy-now";
 import { BuyNowCartNote } from "@/components/storefront/checkout/buy-now-cart-note";
 
 /**
@@ -86,7 +86,7 @@ export function CheckoutPageView({
   const { data: store } = useStore(slug);
   // Buy now orders its one line, not the cart (`?buy=1` + the session line).
   const buyNow = useBuyNowLine();
-  const api = useCheckout({ buyNow });
+  const api = useCheckout({ buyNow, visit: useOnBuyNowUrl() ? "buy" : "cart" });
   const { t, hydrated, shopper, placed, items } = api;
 
   const paused = useOrdersPaused();

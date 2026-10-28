@@ -48,11 +48,19 @@ export function useStartBuyNow() {
   );
 }
 
+/**
+ * Whether the URL asks for a buy-now checkout — what the shopper requested,
+ * whether or not a line is still held (a placed buy-now order has ended it).
+ */
+export function useOnBuyNowUrl(): boolean {
+  // Null outside an app-router tree (a component test) — read as "not buy now".
+  return useSearchParams()?.get(BUY_NOW_PARAM) === "1";
+}
+
 /** The line this checkout orders instead of the cart, if it is a buy-now one. */
 export function useBuyNowLine(): CartItem | undefined {
   const { slug } = useStoreContext();
-  // Null outside an app-router tree (a component test) — read as "not buy now".
-  const onBuyNowUrl = useSearchParams()?.get(BUY_NOW_PARAM) === "1";
+  const onBuyNowUrl = useOnBuyNowUrl();
   const line = useBuyNowStore((s) => (s.storeSlug === slug ? s.line : null));
   return onBuyNowUrl && line ? line : undefined;
 }

@@ -79,11 +79,18 @@ const emptyGeo = (): GeoValue => ({ district: "", area: "" });
  * emptied nor closed on the server; unlike it, the shopper has arrived at
  * checkout, so `InitiateCheckout` fires on arrival, and a placed order ends the
  * buy-now session.
+ *
+ * **`visit`** names the checkout the shopper asked for (`"buy"` or `"cart"`,
+ * from the URL). When it changes, a placed order's card gives way to a fresh
+ * checkout: after a Buy now order the cart still holds its items, and the
+ * cart drawer's Checkout is the same page at a different URL — without this it
+ * reopened onto the order just placed.
  */
 export function useCheckout({
   lines,
   buyNow,
-}: { lines?: CartItem[]; buyNow?: CartItem } = {}) {
+  visit,
+}: { lines?: CartItem[]; buyNow?: CartItem; visit?: string } = {}) {
   const { slug, base } = useStoreContext();
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
@@ -176,6 +183,17 @@ export function useCheckout({
   // buy-now checkout taking in the rest of the cart — the quote no longer
   // describes this order, so it is dropped rather than shown against the new
   // total (render-time adjust).
+  // A new checkout after a placed one (render-time adjust). The form keeps what
+  // the shopper typed — the next order is very likely theirs too.
+  const [placedVisit, setPlacedVisit] = useState(visit);
+  if (placedVisit !== visit) {
+    setPlacedVisit(visit);
+    if (placed) {
+      setPlaced(null);
+      setStep(1);
+    }
+  }
+
   const linesKey = items.map((i) => `${cartLineKey(i)}x${i.quantity}`).join(",");
   const [quotedLines, setQuotedLines] = useState(linesKey);
   if (quotedLines !== linesKey) {

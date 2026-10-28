@@ -818,6 +818,11 @@ reads as two filters at once.
     (closing the mirrored cart would mark an unordered cart converted); `InitiateCheckout` fires on
     arrival; a placed order calls `useBuyNowStore.end()`. A coupon quote is dropped whenever the
     ordered lines change.
+  - ⚠ **A placed card must give way when the shopper asks for the other checkout.** After a Buy
+    now order the cart still has items, and the drawer's Checkout is the same page at `/checkout` —
+    the component stays mounted, so it kept showing the order just placed. `useCheckout({ visit })`
+    (`"buy"`/`"cart"`, from `useOnBuyNowUrl`) clears `placed` when the visit changes. Not a `key`
+    on the page: that would also remount on **Add them to this order** and wipe the typed address.
   - **`BuyNowCartNote`** (`components/storefront/checkout/buy-now-cart-note.tsx`) says "You also
     have N other item(s) in your cart" with **Add them to this order**, which folds the line into
     the cart (`useBuyNowCartMerge` — a line the cart already holds keeps the LARGER quantity, not
