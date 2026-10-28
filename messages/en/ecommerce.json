@@ -309,6 +309,15 @@
     "cancel": "Cancel",
     "moving": "Moving…"
   },
+  "orderCopy": {
+    "button": "Copy",
+    "menu": "Copy order",
+    "title": "New order from {orderNumber}",
+    "body": "The products are copied at today's prices. The customer, coupon, discount, delivery charge and any advance are not.",
+    "dropped": "No longer for sale, left out: {products}",
+    "previous": "Previous customer",
+    "use": "Use these"
+  },
   "reopen": {
     "button": "Reopen order",
     "title": "Reopen this order?",

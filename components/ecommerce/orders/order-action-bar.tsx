@@ -15,6 +15,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderCollectionDialog } from "./order-collection-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
+import { OrderCopyButton } from "./order-copy-dialog";
 import { OrderEditButton } from "./order-edit-button";
 import { OrderHandOverDialog, courierBookingCancelled } from "./order-hand-over-dialog";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";
@@ -64,6 +65,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           are the exception, and a merchant reaching for one already knows it. Each
           hides itself when the order is past the point of allowing it. */}
       <OrderEditButton order={order} />
+      <OrderCopyButton order={order} />
       <OrderReverseStatusDialog order={order} />
       {/* Cancelled or rejected by mistake, or the customer called back. Hides itself
           where the backend would refuse (a refunded advance). */}

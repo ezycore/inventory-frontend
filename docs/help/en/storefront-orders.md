@@ -45,6 +45,12 @@ The price stays what the customer ordered at, even if a campaign has ended since
 is not told. An order whose advance you refunded cannot be reopened; create a new order instead. If
 its coupon has been used up since, raise the coupon's limit first.
 
+**Same products for another customer?** Press **Copy** on any order (or **Copy order** in the list's
+menu). A new order opens with the same products at today's prices. The customer is left empty, with
+the previous customer shown above the form — press **Use these** if it is the same person ordering
+again. Pick the channel and add the coupon, discount or delivery charge if this order needs them;
+none of those are copied.
+
 **Know the buyer before you confirm.** Under a returning customer's name the list shows their record,
 such as *4 orders · 2 returned*. A cash-on-delivery buyer who sends parcels back costs you the courier
 both ways, so check it before confirming. Press it to list every order from that customer, across all

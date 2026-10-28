@@ -30,6 +30,7 @@ vi.mock("@/services/stores/use-auth-store", () => ({
 vi.mock("./order-edit-button", () => ({ OrderEditButton: () => null }));
 vi.mock("./order-reverse-status-dialog", () => ({ OrderReverseStatusDialog: () => null }));
 vi.mock("./order-reopen-dialog", () => ({ OrderReopenDialog: () => null }));
+vi.mock("./order-copy-dialog", () => ({ OrderCopyButton: () => null }));
 vi.mock("./order-hand-over-dialog", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./order-hand-over-dialog")>()),
   OrderHandOverDialog: () => null,
