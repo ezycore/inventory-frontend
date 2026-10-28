@@ -19,6 +19,7 @@ import type {
   DesktopHeaderConfig,
   LanguageThemeConfig,
 } from "@/lib/storefront-language-theme";
+import type { WishlistConfig } from "@/lib/storefront-wishlist";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import type {
   StorefrontFooterBlock,
@@ -909,6 +910,8 @@ export interface StoreNav {
   languageTheme?: LanguageThemeConfig;
   /** The computer header's behaviour (Customize → Header → Computer). */
   desktopHeader?: DesktopHeaderConfig;
+  /** The wishlist hearts (Customize → Header); see `lib/storefront-wishlist.ts`. */
+  wishlist?: WishlistConfig;
   /** How the menu behaves per device (Customize → Menu). */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort). */
@@ -1475,6 +1478,17 @@ export interface ClaimedCart {
   mergedCount: number;
 }
 
+/**
+ * The saved list as LIVE product cards, in saved order (backend
+ * `docs/plan/wishlist.md`, Phase 2). The client refreshes its own snapshot from
+ * these. `mergedCount` (claim only) is how many the account held that this
+ * browser did not.
+ */
+export interface WishlistCards {
+  items: CatalogProduct[];
+  mergedCount?: number;
+}
+
 interface FetchOpts {
   method?: string;
   body?: unknown;
@@ -1574,6 +1588,34 @@ async function sfFetch<T>(
     );
   }
   return json.data as T;
+}
+
+/** Which kind of email an unsubscribe link stopped, and from which shop. */
+export interface UnsubscribeResult {
+  flag: "promoEmail" | "priceDrop" | "newsletter";
+  storeName?: string;
+}
+
+/**
+ * Follow a marketing email's unsubscribe link (backend
+ * `docs/plan/notifications.md` §3.5b). Not under `/storefront/{slug}` like the
+ * rest of this file: the link must keep working after a shop unpublishes, so
+ * the route is a public one keyed by the signed token alone.
+ */
+export async function unsubscribeFromEmail(token: string): Promise<UnsubscribeResult> {
+  const res = await fetch(`${API_BASE}/public/unsubscribe?token=${encodeURIComponent(token)}`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new StorefrontApiError(
+      json?.error || json?.message || `Request failed (${res.status})`,
+      res.status,
+      json?.code,
+    );
+  }
+  return json.data as UnsubscribeResult;
 }
 
 /**
@@ -1809,6 +1851,26 @@ export const storefrontApi = {
     slug: string,
     body: { anonymousId: string; name?: string; phone?: string; email?: string },
   ) => sfFetch<{ ok: boolean }>(slug, "/cart/contact", { method: "POST", body }),
+  /**
+   * Mirror the browser's wishlist — a full replace. With a shopper token it is
+   * the account's list, without one this browser's. Fire-and-forget on the
+   * caller's side, like the cart mirror.
+   */
+  syncWishlist: (
+    slug: string,
+    body: { anonymousId: string; productIds: string[] },
+    token?: string | null,
+    keepalive?: boolean,
+  ) => sfFetch<WishlistCards>(slug, "/wishlist", { method: "PUT", body, token, keepalive }),
+  /**
+   * Fold this browser's list into the signed-in shopper's. The result is the
+   * merged list, which the caller ADOPTS — the merge is server-side.
+   */
+  claimWishlist: (
+    slug: string,
+    token: string,
+    body: { anonymousId: string; productIds: string[] },
+  ) => sfFetch<WishlistCards>(slug, "/wishlist/claim", { method: "POST", body, token }),
   /** Exchange a recovery-email token for the cart behind it. */
   restoreCart: (slug: string, token: string) =>
     sfFetch<RestoredCart>(slug, `/cart/restore/${token}`),

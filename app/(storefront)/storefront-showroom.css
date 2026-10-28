@@ -257,7 +257,8 @@
    White pills on the photo, top left: the sale in red, the tag in the card's
    own white with a hairline — one neutral chip whatever the tag's colour, so a
    grid of them reads as one row rather than a box of sweets. The wishlist
-   heart takes the top right (`.sf-card-wish`, drawn only on this skin).
+   heart takes the top right (`.sf-card-wish`; this skin's white disc over the
+   plainer one storefront.css gives every other shop).
 
    Under the photo: 14px of padding, the name at 15px, the price at 17px and
    the two buttons 40px tall, 8px apart. Price and buttons sit on the card's

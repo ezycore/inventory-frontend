@@ -335,6 +335,10 @@ export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];
 export type AbandonedCartListItem = Schemas["AbandonedCartListItem"];
 export type AbandonedCartStats = Schemas["AbandonedCartStats"];
+/** The merchant's Wishlists page (backend `docs/plan/wishlist.md`, Phase 3). */
+export type WishlistStats = Schemas["WishlistStats"];
+export type WishedProduct = Schemas["WishedProduct"];
+export type ShopperWishlistItem = Schemas["ShopperWishlistItem"];
 export type StorefrontSubscriberListItem =
   Schemas["StorefrontSubscriberListItem"];
 

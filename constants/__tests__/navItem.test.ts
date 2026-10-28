@@ -219,6 +219,9 @@ describe("navGroups — Online Store as its own group", () => {
       // Every store page — written, landing, system — is made and edited here.
       "Pages",
       "Abandoned Carts",
+      // What shoppers saved (docs/plan/wishlist.md, Phase 3), beside the other
+      // "what did shoppers leave" screen.
+      "Wishlists",
       "Meta Ad Reporting",
       "Store Settings",
     ]);

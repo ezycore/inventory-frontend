@@ -15,6 +15,7 @@ import type {
   DesktopHeaderConfig,
   LanguageThemeConfig,
 } from "@/lib/storefront-language-theme";
+import type { WishlistConfig } from "@/lib/storefront-wishlist";
 import type {
   StorefrontFooterBlock,
   StorefrontFooterContentPages,
@@ -458,6 +459,8 @@ export interface StorefrontNav {
   languageTheme?: LanguageThemeConfig;
   /** The computer header's behaviour (Customize → Header → Computer). */
   desktopHeader?: DesktopHeaderConfig;
+  /** The wishlist hearts (Customize → Header); see `lib/storefront-wishlist.ts`. */
+  wishlist?: WishlistConfig;
   /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort); see `lib/storefront-filters.ts`. */
@@ -680,6 +683,9 @@ export interface StorefrontSettings {
   /** Abandoned-cart recovery emails. Off unless the merchant opts in;
    *  `delaysMinutes` is sorted ascending and its length is the send cap. */
   cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
+  /** Wishlist alerts (Wishlists page). Off unless the merchant opts in; the two
+   *  kinds read absent as on once `enabled`. */
+  wishlistAlerts?: { enabled?: boolean; backInStock?: boolean; priceDrop?: boolean };
   checkout?: StorefrontCheckout;
   notifications?: StorefrontNotifications;
   customersConfig?: StorefrontCustomersConfig;

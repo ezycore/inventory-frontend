@@ -13,6 +13,7 @@ import {
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
+import { useWishlistItems } from "@/services/stores/use-wishlist-store";
 
 /**
  * The tappable atoms of the mobile bar and tab bar.
@@ -289,6 +290,22 @@ function TrackAtom({ ctx, mode }: AtomProps) {
   );
 }
 
+/** Only ever drawn while the wishlist is on — `chromeWithPageControls` drops it otherwise. */
+function WishlistAtom({ ctx, mode }: AtomProps) {
+  const { t } = useStorefrontUI();
+  const count = useWishlistItems(ctx.slug).length;
+  return (
+    <Atom
+      icon={iconOf(ctx, "wishlist")}
+      label={t.tabWishlist}
+      mode={mode}
+      active={ctx.isActive("wishlist")}
+      badge={count}
+      href={storeHref(ctx.base, "/wishlist")}
+    />
+  );
+}
+
 /**
  * A `tel:` link, and the one atom that can decline to render.
  *
@@ -372,6 +389,7 @@ const ATOMS: Record<MobileActionId, (p: AtomProps) => ReactNode> = {
   theme: ThemeAtom,
   call: CallAtom,
   track: TrackAtom,
+  wishlist: WishlistAtom,
 };
 
 export function MobileAction({

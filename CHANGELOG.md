@@ -9,6 +9,27 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Wishlist switch** (Customize → Header, above Phone / Computer). One switch for every heart: a heart on product cards and product pages, plus a heart with a count before the cart in all seven computer headers. Phones get a **Wishlist** row in the menu panel, and merchants can place a `wishlist` heart in a bar slot or a bottom tab (greyed in the slot editor while the switch is off). Untouched shops follow their header: on for Showroom, off for every other header, so no existing shop's header changes. Saved only once the merchant flips it (`nav.wishlist`). Help guide (Choose what to sell online) updated in English and Bangla.
+- **`/wishlist` page** — the saved list for every shopper, no sign-in needed. Account → Wishlist shows the same list.
+- **Wishlists follow a signed-in shopper to any device.** The list is mirrored to the server; signing in merges this browser's list into the account's. Each visit refreshes saved items' prices and stock, and drops products the shop no longer sells. Signing out clears the list from that browser; it comes back at the next sign-in.
+- **Online Store → Wishlists** (new page, `storefront.view`): how many shoppers saved something (signed in and guest), products saved, saved and bought in 30 days, **Most wished**, and **Wished but sold out**. An online customer's detail page shows their saved items. Help guide "See what shoppers saved" in English and Bangla.
+- **Wishlist alerts** — a card on the Wishlists page to email shoppers when a saved product is back in stock or cheaper (off by default; each kind has its own switch). Settings → Notifications shows both emails read-only and links to it.
+- **`/unsubscribe` page** — where a marketing email's unsubscribe link lands. One click confirms it, so a mail scanner opening the link can't unsubscribe anyone.
+
+### Changed
+- **Shopper account → Notifications:** "Price-drop alerts" is now **Wishlist alerts** ("When saved items get cheaper or come back in stock"), English and Bangla. Same setting, now covering both alerts.
+- **The product card heart is no longer Showroom-only.** Other themes get a plainer round heart in the photo's corner, and the tag chips move out of its way.
+- **Wishlists are kept per shop.** A shopper saving on a second shop used to wipe their list on the first. The saved data keeps its name (`easystock-wishlist`) and a one-time migration moves each existing list into the new shape, so nobody loses saved items.
+
+### Fixed
+- **Abandoned-cart recovery had no on-switch.** The "Email shoppers who leave items behind" card was dropped from Store Settings → Checkout when the duplicate settings tabs were removed (2026-08-10), so no merchant could turn the reminders on, and the Settings → Notifications link pointed at a tab without it. It is back on the Checkout tab and saves with the tab's Save button.
+- **The product page heart showed on every shop, even ones with nowhere to see the saved list** (accounts off). It now follows the Wishlist switch.
+
+### Deploy notes
+- Needs inventory-backend with `nav.wishlist`, the `/wishlist` sync routes, `/api/ecommerce/wishlists/*`, `wishlistAlerts` and `POST /api/public/unsubscribe`. Deploy the backend first. Without it, saving the Wishlist switch is refused, sync calls 404 (silently: the list stays local), and the Wishlists page errors.
+- Run `pnpm gen:api-types` after the backend's `pnpm docs:all`: the Wishlists page reads `WishlistStats` / `ShopperWishlistItem` from the generated types.
+
 ## [1.18.0] - 2026-10-28
 
 ### Added

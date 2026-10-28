@@ -88,6 +88,8 @@ function useActionCtx(
         return pathname.includes("/cart");
       case "account":
         return pathname.includes("/account");
+      case "wishlist":
+        return pathname.includes("/wishlist");
       case "track":
         // Both tracking surfaces: the lookup the button points at, and the
         // tokenised link a buyer opens from their SMS. `includes("/t")` was a
