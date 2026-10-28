@@ -222,6 +222,24 @@ export const useCancelOrder = () => {
 };
 
 /**
+ * Reopen a cancelled or rejected order. `order.changed`, not `order.reversed`:
+ * the order goes back to `pending` holding no stock — the hold is taken again at
+ * confirm — and no money moves.
+ */
+export const useReopenOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; note: string }) =>
+      storefrontOrdersApi.reopen(v.id, v.note),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order reopened");
+      invalidate(qc, "order.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
  * Permanently delete a closed order.
  *
  * Invalidates `order.changed`, not `order.returned` like cancel does: a deletable

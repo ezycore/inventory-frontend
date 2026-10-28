@@ -39,6 +39,12 @@ invoice. Invoices use the same letterhead as everything else — see
 
 Cancelling a confirmed order releases the reserved stock back for sale.
 
+**Cancelled or rejected by mistake?** Open the order and press **Reopen order**. Say why — it is saved
+in the order's history — and the order goes back to the first step, to be confirmed again as usual.
+The price stays what the customer ordered at, even if a campaign has ended since, and the customer
+is not told. An order whose advance you refunded cannot be reopened; create a new order instead. If
+its coupon has been used up since, raise the coupon's limit first.
+
 **Know the buyer before you confirm.** Under a returning customer's name the list shows their record,
 such as *4 orders · 2 returned*. A cash-on-delivery buyer who sends parcels back costs you the courier
 both ways, so check it before confirming. Press it to list every order from that customer, across all

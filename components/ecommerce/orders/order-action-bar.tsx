@@ -19,6 +19,7 @@ import { OrderEditButton } from "./order-edit-button";
 import { OrderHandOverDialog, courierBookingCancelled } from "./order-hand-over-dialog";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";
 import { OrderMarkDelivered } from "./order-mark-delivered";
+import { OrderReopenDialog } from "./order-reopen-dialog";
 import { OrderReturnDialog } from "./order-return-dialog";
 import { OrderReverseStatusDialog } from "./order-reverse-status-dialog";
 import { codToCollect, collectionLabels, confirmOrderPrompt } from "./order-detail-helpers";
@@ -64,6 +65,9 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           hides itself when the order is past the point of allowing it. */}
       <OrderEditButton order={order} />
       <OrderReverseStatusDialog order={order} />
+      {/* Cancelled or rejected by mistake, or the customer called back. Hides itself
+          where the backend would refuse (a refunded advance). */}
+      <OrderReopenDialog order={order} />
       {order.status === "pending" && (
         <>
           <OrderCancelDialog

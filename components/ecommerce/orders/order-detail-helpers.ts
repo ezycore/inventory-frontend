@@ -118,3 +118,15 @@ const ACTOR_KEYS: Record<string, string> = {
 /** `t` is bound to the `ecommerce` namespace. */
 export const actorLabel = (by: string | undefined, t: Translator) =>
   by ? t(ACTOR_KEYS[by] ?? "orders.actorStaff") : "—";
+
+/**
+ * Whether this order is holding stock right now — what a cancel, or a move back to
+ * the first step, gives back. Both halves are needed: stock is reserved at
+ * confirm, so a new order holds none even where stock is tracked; and the backend
+ * marks a confirmed order `stockReserved` on a stock-free workspace too, where it
+ * reserved nothing (QA-N13).
+ */
+export const holdsReservedStock = (
+  order: { stockReserved?: boolean | null },
+  stockTracked: boolean,
+): boolean => stockTracked && !!order.stockReserved;

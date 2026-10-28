@@ -15,7 +15,8 @@ vi.mock("@/services/api", () => ({ useCancelOrder: () => ({ mutate, isPending: f
 vi.mock("@/hooks/use-order-account-options", () => ({
   useOrderAccountOptions: () => ({ accountsEnabled: false, options: [] }),
 }));
-vi.mock("@/hooks/use-stock-tracked", () => ({ useStockTracked: () => false }));
+const stockTracked = vi.hoisted(() => ({ value: false }));
+vi.mock("@/hooks/use-stock-tracked", () => ({ useStockTracked: () => stockTracked.value }));
 vi.mock("@/services/stores/use-auth-store", () => ({
   useAuthStore: (selector: (s: unknown) => unknown) =>
     selector({ user: { organization: { currency: "BDT" } } }),
@@ -57,7 +58,42 @@ const open = async () => {
 };
 const rejectButton = () => screen.getByRole("button", { name: "Reject order" });
 
-beforeEach(() => mutate.mockReset());
+beforeEach(() => {
+  mutate.mockReset();
+  stockTracked.value = false;
+});
+
+describe("cancel dialog stock wording", () => {
+  const openCancel = async (order: Record<string, unknown>) => {
+    const user = userEvent.setup();
+    render(
+      <OrderCancelDialog
+        order={{ _id: "o1", ...order } as never}
+        trigger={<button>Open</button>}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Open" }));
+  };
+
+  it("promises released stock on a confirmed order where stock is tracked", async () => {
+    stockTracked.value = true;
+    await openCancel({ status: "confirmed", stockReserved: true });
+    expect(screen.getByRole("button", { name: "Cancel & release stock" })).toBeInTheDocument();
+  });
+
+  it("not on a new order — it was never holding any", async () => {
+    stockTracked.value = true;
+    await openCancel({ status: "pending", stockReserved: false });
+    expect(screen.queryByText(/Reserved stock is released/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Cancel order" })).toBeInTheDocument();
+  });
+
+  it("not where stock is not tracked, even on a confirmed order", async () => {
+    await openCancel({ status: "confirmed", stockReserved: true });
+    expect(screen.queryByText(/Reserved stock is released/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Cancel order" })).toBeInTheDocument();
+  });
+});
 
 describe("reject dialog reasons (G10)", () => {
   it("will not reject as Other until it says why", async () => {
