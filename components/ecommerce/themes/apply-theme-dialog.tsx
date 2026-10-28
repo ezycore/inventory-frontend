@@ -69,7 +69,9 @@ export function ApplyThemeDialog({
     }
     start.mutate(theme.id, {
       onSuccess: () => router.push(customizeUrl),
-      onError: (error) =>
+      // `unknown`, not the mutation's `Error`: `Error` already fits `ApiError`'s
+      // shape, so the guard would leave it an `Error` with no `code` to read.
+      onError: (error: unknown) =>
         setProblem(
           isApiError(error) && error.code === "STOREFRONT_HOME_HAS_DRAFT"
             ? "Your home page has changes you haven't published. Publish or discard them first."
