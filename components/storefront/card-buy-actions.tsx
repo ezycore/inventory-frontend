@@ -298,7 +298,7 @@ export function CardCtaRow({
 
   // "addBuy" — the default.
   return (
-    <div style={row()}>
+    <div className="sf-card-ctas" style={row()}>
       <button type="button" onClick={add} disabled={qb.pending} style={cta(false, bold, false)}>
         {t.addToCart}
       </button>

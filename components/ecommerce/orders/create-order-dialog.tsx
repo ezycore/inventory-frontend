@@ -24,6 +24,8 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { Textarea } from "@/ui/components/textarea";
 import { CreateOrderLines } from "./create-order-lines";
 import { CreateOrderSummary } from "./create-order-summary";
+import { OrderCopyNotice } from "./order-copy-notice";
+import type { CopiedFrom } from "./use-order-copy-initial";
 import { useOrderForm, type OrderFormInitial } from "./use-order-form";
 
 /**
@@ -76,13 +78,17 @@ export function CreateOrderDialog({
   open,
   onOpenChange,
   initial,
+  copiedFrom,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Present ⇒ the dialog edits that order instead of creating a new one. */
+  /** With an `orderId` ⇒ the dialog edits that order; without ⇒ a seeded create. */
   initial?: OrderFormInitial;
+  /** A copy of another order: names it, and offers its buyer without filling them in. */
+  copiedFrom?: CopiedFrom;
 }) {
   const t = useTranslations("ecommerce.createOrder");
+  const tCopy = useTranslations("ecommerce.orderCopy");
   const locale = useLocale();
   const channelOptions = useMemo(
     () => CHANNELS.map((c) => ({ value: c.value, label: c.name ?? t(c.key!) })),
@@ -134,8 +140,14 @@ export function CreateOrderDialog({
         }
       >
         <DialogHeader>
-          <DialogTitle>{t(form.isEdit ? "editTitle" : "createTitle")}</DialogTitle>
-          <DialogDescription>{t(form.isEdit ? "editBody" : "createBody")}</DialogDescription>
+          <DialogTitle>
+            {copiedFrom
+              ? tCopy("title", { orderNumber: copiedFrom.orderNumber })
+              : t(form.isEdit ? "editTitle" : "createTitle")}
+          </DialogTitle>
+          <DialogDescription>
+            {copiedFrom ? tCopy("body") : t(form.isEdit ? "editBody" : "createBody")}
+          </DialogDescription>
         </DialogHeader>
 
         {/* `min-w-0`: DialogContent is a grid, and a grid item will not shrink
@@ -144,8 +156,9 @@ export function CreateOrderDialog({
         <div className="min-w-0 space-y-4">
           {/* Buyers send one blob of text; retyping it into five fields is the
               slowest part of taking a chat order. Create only: the paste fills
-              empty fields alone, and an edit opens with every one filled. */}
-          {!form.isEdit && (
+              empty fields alone, and an edit opens with every one filled. Not on
+              a copy either, which has its own customer box below the lines. */}
+          {!form.isEdit && !copiedFrom && (
             <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
               <Label>{t("paste")}</Label>
               <Textarea
@@ -180,6 +193,13 @@ export function CreateOrderDialog({
             quoting={form.quoting}
             currency={currency}
           />
+
+          {copiedFrom ? (
+            <OrderCopyNotice
+              copiedFrom={copiedFrom}
+              onUse={() => form.fillCustomer(copiedFrom.customer)}
+            />
+          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">

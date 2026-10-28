@@ -22,23 +22,26 @@ export function HeroCtaLink({
   base,
   link,
   style,
+  className,
   children,
 }: {
   base: string;
   link?: string;
   style: CSSProperties;
+  /** A hook for a theme sheet; the look itself is `style`. */
+  className?: string;
   children: ReactNode;
 }) {
   const target = merchantLinkHref(base, link);
   if (target.startsWith("/")) {
     return (
-      <Link href={target} style={style}>
+      <Link href={target} className={className} style={style}>
         {children}
       </Link>
     );
   }
   return (
-    <a href={target} style={style} {...(EXTERNAL.test(target) ? NEW_TAB : {})}>
+    <a href={target} className={className} style={style} {...(EXTERNAL.test(target) ? NEW_TAB : {})}>
       {children}
     </a>
   );

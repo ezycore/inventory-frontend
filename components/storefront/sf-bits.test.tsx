@@ -62,7 +62,8 @@ describe("SectionTitle", () => {
   it("puts the line under the heading, inside one block", () => {
     const { container } = render(<SectionTitle subheading="Made in Dhaka">Our picks</SectionTitle>);
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toBe("");
+    // `sfb-title` is a theme sheet's hook (the Showroom grid), not a look.
+    expect(wrapper.className).toBe("sfb-title");
     expect(wrapper.children[0].className).toBe("sfb-title-row");
     expect(wrapper.children[1].textContent).toBe("Made in Dhaka");
     // The gap moves to the wrapper, so the pair spaces like the heading did.

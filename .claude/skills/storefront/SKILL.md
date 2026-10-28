@@ -659,7 +659,7 @@ reads as two filters at once.
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
   (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
   `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always goes
-  straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
+  straight to `/checkout?buy=1` with only its own line (see **Buy now orders ONE line** above). Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
   - **A page that renders a per-page variant reads it through
@@ -803,6 +803,33 @@ reads as two filters at once.
   `mergedCount > 0`: signing in folds in the cart this shopper left on another device, server-side,
   and if the client kept its own items the next debounced sync would push them over the merge and
   undo it. Adoption is what makes cross-device carts actually work — it is not a nicety.
+- **Buy now orders ONE line and never touches the cart** (2026-10-28). Every Buy now — product
+  page, Single product section, card, quick-buy sheet — goes through `useStartBuyNow`
+  (`services/storefront/use-buy-now.ts`): the line goes into `useBuyNowStore`
+  (`services/stores/use-buy-now-store.ts`, **`sessionStorage`** key `ezy-sf-buy-now`) and the
+  shopper lands on **`/checkout?buy=1`**. Until then Buy now *added to the cart* and opened
+  checkout, so a shopper with saved items ordered all of them — on COD, a refused parcel. Rules:
+  - **Checkout orders the buy-now line only when BOTH say so** — the held line and `?buy=1`
+    (`useBuyNowLine`, read in `CheckoutPageView`, never in `useCheckout`: that hook also runs in
+    the order-form island on cached `/sites` pages, where `useSearchParams` does not belong).
+    Every cart "Checkout" link stays a plain `/checkout` and orders the cart, so no entry point has
+    to remember to end a buy-now. Reload keeps it (URL + session); a new tab does not.
+  - `useCheckout({ buyNow })`: the cart is not ordered, not emptied and sends no `anonymousId`
+    (closing the mirrored cart would mark an unordered cart converted); `InitiateCheckout` fires on
+    arrival; a placed order calls `useBuyNowStore.end()`. A coupon quote is dropped whenever the
+    ordered lines change.
+  - ⚠ **A placed card must give way when the shopper asks for the other checkout.** After a Buy
+    now order the cart still has items, and the drawer's Checkout is the same page at `/checkout` —
+    the component stays mounted, so it kept showing the order just placed. `useCheckout({ visit })`
+    (`"buy"`/`"cart"`, from `useOnBuyNowUrl`) clears `placed` when the visit changes. Not a `key`
+    on the page: that would also remount on **Add them to this order** and wipe the typed address.
+  - **`BuyNowCartNote`** (`components/storefront/checkout/buy-now-cart-note.tsx`) says "You also
+    have N other item(s) in your cart" with **Add them to this order**, which folds the line into
+    the cart (`useBuyNowCartMerge` — a line the cart already holds keeps the LARGER quantity, not
+    the sum) and `replace`s to `/checkout`.
+  - `CartSync` skips the "reached checkout" stamp on a `?buy=1` checkout, and the buy-now line is
+    **not mirrored** — a shopper who abandons a Buy now checkout leaves no abandoned cart, though
+    the guest contact capture still records who they are.
 - **API client**: `lib/storefront-client.ts` — `sfFetch` (no auth header unless `token` passed).
   Error payloads carry the message in `json.error`. On **401 with a token that is still the
   current session token, the shopper session is dropped** (self-healing stale sessions).
@@ -1649,7 +1676,18 @@ whole shop down on **every page** — the merchant trades their fold for a sente
   - The two shapes are CSS wrappers (`.sf-search-pill`, `.sf-search-rule` in `storefront.css`), not
     a forked search component. They need `!important`: `SearchInput` sets its box geometry inline —
     storefront components style against CSS vars, not classes — and an inline style outranks every
-    selector.
+    selector. `.sf-search-soft` (below) is the third; it lives in `storefront-showroom.css`.
+  - `showroom` is the **seventh**, added 2026-10-26 from the default starter design: Classic's
+    anatomy with the search box centred at 560px (`.sf-search-soft`), a wishlist heart
+    (`WishlistLink` → `/account?tab=wishlist`, gated on accounts), a soft cart button carrying its
+    count (`CartPill`), the account link at body size (`AccountLink strong`) and a 14px darker menu
+    row (`.sf-hdr-showroom`). **A separate anatomy, not a restyle of Classic**, because Classic is
+    what every live shop wears and is the reset — new stores' starters pick `showroom`, any
+    merchant can, and no existing shop changes under its owner. **No utility bar by default**
+    (`resolveUtilityBar`, 2026-10-28): the language and dark-mode buttons sit in its own row
+    (`.sf-hdr-toggle`, sized by the Showroom sheet) and Track order in the footer's Help column.
+    ⚠ The toggles stay `{ctx.needsLang ? <LangBtn …` directly — `desktop-variants.test.tsx` greps
+    for that guard, so wrap the PAIR, never each button.
 - **The `search-first` cart pill carries count AND subtotal** (`2 · BDT 12.00`), not a bare count.
   A shopper filling a weekly basket watches that number. `useCartNav` exposes `cartSubtotal`,
   selected separately from `cartCount` so the five headers that ignore it re-render no more often
@@ -1703,6 +1741,75 @@ whole shop down on **every page** — the merchant trades their fold for a sente
     outweighs the products. **A definite px max is what makes `auto-fit` count tracks at the MAX
     rather than the min**, which is why a 132px cap put only *two* tiles on a 358px phone row. The
     component supplies `--tile-min` / `--tile-max`; the media query is the CSS's.
+
+### The Showroom finish (2026-10-26, drawn to the pixel 2026-10-28)
+
+The default starter design is reproduced in two layers. Keep them apart.
+
+**1. The theme sheet — `app/(storefront)/storefront-showroom.css`.** Deliberately theme-specific:
+the owner's direction (2026-10-28) is "not everything controlled; a few things theme-specific".
+Every rule is scoped to `.sf-shell[data-skin="showroom"]`, which `StoreShell` stamps only while
+`templates.header` is `showroom` — so Classic, the reset every live shop wears, never changes.
+Loaded last in `app/(storefront)/layout.tsx`. Its rules:
+
+- **It finishes only what the merchant left alone.** A section says what it was given:
+  `data-styled-padding` / `data-styled-bg` (`SectionFrame.styledPadding` / `styledBackground`,
+  `styledWidth`'s pattern — CSS cannot ask whether a custom property was set) and `data-type` for
+  per-kind finishes. The section rhythm (56px above, 8px below, 72px under the last) and the
+  promises band's white ground apply only without them.
+- **`!important` is the tool, not a smell, here.** The shared components style inline, and an
+  important sheet declaration is the only thing that outranks a normal inline one — including the
+  frame's `--sfb-pt` custom properties and `display: flex` on `.sfb-title-row` (the `display:
+  contents` that lets heading, line and link share one grid needs it, or the row stays a flex box).
+- **Hooks are classes with no style of their own**, added for the sheet: `sf-hero-fullbleed-cta`
+  (+ `-2` for the outlined one), `sf-icon-disc`, `sfb-title` (the heading+line wrapper),
+  `sfb-heading-link` / `sfb-heading-arrow` (the arrow its own `aria-hidden` span, redrawn as a mask),
+  `sf-cat-circle(-photo)`, the card's `sf-card-badges|discount|body|name|price|from|now|was|ctas`,
+  `sf-tag-chip`, `sf-banner-cta`, `sf-newsletter`, `sf-pay-badge(s)`, `sf-footer-blurb`.
+  Two carry markup the base sheet HIDES and Showroom shows: `.sf-banner-eyebrow` (the collection
+  over a promo card's own title) and `.sf-pay-label` ("We accept").
+- **One component branches on the skin:** `ProductCard` draws the wishlist heart
+  (`.sf-card-wish`) when `useHeaderVariant(store) === "showroom"` and the shop has accounts.
+- **Strip arrows render DISABLED rather than not at all** at an edge (`CategoryStrip`); the base
+  sheet hides `:disabled`, Showroom keeps a greyed one in the carousel's heading row.
+- ⚠ **A track list with no free space ignores alignment.** The design's category grid
+  (`auto-fill` + `1fr`) fills the row, so the tiles' own Alignment (`justify-content` via
+  `--sf-ct-justify`) moved nothing until a centred or right row got collapsing `auto-fit` tracks
+  (`data-align` on `.sf-cat-tiles`). Any grid the sheet redraws must still answer the merchant's
+  alignment.
+- Measured traps: a full-span item (`grid-column: 1 / -1`) occupies every `auto-fit` track, so
+  empty ones never collapse — the footer columns are a flex row for that reason; a hairline drawn
+  by an absolute pseudo-element takes no space, so its pixel is reserved in the padding; a 4:5
+  photo beside short copy sets the row's height unless it is `height: 0; min-height: max(380px,
+  100%)`.
+- **Verify against the design, not by eye.** The comparison harness renders the canvas design to
+  static HTML and the store side by side, and every section's top, height and inner boxes are
+  compared in the browser; matching to the pixel took that, not screenshots.
+
+**2. Settings any theme can use.** What the design needed that is content, not look — a merchant
+edits these whatever header they wear:
+
+- **Full-bleed hero honours `badgeTone`** (`HeroFullBleedView`): set, its badge is the shared
+  `.sf-hero-badge` chip; unset keeps the spaced white capitals every full-bleed hero drew before.
+  The chip keeps `sf-hero-fullbleed-badge` too, because the phone's "headline only" rule hides by
+  that class. `field-visibility` offers the colour once a slide has badge text.
+- **Full-bleed hero draws a slide's second button** — a label alone draws it, an empty link is the
+  catalogue, as on card and open. ⚠ It is a SIBLING `<a>`, never a wrapped pair: the phone's button
+  sizing is `.sf-hero-fullbleed-copy > a`, and a wrapper would change every live full-bleed hero.
+- **Promises band `iconStyle: "soft"`** — `IconDisc tone="soft"`: text colour on `--surface`. Band
+  only; the footer's `FOOTER_ICON_STYLES` (both repos) does not offer it yet.
+- **A promise's `detail`** — the band's own rows only (the store's `trustBadges` have none): a
+  smaller line under the promise. Without it the row is the single span it always was.
+- **Image and text `blocks`** — ticked points (`.sfb-points`, a green tick in every theme: it
+  says "yes", not "brand"). Editor noun "Point".
+- **Image banner `badge`** — small capitals over the heading (`.sfb-banner-badge`).
+- **Category tiles `ctaLabel` / `ctaHref`** — through `SectionHeading`, so like a product row's
+  link it needs both. There is no all-collections page; the starter points it at `/products`.
+- ⚠ **The product rail's column width is `max(150px, …)`, never `minmax()`**, in BOTH copies
+  (`product-rail-track.tsx` inline, and `.sf-cat-strip-track.sf-rail-track` in
+  `storefront-builder.css` for the arrows branch). A rail always overflows, so a `minmax` track
+  never grows past its minimum: until 2026-10-26 every carousel drew 150px cards and "cards per
+  view" (`--cols`) did nothing.
 
 ### The MOBILE axis — a registry, not a set of components (2026-09-06)
 
@@ -2780,8 +2887,10 @@ from `100vh` and overflows any container that caps its own height.
 **The apply flow has no bespoke machinery**, and that is the design:
 `/ecommerce/customize?theme=<id>` stages the bundle into the draft as an ordinary unsaved edit, so
 the existing live preview *is* the preview, the save bar lists what changed, **Discard is the undo
-and Save draft + Publish is the confirm**. There is no snapshot table and no confirmation modal — and therefore no
-second code path that could persist something the preview never showed. The param is staged during
+and Save draft + Publish is the confirm**. There is no snapshot table, and for a look-only theme no
+confirmation modal — and therefore no second code path that could persist something the preview never
+showed. (A theme with `homeLayout` asks one question first — see "Starting the home page from a
+theme" below — and still lands in this same flow.) The param is staged during
 render via **state** (the `seededSettings` pattern), not an effect (which would flash the old look
 for a frame) and not a ref (`react-hooks` rejects reading a ref during render). It is stripped from
 the URL in an effect so a reload after Discard cannot silently re-stage a rejected theme.
@@ -2789,19 +2898,29 @@ the URL in an effect so a reload after Discard cannot silently re-stage a reject
 **`applyThemeToDraft` is the one place that decides what a theme may write** — it returns only look
 fields, and `apply-theme.test.ts` asserts that none of `footerText`/`footerNote`/`badges`/
 `navHeader`/`footerGroups`/`collections` appear in the patch. **Nor the home page**: it is a builder
-page (Pages → Home), so a theme never adds, moves or removes a section. `templates` is **spread**,
+page (Pages → Home), so applying a theme never adds, moves or removes a section — unless the merchant
+asks for the theme's home in the apply dialog, which writes the home page's DRAFT through its own
+route and never through this patch. `templates` is **spread**,
 never replaced: the bundles deliberately omit `headerMenu`, which depends on what content a shop
 actually has, and a wholesale replace would blank it.
 
-**The catalogue is four bundles, Classic first** (2026-08-13): **Classic**, **Fresh Market**,
-**Meridian Care**, **Muslin**. They replaced Grocery Modern / Pharmacy Lite / Fashion Shine, which
-were structurally distinct but visually unrefined.
+**The catalogue is five bundles, the Default first** (2026-10-28): **Default** (id `showroom`),
+**Fresh Market**, **Meridian Care**, **Muslin**, **Little Steps**. The Default is the Showroom look —
+what new stores open on, and the reset — and it REPLACED **Classic** (2026-08-13 to 2026-10-28), whose
+bundle was the storefront's built-in look. A store still wearing Classic keeps it: its
+`appliedThemeId: "classic"` simply names no entry, so the Themes page shows no theme Live.
 
-⚠ **Classic doubles as "reset to default", so its bundle MUST equal the built-in defaults.** That is
-four assertions in `apply-theme.test.ts` (design tokens, colour preset, every key resolving to
-`DEFAULT_TEMPLATES`, and the same key SET as every other bundle). If it
-drifts, applying Classic silently restyles a shop that was already on the stock look — the one
-failure mode where the merchant did nothing and the shop changed anyway. The templates comparison
+⚠ **The Default is not the built-in fallback, and the fallback must not move.** A store that never
+applied a theme renders `DEFAULT_TEMPLATES` / `DEFAULT_DESIGN` (the Classic header) — every live shop
+that never opened Customize. `apply-theme.test.ts` pins both halves: the Default writes every key
+the other bundles write (or a reset would be partial) and differs from the built-in values only in
+`header` and `imageFit`; and the built-in values are still Classic's. Changing the fallback would
+restyle those shops with nobody touching anything.
+
+⚠ **The backend starter carries a COPY of the Default bundle** (`SHOWROOM_TEMPLATES` /
+`SHOWROOM_THEME` in `storefront-starter.ts`, with `appliedThemeId: "showroom"`), so a new store is
+born on it and the Themes page names it Live. Change the bundle and change the copy, or every new
+store opens "Live · edited". The templates comparison
 goes through `resolveTemplates`, because bundles store RAW admin ids (`"grid-4"`) and the storefront
 consumes resolved names (`"grid4"`); comparing the strings would pass while the vocabularies drifted.
 
@@ -2820,6 +2939,29 @@ loss, and the promise a theme has to keep is that their words survive *visibly*.
 draw the blurb** — `columns`/`rich`/`contact` via `BrandLead`, `simple` via its own centred `<p>` —
 and `newsletter` was the sole exception until it was fixed to lead with `FooterBrand`. **Adding a
 footer variant means deciding where the blurb goes**; omitting it is the bug, not the default.
+
+### Starting the home page from a theme (2026-10-28)
+
+A theme with `homeLayout: true` (only the **Default**, id `showroom`) carries a home page of its
+own: the backend's `THEME_HOME_IDS` / `themeHome`, the new-store starter's home. Its **Apply this
+theme** opens `ApplyThemeDialog` instead of linking straight to Customize:
+
+- **Change the look only** (recommended, preselected) — the `?theme=` flow above, unchanged.
+- **Change the look and start the home page from this theme** — `useStartHomeFromTheme` →
+  `POST /ecommerce/pages/home/theme` writes the layout into the home page's **draft** (the page then
+  carries `draftTheme`), and only then routes to the same `?theme=` flow. The Customize preview shows
+  it because the owner preview renders a builder page's draft.
+
+**`SitePublishBar` publishes and discards the pair** while the home row (`useStoreHomePageRow`) has a
+draft with `draftTheme`: Publish sends the look, then the home page (a failure after the first leaves
+a working shop and the home still waiting); Discard drops both; the status line names the theme.
+
+⚠ **`draftTheme` is the whole safety story — keep it exact.** The backend clears it on EVERY other
+draft write (save, discard, publish, restore), so a home draft the merchant has since edited by hand
+is never swept live from Customize — it is theirs, published from the page editor. And the dialog
+and the backend both refuse to replace the merchant's own unpublished home edits
+(`STOREFRONT_HOME_HAS_DRAFT`): a draft is not in the revision history, so that would lose work. A
+draft a theme wrote may be replaced.
 
 ### A look save REPLACES each block it sends — and the validator says so with a 400
 

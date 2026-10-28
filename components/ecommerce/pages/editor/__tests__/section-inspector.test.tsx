@@ -103,15 +103,16 @@ describe("SectionInspector tabs", () => {
     expect(screen.queryByText("Show as a slideshow")).toBeNull();
     card.unmount();
 
-    /* A full-bleed hero has no card to put promises under, no second button and
-       no badge, and it never reads the slideshow flag — so none of them is
-       offered. The stored values stay: see field-visibility.test.ts. */
+    /* A full-bleed hero has no card to put promises under and no running-offer
+       badge, and it never reads the slideshow flag — so none of them is
+       offered. The stored values stay: see field-visibility.test.ts. Its second
+       button IS drawn since 2026-10-26, so that one is offered. */
     const wide = inspect(hero({ layout: "full-bleed" }));
+    expect(screen.getByText("Second button label")).toBeTruthy();
     for (const label of [
       "Show your promises",
       "Show as a slideshow",
       "Show the running offer as the badge",
-      "Second button label",
       "Use the store's wording",
     ]) {
       expect(screen.queryByText(label)).toBeNull();

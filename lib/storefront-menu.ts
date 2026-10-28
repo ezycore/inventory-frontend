@@ -489,12 +489,20 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  * `includes()` check did.
  */
 export function isNodeActive(node: MenuNode, pathname: string): boolean {
+  const here = pathname.split(/[?#]/)[0];
   if (node.path) {
     const re = new RegExp(`(^|/)${escapeRe(node.path)}(/|$)`);
-    if (re.test(pathname.split(/[?#]/)[0])) return true;
+    if (re.test(here)) return true;
+  } else if (!node.external && trimEnd(node.href) === trimEnd(here)) {
+    // A link with no path of its own — the store's home ("/"), a written page —
+    // is current on exactly its own address, never on the pages under it.
+    return true;
   }
   return node.children.some((child) => isNodeActive(child, pathname));
 }
+
+/** `/shop/` and `/shop` are one address; the bare root stays `/`. */
+const trimEnd = (path: string) => path.replace(/\/+$/, "") || "/";
 
 /**
  * Which groups start open, as a rule rather than a setting id — the phone and

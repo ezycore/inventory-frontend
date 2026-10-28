@@ -74,7 +74,7 @@ export function FooterNewsletter({
   };
 
   return (
-    <div>
+    <div className="sf-newsletter">
       <div style={{ ...headingStyle }}>{heading?.trim() || t.footerNewsletterHeading}</div>
       <p style={blurbStyle}>{blurb?.trim() || t.footerNewsletterBlurb}</p>
 

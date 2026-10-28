@@ -8,14 +8,13 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useStoreProduct } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { storeHref } from "@/lib/storefront-links";
+import { useStartBuyNow } from "@/services/storefront/use-buy-now";
 import { thumbImageUrl } from "@/lib/storefront-image";
 import { cartLineCap } from "@/lib/storefront-cart-qty";
 import {
@@ -54,10 +53,10 @@ export type CardQuickBuy = ReturnType<typeof useCardQuickBuy>;
  * replaces it. A product with no options still buys immediately.
  */
 export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
-  const { slug, base } = useStoreContext();
+  const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
-  const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
+  const startBuyNow = useStartBuyNow();
 
   const variable = !!product.hasVariants;
   const [wanted, setWanted] = useState(false);
@@ -121,18 +120,19 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   const commit = useCallback(
     (line: QuickBuyLine, intent: "add" | "buy") => {
       const { qty, ...item } = line;
-      addItem(slug, item, qty);
       setFlyoutOpen(false);
       setSheetOpen(false);
       if (intent === "buy") {
-        // No toast: arriving at checkout with the item in the cart IS the
-        // confirmation, and a toast would land on a screen change.
-        router.push(storeHref(base, "/checkout"));
+        // This line only, cart untouched (`useStartBuyNow`). No toast: arriving
+        // at checkout IS the confirmation, and a toast would land on a screen
+        // change.
+        startBuyNow(item, qty);
       } else {
+        addItem(slug, item, qty);
         toast.success(t.added);
       }
     },
-    [addItem, base, router, slug, t.added],
+    [addItem, slug, startBuyNow, t.added],
   );
 
   /** The card's own line — a product with no options needs no detail payload. */

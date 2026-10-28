@@ -210,7 +210,19 @@ export function ThemeBtn({ ctx, compact }: { ctx: HeaderCtx; compact?: boolean }
   );
 }
 
-export function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
+const ACCOUNT_LINK: CSSProperties = { display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 };
+/** Showroom's: the label at body size in the text colour, on a 44px target. */
+const ACCOUNT_LINK_STRONG: CSSProperties = { ...ACCOUNT_LINK, gap: 8, fontSize: 14, color: "var(--text)", height: 44, padding: "0 12px", borderRadius: 10 };
+
+export function AccountLink({
+  ctx,
+  withLabel,
+  strong,
+}: {
+  ctx: HeaderCtx;
+  withLabel?: boolean;
+  strong?: boolean;
+}) {
   const { base, shopperName, sessionKnown, t } = ctx;
   // Gated here rather than at six call sites: with accounts off there is no
   // account area to link to, and a seventh anatomy must not be able to forget
@@ -225,9 +237,27 @@ export function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: bo
     <span>{shopperName ? shopperName.split(" ")[0] : t.signIn}</span>
   );
   return (
-    <Link href={storeHref(base, "/account")} aria-label={t.myAccount} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
-      <Icon name="user" size={18} />
+    <Link href={storeHref(base, "/account")} aria-label={t.myAccount} style={strong ? ACCOUNT_LINK_STRONG : ACCOUNT_LINK}>
+      <Icon name="user" size={strong ? 20 : 18} />
       {withLabel ? label : null}
+    </Link>
+  );
+}
+
+/**
+ * The wishlist heart (Showroom). The list lives in the shopper's account
+ * (`?tab=wishlist`, which the account page adopts on mount), so it is gated on
+ * accounts exactly as `AccountLink` is: with accounts off there is no list to open.
+ */
+export function WishlistLink({ ctx }: { ctx: HeaderCtx }) {
+  if (!ctx.showAccount) return null;
+  return (
+    <Link
+      href={storeHref(ctx.base, "/account?tab=wishlist")}
+      aria-label={ctx.t.tabWishlist}
+      style={{ display: "grid", placeItems: "center", width: 44, height: 44, color: "var(--text)" }}
+    >
+      <Icon name="heart" size={20} />
     </Link>
   );
 }
@@ -244,6 +274,62 @@ export function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boo
 }
 
 /**
+ * Showroom's cart: a soft button carrying its label and, once something is in
+ * it, the count beside the label rather than perched on the icon.
+ */
+export function CartPill({ ctx }: { ctx: HeaderCtx }) {
+  const { goCart, cartCount, t } = ctx;
+  return (
+    <button
+      type="button"
+      onClick={goCart}
+      aria-label={t.cart}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        height: 44,
+        padding: "0 14px",
+        marginLeft: 4,
+        background: "var(--surface)",
+        color: "var(--text)",
+        border: "none",
+        borderRadius: 10,
+        fontSize: 14,
+        fontWeight: 600,
+        fontFamily: "inherit",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Icon name="cart" size={20} />
+      {t.cart}
+      {cartCount > 0 ? (
+        <span
+          className="sf-mono"
+          style={{
+            minWidth: 20,
+            height: 20,
+            padding: "0 6px",
+            boxSizing: "border-box",
+            borderRadius: 999,
+            background: "var(--primary)",
+            color: "var(--on-primary)",
+            fontSize: 11,
+            fontWeight: 700,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {cartCount}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+/**
  * The menu row under Classic's and Centered's brand bar (and, when the merchant
  * asks for it, under Search-first's and Clinical's — `menuDesktop.row`).
  *
@@ -251,12 +337,21 @@ export function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boo
  * dropdown under its parent whether the merchant built a menu or not — the
  * default store, whose owner never opened Customize, included.
  */
-export function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
+export function CategoryRow({
+  ctx,
+  center,
+  rowStyle,
+}: {
+  ctx: HeaderCtx;
+  center?: boolean;
+  /** An anatomy's own row geometry (Showroom's 4px pills); unset is `HeaderNav`'s default. */
+  rowStyle?: CSSProperties;
+}) {
   // The rail shell already lists every department down the left of the page;
   // drawing the same list again here is the duplication that has bitten this
   // storefront twice already (the trust badges, and the hero photograph).
   if (ctx.hideCategoryRow || ctx.menuTree.length === 0) return null;
-  return <HeaderNav nodes={ctx.menuTree} menu={ctx.menuDesktop} center={center} />;
+  return <HeaderNav nodes={ctx.menuTree} menu={ctx.menuDesktop} center={center} rowStyle={rowStyle} />;
 }
 
 function CartBadge({ count, compact }: { count: number; compact?: boolean }) {

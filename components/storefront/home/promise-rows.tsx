@@ -25,9 +25,9 @@ export function promiseIcon(icon: string | undefined, index: number, style: Prom
 }
 
 /**
- * One promise's icon in the list's style: on a solid accent disc, or a bare
- * glyph in the brand colour. Shared by the promises band and the footer's
- * promises, so the same setting draws the same mark in both.
+ * One promise's icon in the list's style: on a solid accent disc, on a soft
+ * neutral one, or a bare glyph in the brand colour. Shared by the promises band
+ * and the footer's promises, so the same setting draws the same mark in both.
  */
 export function PromiseIcon({
   name,
@@ -39,7 +39,9 @@ export function PromiseIcon({
   /** The disc's diameter. The plain glyph is sized for its row, not by this. */
   size?: number;
 }) {
-  if (style === "disc") return <IconDisc name={name} size={size} />;
+  if (style === "disc" || style === "soft") {
+    return <IconDisc name={name} size={size} tone={style === "soft" ? "soft" : "solid"} />;
+  }
   return (
     <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
       <Icon name={name} size={19} />
@@ -60,7 +62,8 @@ export function PromiseRows({
   className,
   style,
 }: {
-  promises: readonly { text: string; icon?: string }[];
+  /** `detail` is the builder band's smaller second line; the store's own promises have none. */
+  promises: readonly { text: string; detail?: string; icon?: string }[];
   /** Unset is `disc`, what every band drew before the setting. */
   iconStyle?: PromiseIconStyle;
   /** The builder band's own column count rides on the list — see `PromisesBandSection`. */
@@ -82,9 +85,22 @@ export function PromiseRows({
                 section's Text colour on the frame and every line drawn on it
                 has to read it (`.sfb-sec[data-tone]`). Hardcoding the token
                 left the promises the theme's colour on a merchant's own ground. */}
-            <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "inherit" }}>
-              {promise.text}
-            </span>
+            {promise.detail?.trim() ? (
+              <span className="sf-trust-copy">
+                <span className="sf-trust-title" style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "inherit", display: "block" }}>
+                  {promise.text}
+                </span>
+                {/* Muted from the frame's own colour (`--sfb-muted`), for the
+                    same reason the line above inherits. */}
+                <span className="sf-trust-detail" style={{ fontSize: 12.5, lineHeight: 1.4, color: "var(--sfb-muted, var(--muted))", display: "block" }}>
+                  {promise.detail.trim()}
+                </span>
+              </span>
+            ) : (
+              <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "inherit" }}>
+                {promise.text}
+              </span>
+            )}
           </div>
         );
       })}

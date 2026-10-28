@@ -27,6 +27,8 @@ export interface PageSectionInstance {
 
 export interface PreparedPageSection {
   id: string;
+  /** The section type, as stored. */
+  type: string;
   frame: SectionFrame;
   /** Which breakpoint hides it, if one does. */
   hide?: "desktop" | "mobile";
@@ -64,6 +66,7 @@ export function prepareSections(
     if (!section) continue;
     prepared.push({
       id: instance.id,
+      type: instance.type,
       frame: sectionFrame(instance.style, section.frame),
       hide: !desktop ? "desktop" : !mobile ? "mobile" : undefined,
       products: instance.visibility?.products,
@@ -106,7 +109,7 @@ export function PageSections({
 }) {
   return (
     <>
-      {sections.map(({ id, frame, hide, products, section }) => {
+      {sections.map(({ id, type, frame, hide, products, section }) => {
         const sectionData = data[id];
         if (!showsOnProduct(products, context.product)) return null;
         if (section.isEmpty(sectionData, context)) return null;
@@ -128,6 +131,12 @@ export function PageSections({
             data-border={frame.border ? frame.borderSides : undefined}
             data-overlay={frame.overlay !== undefined ? "" : undefined}
             data-styled-width={frame.styledWidth ? "" : undefined}
+            data-styled-padding={frame.styledPadding ? "" : undefined}
+            data-styled-bg={frame.styledBackground ? "" : undefined}
+            // Which kind of section, for a theme sheet's finish of one type
+            // (`storefront-showroom.css`). Not the instance id, which is
+            // editor markup a shopper's page does not carry.
+            data-type={type}
             data-float={section.floating ? "" : undefined}
             data-section-id={annotate ? id : undefined}
             style={frame.style}

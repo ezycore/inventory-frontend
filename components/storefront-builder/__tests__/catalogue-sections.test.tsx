@@ -255,6 +255,25 @@ describe("category-tiles", () => {
     const grid = container.querySelector(".sf-cat-tiles") as HTMLElement;
     expect(hrefs(grid)).toEqual(["/shop/phones", "/shop/audio"]);
     expect(container.textContent).toContain("Departments");
+    // The row's alignment, said where a theme sheet can select on it — the
+    // Showroom grid needs it to let a centred row move (`--sf-ct-justify` alone
+    // cannot be selected on).
+    expect(grid.dataset.align).toBe("left");
+    const centred = renderPage([section("t2", "category-tiles", { align: "center" })]).container;
+    expect((centred.querySelector(".sf-cat-tiles") as HTMLElement).dataset.align).toBe("center");
+  });
+
+  it("links beside its heading only with both a label and a destination", () => {
+    const linked = renderPage([
+      section("t1", "category-tiles", { heading: "Departments", ctaLabel: "All categories", ctaHref: "/products" }),
+    ]).container;
+    const link = linked.querySelector(".sfb-heading-link") as HTMLElement;
+    expect(link.getAttribute("href")).toBe("/shop/products");
+    expect(link.textContent).toContain("All categories");
+    // The arrow is decoration, in its own element a theme can redraw.
+    expect(link.querySelector(".sfb-heading-arrow")?.getAttribute("aria-hidden")).toBe("true");
+    const half = renderPage([section("t1", "category-tiles", { heading: "Departments", ctaLabel: "All" })]).container;
+    expect(half.querySelector(".sfb-heading-link")).toBeNull();
   });
 
   it("hands a strip to the category-strip island, picked sub-collections included", () => {

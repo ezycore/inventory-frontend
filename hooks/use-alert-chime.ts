@@ -127,14 +127,20 @@ export function useAlertChime(
 
     if (prefs.sound) void playChime().then((played) => setSoundBlocked(!played));
     if (prefs.popup && popupPermission() === "granted") {
-      for (const alert of fresh.slice(0, 3)) {
-        const { title, body } = describe(alert);
-        const popup = new Notification(title, { body, tag: alert._id });
-        popup.onclick = () => {
-          window.focus();
-          onOpen(alert);
-          popup.close();
-        };
+      try {
+        for (const alert of fresh.slice(0, 3)) {
+          const { title, body } = describe(alert);
+          const popup = new Notification(title, { body, tag: alert._id });
+          popup.onclick = () => {
+            window.focus();
+            onOpen(alert);
+            popup.close();
+          };
+        }
+      } catch {
+        // Android Chrome has `Notification` and grants it, but the constructor throws — it only
+        // shows pop-ups through a service worker, which this app has none of. Hide the switch.
+        setPermission("unsupported");
       }
     }
   }, [alerts, prefs.sound, prefs.popup, describe, onOpen]);

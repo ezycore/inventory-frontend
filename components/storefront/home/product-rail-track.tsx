@@ -16,10 +16,15 @@ import { CategoryStrip } from "@/components/storefront/home/category-strip";
  * `imageFit` / `imageRatio` are a builder section's own card photo settings;
  * unset, every card follows the store's.
  */
+/* ⚠ `max()`, never `minmax()`. A rail always overflows, so its grid never has
+   free space and a `minmax(150px, …)` track settles on the 150px minimum —
+   every carousel drew 150px cards and "cards per view" (`--cols`) did nothing
+   until 2026-10-26. `max()` is a definite width: `--cols` cards across, never
+   narrower than 150px. */
 const track: CSSProperties = {
   display: "grid",
   gridAutoFlow: "column",
-  gridAutoColumns: "minmax(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)))",
+  gridAutoColumns: "max(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)))",
   gap: "var(--gap)",
   overflowX: "auto",
   scrollSnapType: "x mandatory",

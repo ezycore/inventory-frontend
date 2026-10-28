@@ -318,3 +318,83 @@ describe("lines — a landing page's order form", () => {
     expect(trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout")).toHaveLength(1);
   });
 });
+
+/**
+ * Buy now orders the one line the shopper pressed it on. The cart — which may
+ * hold things they saved last week — is not ordered, not emptied and not closed
+ * on the server, and the coupon quote never outlives the lines it priced.
+ */
+describe("buyNow — one line, cart untouched", () => {
+  const buyNow = { productId: "p7", slug: "oil", name: "Oil", price: 300, quantity: 2, maxQty: 9 };
+  const openStore = {
+    currency: "BDT",
+    allowedPaymentMethods: ["cod"],
+    checkout: { requiredFields: ["name", "phone", "address"] },
+  };
+
+  it("orders the buy-now line instead of the cart and leaves the cart alone", async () => {
+    store = openStore;
+    const { useBuyNowStore } = await import("@/services/stores/use-buy-now-store");
+    useBuyNowStore.getState().start("rmc", buyNow);
+    const { result } = renderHook(() => useCheckout({ buyNow }));
+    expect(result.current.items).toEqual([buyNow]);
+    expect(result.current.subtotal).toBe(600);
+
+    fillStepOne(result.current);
+    act(() => result.current.submit());
+
+    const [body, callbacks] = placeOrder.mock.calls[0];
+    expect(body.items).toEqual([{ productId: "p7", variantId: undefined, quantity: 2 }]);
+    expect(body.anonymousId).toBeUndefined();
+
+    act(() => callbacks.onSuccess({ orderNumber: "ORD-3" }));
+    expect(clearCart).not.toHaveBeenCalled();
+    expect(useBuyNowStore.getState().line).toBeNull();
+  });
+
+  it("reports InitiateCheckout on arrival, like any checkout-page visit", () => {
+    store = openStore;
+    renderHook(() => useCheckout({ buyNow }));
+    expect(trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout")).toHaveLength(1);
+  });
+
+  it("leaves the placed card for a fresh cart checkout when the shopper opens one", () => {
+    store = openStore;
+    const { result, rerender } = renderHook(
+      (props: { buyNow?: typeof buyNow; visit: string }) => useCheckout(props),
+      { initialProps: { buyNow, visit: "buy" } },
+    );
+    fillStepOne(result.current);
+    act(() => result.current.submit());
+    act(() => placeOrder.mock.calls[0][1].onSuccess({ orderNumber: "ORD-4" }));
+
+    // The buy-now session ended, but the URL still asks for the buy-now visit:
+    // the order just placed stays on screen.
+    rerender({ buyNow: undefined, visit: "buy" });
+    expect(result.current.placed).toEqual({ orderNumber: "ORD-4" });
+
+    // The cart drawer's Checkout: same page, cart visit — the cart's checkout.
+    rerender({ buyNow: undefined, visit: "cart" });
+    expect(result.current.placed).toBeNull();
+    expect(result.current.items).toEqual(cartItems);
+    expect(result.current.addr.name).toBe("Rashidul Karim");
+  });
+
+  it("drops a coupon quote when the lines it priced change", async () => {
+    store = openStore;
+    const { storefrontApi } = await import("@/lib/storefront-client");
+    vi.mocked(storefrontApi.validateCoupon).mockResolvedValue({ code: "EID", discountAmount: 50 } as never);
+    const { result, rerender } = renderHook(
+      (props: { buyNow?: typeof buyNow }) => useCheckout(props),
+      { initialProps: { buyNow } },
+    );
+    act(() => result.current.setCoupon("EID"));
+    await act(async () => result.current.applyCoupon());
+    expect(result.current.discount).toBe(50);
+
+    // The shopper took the rest of the cart in: the order is now the cart.
+    rerender({ buyNow: undefined });
+    expect(result.current.items).toEqual(cartItems);
+    expect(result.current.discount).toBe(0);
+  });
+});

@@ -16,6 +16,7 @@ question is "what would a shopkeeper call this?", not "what is the correct Bangl
 - **Keep English** — leave in Latin script (rare; e.g. SKU-like codes, "VAT" on receipts is fine either way).
 - When two forms are listed, the first is the app-wide choice; the second is noted for context only.
 - Digits stay Western (0-9) with lakh/crore grouping (১,২৩,৪৫৬ style grouping but Western digits: 1,23,456). Currency symbol: ৳.
+  - **One exception — a lone count glued to a Bangla word** ("8টি"): in Bangla script a Western `8` reads as `৪` (four), and a merchant read it that way. Format such a count with Bangla digits via ICU `{count, number}` (Intl prints `৮` for `bn`). Used in the setup wizard's welcome line (`onboarding.welcome.subtitle`). Money, quantities and tables keep Western digits.
 
 ## Core domain terms
 

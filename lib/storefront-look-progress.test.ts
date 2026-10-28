@@ -46,6 +46,8 @@ describe("recommendedThemeFor", () => {
   it("names the theme drawn for the trade", () => {
     expect(recommendedThemeFor("GROCERY_STORE")?.id).toBe("fresh-market");
     expect(recommendedThemeFor("PHARMACY")?.id).toBe("meridian-care");
+    // An online shop opens on the Showroom (the backend starter), so that is its suggestion.
+    expect(recommendedThemeFor("ONLINE_SHOP")?.id).toBe("showroom");
   });
 
   // Silence is the deliberate answer for a trade nothing was drawn for:
