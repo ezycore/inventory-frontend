@@ -63,6 +63,11 @@ so a shared shop computer can stay quiet while your own laptop rings. Your brows
 permission the first time you switch the pop-up on. The bell only works while ezycore is open in a
 tab; the email covers the times it is not.
 
+If the pop-up is on but never appears, your computer may be holding it back: on Windows, check that
+**Do not disturb** is off and that Chrome is allowed under Settings → System → Notifications. Chrome
+on Android phones cannot show these pop-ups, so the switch disappears there after the first alert —
+the sound and the bell still work.
+
 To stop a kind of alert ringing the bell for everyone, untick its **In ezycore** box here.
 
 ## Who "you" means
