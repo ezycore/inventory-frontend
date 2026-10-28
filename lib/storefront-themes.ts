@@ -59,6 +59,14 @@ export interface ReadyMadeTheme {
    * field exists to close.
    */
   sample: ThemeSample;
+  /**
+   * The theme carries a home page of its own (backend `THEME_HOME_IDS`, keyed by
+   * this `id`): applying it may also START the home page from that layout, into
+   * the home page's draft, published together with the look in Customize. The
+   * one exception to "a theme writes only the look" — and only when the merchant
+   * picks it in the apply dialog. Unset is a look-only theme.
+   */
+  homeLayout?: boolean;
   /** Only keys a theme is allowed to own — see the note above. */
   templates: {
     header: string;
@@ -85,30 +93,40 @@ export interface ReadyMadeTheme {
 }
 
 /**
- * The catalogue, **Classic first**.
+ * The catalogue, **the Default first**.
  *
- * Order is meaningful: Classic is the storefront exactly as it ships, so it is
- * both the honest "this is what you already have" entry and the missing **reset
- * to default** — applying it stamps the built-in values back over whatever a
- * merchant experimented with. `apply-theme.test.ts` asserts that equivalence
- * field by field, because a Classic bundle that drifted from the defaults would
- * silently restyle every shop that was already on it.
+ * Order is meaningful: the Default is the look a new store opens on, so it is
+ * both the honest "this is what you started with" entry and the **reset** —
+ * applying it stamps every axis back over whatever a merchant experimented with.
+ * It writes every key the other bundles write (`apply-theme.test.ts`), or the
+ * reset would be partial.
+ *
+ * ⚠ **The Default is NOT the storefront's built-in fallback.** A store that has
+ * never applied a theme renders `DEFAULT_TEMPLATES` / `DEFAULT_DESIGN` — the
+ * Classic header, every live shop that never opened Customize — and those stay
+ * exactly as they were: changing them would restyle such shops with nobody
+ * touching anything. Until 2026-10-28 the first entry was **Classic**, whose
+ * bundle WAS that fallback; it was replaced by the Showroom look as the Default,
+ * and a store still wearing Classic keeps it (its `appliedThemeId: "classic"`
+ * simply names no entry now).
  */
 export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   {
-    id: "classic",
+    /* The default design (2026-10-26): what a new store opens on (the backend
+       starter stamps this bundle and `appliedThemeId: "showroom"`). The id stays
+       `showroom` — it is what the backend's `THEME_HOME_IDS` and the header's
+       own template call it — while merchants see "Default". The Showroom header,
+       whose finish is its own stylesheet (`storefront-showroom.css`), the menu's
+       pill on hover and photographs cropped to fill their cards; every other
+       axis is the storefront's own default. */
+    id: "showroom",
     sample: NEUTRAL_SAMPLE,
-    label: "Classic",
-    tagline: "The shop as it ships — a clear grid, a simple hero, nothing loud.",
-    bestFor: "Any catalogue, and anyone who wants to start over",
-    // The `default` colour preset, spelled out. These are values, not a
-    // reference to the preset, so the reset does not depend on the preset
-    // catalogue staying still.
+    label: "Default",
+    tagline: "A full shop window — big photographs, your promises up front, products in clean cards.",
+    bestFor: "Any shop selling online, and anyone who wants to start over",
     brandColor: "#111827",
     accentColor: "#2563eb",
-    // `surface: "default"` is load-bearing, not filler: Classic IS the reset, so
-    // it has to stamp every axis back — including one added after a merchant may
-    // already have chosen a cream ground.
+    homeLayout: true,
     design: {
       font: "sans",
       surface: "default",
@@ -116,17 +134,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "cozy",
       radius: "soft",
       width: "contained",
-      /* Classic is the RESET, so both hover axes stamp back to `none` for the
-         same reason `surface: "default"` does — a merchant returning here must
-         get the storefront's own header, not keep an effect a previous theme
-         left behind. */
-      navHover: "none",
+      navHover: "highlight",
       navChildHover: "none",
       navActive: "fill",
       navActiveColor: "brand",
       navActiveCustom: "",
-      // Buttons and heading type (Phase 6): a theme stamps them back to
-      // Default like every other axis, so applying one is a whole look.
       buttonShape: "auto",
       buttonStyle: "solid",
       buttonSize: "md",
@@ -134,27 +146,20 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingCase: "default",
     },
     templates: {
-      header: "classic",
+      header: "showroom",
       footer: "columns",
       collection: "grid-4",
       product: "gallery-left",
       productCard: "standard",
       cardActions: "add-buy",
       pagination: "pages",
-      imageFit: "fit",
+      imageFit: "crop",
       imageRatio: "square",
-      // The account area the storefront has always had.
       accountLayout: "sidebar",
-      // …and the checkout it has always had.
       checkout: "single-page",
-      // …and the prose column its policy pages have always been.
       contentLayout: "centered",
-      // …and the cart it has always had.
       cartLayout: "panel",
-      // …and the one page skeleton the storefront has always had.
       shell: "stacked",
-      // …and the phone chrome it has always had: search under the logo, four
-      // tabs at the bottom. Spelled out because Classic is the RESET.
       mobile: "tabs",
     },
   },
@@ -509,7 +514,7 @@ export const getReadyMadeTheme = (id?: string | null): ReadyMadeTheme | undefine
  * which is the only version of the question a non-designer can answer quickly.
  *
  * **A trade with no entry gets no recommendation, deliberately.** Falling back
- * to Classic would dress the shop as it already looks and call it a suggestion,
+ * to the Default would dress the shop as it already looks and call it a suggestion,
  * and pointing an electronics shop at a grocery theme is worse than silence.
  * Six of the twelve trades are unlisted for exactly this reason; each becomes a
  * row here when a theme is actually drawn for it, and not before.
@@ -526,9 +531,10 @@ const THEME_BY_INDUSTRY: Record<string, string> = {
   PHARMACY: "meridian-care",
   FASHION_APPAREL: "muslin",
   BABY_KIDS_STORE: "little-steps",
-  // The Facebook/Instagram seller. Photo-led is the shape of the shop they
-  // already run, whatever they sell — the picture IS the listing.
-  ONLINE_SHOP: "muslin",
+  // The Facebook/Instagram seller opens on the Showroom (the backend starter,
+  // 2026-10-28), so suggesting another theme would invite them away from the
+  // look they started in. It was Muslin — photo-led — until then.
+  ONLINE_SHOP: "showroom",
 };
 
 /** The theme drawn for this trade, or `undefined` when none has been. */

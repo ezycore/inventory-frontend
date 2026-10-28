@@ -115,13 +115,14 @@ const ICON = {
 } as const;
 
 /**
- * How a promises list draws its icons: on a solid accent disc, as a bare glyph,
- * or not at all. One vocabulary for the promises band and the footer's promises
- * block (`FOOTER_ICON_STYLES`), so the two can be made to match. Each surface
+ * How a promises list draws its icons: on a solid accent disc, on a soft
+ * neutral disc, as a bare glyph, or not at all. One vocabulary for the promises
+ * band and the footer's promises block (`FOOTER_ICON_STYLES`), so the two can be
+ * made to match — except `soft`, which only the band offers so far. Each surface
  * keeps its own unset — `disc` on the band, `plain` in the footer — which is
  * what each drew before the setting.
  */
-export const PROMISE_ICON_STYLES = ["disc", "plain", "none"] as const;
+export const PROMISE_ICON_STYLES = ["disc", "soft", "plain", "none"] as const;
 
 /**
  * The parts of the product page's column beside the photos, which the merchant
@@ -791,6 +792,12 @@ export const SECTION_SPECS = {
       max: 6,
       settings: {
         text: { type: "string", min: 1, max: 120 },
+        /**
+         * A smaller line under the promise — "Inside Dhaka next day" under
+         * "Delivery in 2–3 days". Added 2026-10-28; a row without one draws as
+         * every band before it did.
+         */
+        detail: { type: "string", max: 120, optional: true },
         // Unset cycles truck, shield, tag.
         icon: ICON,
       },
@@ -838,6 +845,16 @@ export const SECTION_SPECS = {
       buttonHref: { type: "url", optional: true },
       secondaryLabel: { type: "string", max: 40, optional: true },
       secondaryHref: { type: "url", optional: true },
+    },
+    /**
+     * Short points under the paragraph, each with a tick — "Tracking on every
+     * parcel". Added 2026-10-28; a section without any draws as before.
+     */
+    blocks: {
+      max: 6,
+      settings: {
+        text: { type: "string", min: 1, max: 120 },
+      },
     },
   },
   "shop-by-tag": {
@@ -962,6 +979,12 @@ export const SECTION_SPECS = {
        * catalogue whose descriptions are internal notes needs it gone.
        */
       hideDescription: { type: "boolean", optional: true },
+      /**
+       * A link beside the heading — "All categories" to the catalogue. Like a
+       * product row's, it needs both a label and a destination (2026-10-28).
+       */
+      ctaLabel: { type: "string", max: 40, optional: true },
+      ctaHref: { type: "url", optional: true },
     },
   },
   "category-promo-cards": {
@@ -1163,6 +1186,8 @@ export const SECTION_SPECS = {
       alt: { type: "string", max: 160, optional: true },
       frame: { type: "enum", values: ["4:1", "3:1", "21:9", "16:9", "4:3", "1:1"], responsive: true, optional: true },
       focal: { type: "focal", responsive: true, optional: true },
+      /** A short line in small capitals over the heading — "Gift ideas". Added 2026-10-28. */
+      badge: { type: "string", max: 60, optional: true },
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 240, optional: true },
       /**

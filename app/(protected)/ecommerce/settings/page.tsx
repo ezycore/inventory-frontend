@@ -1,8 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
 import { useGetStorefrontSettings } from "@/services/api";
+import { useUrlParam } from "@/hooks/use-url-param";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
@@ -32,10 +32,12 @@ const TABS = [
   { id: "marketing", label: "Marketing" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
+const TAB_IDS = TABS.map((item) => item.id);
 
 export default function StoreSettingsPage() {
   const { data: settings, isLoading } = useGetStorefrontSettings();
-  const [tab, setTab] = useState<TabId>("general");
+  // Kept in `?tab=` so a reload, or a link someone shares, opens the same tab.
+  const [tab, setTab] = useUrlParam<TabId>("tab", TAB_IDS, "general");
   return (
     <div className="space-y-5">
       <div><h1 className="text-2xl font-bold tracking-tight">Store Settings</h1><p className="mt-1 text-sm text-muted-foreground">Operational configuration for your online store.</p></div>

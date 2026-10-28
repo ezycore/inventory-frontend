@@ -162,17 +162,23 @@ export function CategoryStrip({
       >
         {children}
       </div>
-      {arrows && edges.start ? (
+      {/* Both drawn whenever arrows are on; the one with nowhere to go is
+          DISABLED, which `.sf-cat-strip-arrow:disabled` hides — so a strip
+          looks as it always did, and a theme that keeps a greyed-out arrow in
+          place (Showroom) has one to show. */}
+      {arrows ? (
         <StripArrow
           edge="start"
           label={labels.previous}
+          disabled={!edges.start}
           onPress={() => page(-1)}
         />
       ) : null}
-      {arrows && edges.end ? (
+      {arrows ? (
         <StripArrow
           edge="end"
           label={labels.next}
+          disabled={!edges.end}
           onPress={() => page(1)}
         />
       ) : null}
@@ -183,10 +189,12 @@ export function CategoryStrip({
 function StripArrow({
   edge,
   label,
+  disabled,
   onPress,
 }: {
   edge: "start" | "end";
   label: string;
+  disabled: boolean;
   onPress: () => void;
 }) {
   return (
@@ -195,6 +203,7 @@ function StripArrow({
       className="sf-cat-strip-arrow"
       data-edge={edge}
       aria-label={label}
+      disabled={disabled}
       onClick={onPress}
     >
       <Icon name={edge === "start" ? "back" : "chevR"} size={17} />

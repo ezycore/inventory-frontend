@@ -11,6 +11,9 @@ import "./storefront.css";
 // renderer: a CSS import inside a component breaks every vitest file that
 // imports it, and this sheet is small enough to ride on every shop page.
 import "./storefront-builder.css";
+// The Showroom theme's finish, scoped to `.sf-shell[data-skin="showroom"]`.
+// Last, so it wins a tie of specificity with the two sheets above.
+import "./storefront-showroom.css";
 
 // Set the stored theme before paint so dark-mode users don't flash light —
 // unless the shop is always light (`data-scheme` on `.sf-shell`, stamped by

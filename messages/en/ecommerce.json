@@ -190,9 +190,9 @@
   "cancelDialog": {
     "rejectTitle": "Reject this order?",
     "cancelTitle": "Cancel this order?",
-    "rejectBody": "The shopper is notified the order was rejected. This can't be undone.",
-    "cancelBodyStock": "Reserved stock is released back to inventory. This can't be undone.",
-    "cancelBody": "This can't be undone.",
+    "rejectBody": "The shopper is notified the order was rejected. You can reopen it later if you need to.",
+    "cancelBodyStock": "Reserved stock is released back to inventory. You can reopen the order later.",
+    "cancelBody": "You can reopen the order later.",
     "whyReject": "Why are you rejecting it?",
     "pickReason": "Pick a reason",
     "otherReason": "What was the reason?",
@@ -308,6 +308,25 @@
     "whyHint": "Saved to the order history so anyone can see why it moved.",
     "cancel": "Cancel",
     "moving": "Moving…"
+  },
+  "orderCopy": {
+    "button": "Copy",
+    "menu": "Copy order",
+    "title": "New order from {orderNumber}",
+    "body": "The products are copied at today's prices. The customer, coupon, discount, delivery charge and any advance are not.",
+    "dropped": "No longer for sale, left out: {products}",
+    "previous": "Previous customer",
+    "use": "Use these"
+  },
+  "reopen": {
+    "button": "Reopen order",
+    "title": "Reopen this order?",
+    "body": "It goes back to {status} and you confirm it again as usual. Prices stay as the customer ordered them. The customer is not told.",
+    "why": "Why?",
+    "whyPlaceholder": "Customer called back",
+    "whyHint": "Saved to the order history so anyone can see why it was reopened.",
+    "cancel": "Cancel",
+    "reopening": "Reopening…"
   },
   "createOrder": {
     "channelComment": "Post comment",

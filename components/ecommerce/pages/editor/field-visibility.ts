@@ -249,20 +249,19 @@ const RULES: Record<string, VisibilityRule> = {
   /* Which offer — asked only once the offer is on. */
   "hero.campaignId": (scope) => layoutOf(scope) !== "full-bleed" && !!scope.settings.campaignBadge,
   /* The chip's colour — asked only once there is a chip: the running offer is
-     on, or a slide carries its own badge text. The full-bleed hero draws its
-     badge as plain white type on the photograph, with no chip to colour. */
+     on (card and open only; the full-bleed hero has no offer badge), or a
+     slide carries its own badge text. On a full-bleed hero, unset keeps its
+     plain white capitals on the photograph and a colour makes them the chip. */
   "hero.badgeTone": (scope) =>
-    layoutOf(scope) !== "full-bleed" &&
-    (!!scope.settings.campaignBadge || scope.blocks.some((block) => !!str(block.badge)?.trim())),
+    (layoutOf(scope) !== "full-bleed" && !!scope.settings.campaignBadge) ||
+    scope.blocks.some((block) => !!str(block.badge)?.trim()),
 
   /* The promises are the card's trust footer. The open hero has no footer to
      put them in and the full-bleed hero has no card at all. */
   "hero.promises": (scope) => layoutOf(scope) === "card",
 
-  /* A second button, on every card or open slide since decision D3. No
-     full-bleed branch reads it. */
-  "hero.secondaryLabel": (scope) => layoutOf(scope) !== "full-bleed",
-  "hero.secondaryLink": (scope) => layoutOf(scope) !== "full-bleed",
+  /* A second button is on every slide of every layout — card and open since
+     decision D3, full-bleed since 2026-10-26 — so it has no rule. */
 
   /* Where the picture sits relative to the copy. A full-bleed hero's picture is
      its background — there is nothing to put on a side, and nothing to order —

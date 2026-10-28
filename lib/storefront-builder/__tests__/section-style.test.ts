@@ -147,6 +147,23 @@ describe("sectionFrame", () => {
     expect(sectionFrame({ width: "wide" }, { top: "0px", bottom: "0px", ownsWidth: true }).styledWidth).toBe(false);
   });
 
+  /* The same question for spacing and the ground, asked by a theme sheet that
+     gives unstyled sections a rhythm and a band of its own (Showroom). */
+  it("reports whether the merchant chose a padding or a background", () => {
+    expect(sectionFrame(undefined).styledPadding).toBe(false);
+    expect(sectionFrame({ padding: { base: { top: "lg", bottom: "sm" } } }).styledPadding).toBe(true);
+    // A phone padding alone is still the merchant answering.
+    expect(sectionFrame({ padding: { mobile: { top: "sm", bottom: "sm" } } }).styledPadding).toBe(true);
+    // Half a padding is no padding, the same way the frame reads it.
+    expect(sectionFrame({ padding: { base: { top: "lg" } } }).styledPadding).toBe(false);
+
+    expect(sectionFrame(undefined).styledBackground).toBe(false);
+    // "None" is a choice too: it takes a band away.
+    expect(sectionFrame({ background: { kind: "none" } }).styledBackground).toBe(true);
+    expect(sectionFrame({ background: { kind: "color", color: "#ffffff" } }).styledBackground).toBe(true);
+    expect(sectionFrame({ background: { kind: "plaid" } }).styledBackground).toBe(false);
+  });
+
   /* ---- Phase 2: the style box grows ---- */
 
   it("insets the section from the sides, on each device, without touching the pair", () => {

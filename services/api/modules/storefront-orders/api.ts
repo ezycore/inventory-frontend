@@ -395,6 +395,14 @@ export const storefrontOrdersApi = {
     },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/cancel`, body ?? {}),
+  /**
+   * A cancelled or rejected order back to `pending`. `note` is required by the
+   * server, which first refuses an order whose advance was refunded
+   * (`ORDER_PREPAYMENT_REFUNDED`) or whose coupon limit filled meanwhile
+   * (`COUPON_EXHAUSTED` / `COUPON_PER_SHOPPER_LIMIT`) — surface its message.
+   */
+  reopen: (id: string, note: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/reopen`, { note }),
   // Record money collected before shipping — a delivery-charge advance, or a bank
   // transfer for the whole order. The server caps `amount` at the order's
   // `totalAmount` and splits it into its shipping and goods legs; the door/COD

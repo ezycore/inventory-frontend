@@ -11,6 +11,12 @@ describe("resolveUtilityBar", () => {
     });
   });
 
+  // Showroom is Classic's anatomy without its strip: the language and theme
+  // switch live in its own header row, Track order in the footer.
+  it("gives Showroom no bar by default", () => {
+    expect(resolveUtilityBar(undefined, "showroom").enabled).toBe(false);
+  });
+
   it("preserves other legacy headers without a utility bar", () => {
     expect(resolveUtilityBar(undefined, "minimal").enabled).toBe(false);
   });

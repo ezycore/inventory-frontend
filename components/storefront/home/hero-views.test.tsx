@@ -259,6 +259,38 @@ describe("HeroFullBleed", () => {
       "true",
     );
   });
+
+  // Unset keeps the spaced capitals every full-bleed hero drew before the
+  // setting reached it; a tone draws the shared chip.
+  it("draws the badge as the shared chip only once a badge colour is chosen", () => {
+    const slide = { badge: "New season", title: "Fresh styles" };
+    const { container, rerender } = render(<HeroFullBleedView base="/shop" slides={[slide]} storeName="My Store" />);
+    expect(container.querySelector(".sf-hero-badge")).toBeNull();
+    expect(screen.getByText("New season")).toHaveClass("sf-hero-fullbleed-badge");
+
+    rerender(<HeroFullBleedView base="/shop" slides={[slide]} storeName="My Store" badgeTone="neutral" />);
+    const chip = container.querySelector(".sf-hero-badge");
+    expect(chip).toHaveAttribute("data-tone", "neutral");
+    // Still hidden by the phone's "headline only" rule, which keys on this class.
+    expect(chip).toHaveClass("sf-hero-fullbleed-badge");
+  });
+
+  it("draws a slide's second button as a sibling link, the catalogue when it has no link", () => {
+    const { container } = render(
+      <HeroFullBleedView
+        base="/shop"
+        storeName="My Store"
+        slides={[{ title: "Fresh styles", buttonLabel: "Shop new arrivals", link: "/shop", secondaryLabel: "Browse categories" }]}
+      />,
+    );
+    const links = [...container.querySelectorAll(".sf-hero-fullbleed-copy > a")].map((a) => a.textContent);
+    expect(links).toEqual(["Shop new arrivals", "Browse categories"]);
+    expect(screen.getByText("Browse categories").closest("a")).toHaveAttribute("href", "/shop/products");
+    // Hooks for a theme sheet: which is the filled button, which the outline.
+    expect(screen.getByText("Shop new arrivals").closest("a")).toHaveClass("sf-hero-fullbleed-cta");
+    expect(screen.getByText("Shop new arrivals").closest("a")).not.toHaveClass("sf-hero-fullbleed-cta-2");
+    expect(screen.getByText("Browse categories").closest("a")).toHaveClass("sf-hero-fullbleed-cta-2");
+  });
 });
 
 /**

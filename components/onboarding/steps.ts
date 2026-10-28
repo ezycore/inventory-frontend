@@ -28,7 +28,7 @@ export interface OnboardingAnswers {
   channel?: ChannelAnswer;
   /** "Do you keep stock?" — the tier boundary, and the parent of four others. */
   inventoryTracking?: boolean;
-  /** "Do you buy to resell?" — only asked when stock is kept. */
+  /** "Do you buy your stock from suppliers?" — only asked when stock is kept. */
   purchases?: boolean;
   /** "Do you track money in EzyCore?" */
   accounts?: boolean;
@@ -217,12 +217,13 @@ export const QUESTION_COUNT = QUESTION_KEYS.length;
  * - **The plan settled it.** A tier that does not grant `inventoryTracking`
  *   leaves nothing to ask — the merchant cannot say yes, and being shown a
  *   question they are not allowed to answer is worse than not being asked.
- * - **A previous answer closed it.** "Do you buy to resell?" only arises for a
+ * - **A previous answer closed it.** "Do you buy your stock from suppliers?" only arises for a
  *   business that keeps stock; asking it after "no stock" invites an answer the
  *   system will then have to override.
  *
- * Skipped questions are still WRITTEN by `featuresForStep`, at the value their
- * parent implies. Silence in the wizard must not leave a stale capability on.
+ * A skipped question sends nothing: the plan ceiling, or the `FEATURE_REQUIRES`
+ * cascade behind a "no stock" answer, already holds its feature off. The one
+ * skip that still owes a write is VAT's, and `completionPayload` makes it.
  */
 export function isQuestionSkipped(
   stepIndex: number,
@@ -245,6 +246,15 @@ export function isQuestionSkipped(
     answers.inventoryTracking === false;
 
   switch (QUESTION_KEYS[stepIndex]) {
+    case "channel":
+      // Only a question when the plan grants BOTH channels. Every launch tier
+      // sells online and only Business has the counter, so on Start and Growth
+      // "Online" is the one answer there is — and "Shop" or "Both" wrote
+      // `sales: true`, which 403s (`FEATURE_NOT_IN_PLAN`) and leaves the
+      // merchant stuck on question one of a wizard the workspace is pinned to.
+      // Nothing needs writing when skipped: the plan ceiling already holds the
+      // missing channel off.
+      return !granted("sales") || !granted("storefront");
     case "stock":
       return !granted("inventoryTracking");
     case "purchases":
@@ -253,6 +263,12 @@ export function isQuestionSkipped(
       return !granted("accounts");
     case "locations":
       return needsStock("multiLocation");
+    case "vat":
+      // Every registered answer writes `tax: true`, so on a plan without VAT
+      // only "Not registered" could be saved — the rest 403'd. What the skip
+      // still owes the merchant is written at completion instead
+      // (`completionPayload`).
+      return !granted("tax");
     case "expiry":
       return needsStock("expiryTracking");
     case "barcode":
@@ -329,6 +345,42 @@ export function askedIndices(
   return QUESTION_KEYS.map((_, index) => index).filter(
     (index) => !isQuestionSkipped(index, answers, planFeatures),
   );
+}
+
+/**
+ * The payload that finishes the wizard.
+ *
+ * Usually just the completion flag. The exception is a merchant whose plan
+ * skipped the VAT question and who has never declared a registration: they get
+ * an explicit "unregistered" entry, because silence is not neutral here. An org
+ * with `tax` on and an empty history falls into the standard-rated bridge
+ * (`vatRegistrationOf` in `lib/feature-utils.ts`), so the day a Start merchant
+ * upgrades to a plan that grants VAT, every invoice would start carrying 15%
+ * they were never asked about. "Unregistered" is also simply true while the plan
+ * has no VAT — and it is what they would have had to pick to get past the
+ * question before it was skipped.
+ *
+ * A workspace that already has a history keeps it: a re-run must not restate
+ * the registration of someone who declared one in Settings.
+ */
+export function completionPayload(
+  answers: OnboardingAnswers,
+  planFeatures: OrganizationFeatures | undefined,
+  hasVatHistory: boolean,
+): OnboardingStepPayload {
+  const payload: OnboardingStepPayload = {
+    step: QUESTION_COUNT + 1,
+    complete: true,
+  };
+  const vatSkipped = isQuestionSkipped(
+    QUESTION_KEYS.indexOf("vat"),
+    answers,
+    planFeatures,
+  );
+  if (vatSkipped && !hasVatHistory) {
+    payload.vatRegistration = { type: "unregistered" };
+  }
+  return payload;
 }
 
 /**

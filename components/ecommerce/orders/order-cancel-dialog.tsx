@@ -25,6 +25,7 @@ import {
   rejectionReasonOptions,
   type RejectionReason,
 } from "./helpers";
+import { holdsReservedStock } from "./order-detail-helpers";
 
 /**
  * Cancel or reject a pre-commit order (no Sale yet). Reserved stock is released
@@ -53,7 +54,7 @@ export function OrderCancelDialog({
   const t = useTranslations("ecommerce.cancelDialog");
   const reasonOptions = useMemo(() => rejectionReasonOptions(tAll), [tAll]);
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const stockTracked = useStockTracked();
+  const holdsStock = holdsReservedStock(order, useStockTracked());
   const cancel = useCancelOrder();
   const {
     accountsEnabled,
@@ -129,9 +130,9 @@ export function OrderCancelDialog({
         <DialogHeader>
           <DialogTitle>{t(reject ? "rejectTitle" : "cancelTitle")}</DialogTitle>
           <DialogDescription>
-            {/* Confirm reserved nothing on a stock-free workspace, so there is no hold to give
-                back (QA-N13); only "can't be undone" stays true at both tiers. */}
-            {t(reject ? "rejectBody" : stockTracked ? "cancelBodyStock" : "cancelBody")}
+            {/* "Stock is released" only where this order holds some: not on a new
+                order (reserved at confirm), not on a stock-free workspace (QA-N13). */}
+            {t(reject ? "rejectBody" : holdsStock ? "cancelBodyStock" : "cancelBody")}
           </DialogDescription>
         </DialogHeader>
 
@@ -224,7 +225,7 @@ export function OrderCancelDialog({
               ? t("processing")
               : reject
                 ? t("rejectAction")
-                : stockTracked
+                : holdsStock
                   ? t("cancelReleaseAction")
                   : t("cancelAction")}
           </Button>

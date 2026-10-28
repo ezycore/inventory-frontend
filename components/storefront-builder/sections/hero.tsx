@@ -218,7 +218,7 @@ export function HeroSection({
       return (
         <Island
           name="hero-fullbleed"
-          props={{ base: context.base, slides, storeName, align, mobileCopy, frame, nav, interval }}
+          props={{ base: context.base, slides, storeName, align, mobileCopy, frame, nav, interval, badgeTone: settings.badgeTone }}
         />
       );
     }
@@ -234,6 +234,7 @@ export function HeroSection({
           frame,
           nav,
           interval,
+          badgeTone: settings.badgeTone,
           slides,
           /* The store banner, and nothing else. The view reaches for it only
              where a slide has no artwork of its own, which is what "Use the

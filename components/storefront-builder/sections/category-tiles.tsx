@@ -4,9 +4,9 @@ import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { sectionCategories } from "@/lib/storefront-builder/store-lists";
-import { SectionTitle } from "@/components/storefront/sf-bits";
 import { CategoryTileRow } from "@/components/storefront/home/category-tile-row";
 import { Island } from "@/components/storefront-builder/islands/island-map";
+import { SectionHeading } from "@/components/storefront-builder/section-heading";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["category-tiles"]["settings"];
@@ -39,9 +39,13 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
         } as CSSProperties
       }
     >
-      {settings.heading ? (
-        <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
-      ) : null}
+      <SectionHeading
+        base={context.base}
+        heading={settings.heading}
+        subheading={settings.subheading}
+        linkLabel={settings.ctaLabel?.trim()}
+        linkHref={settings.ctaHref?.trim()}
+      />
       <CategoryTileRow
         base={context.base}
         categories={categories}

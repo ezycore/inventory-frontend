@@ -36,6 +36,7 @@ vi.mock("@/hooks/use-has-permission", () => ({
 }));
 // The reject path is `OrderCancelDialog`'s own; it has its own tests, and its
 // real implementation drags in the auth store and the accounts hook.
+vi.mock("./order-copy-dialog", () => ({ OrderCopyDialog: () => null }));
 vi.mock("./order-cancel-dialog", () => ({
   OrderCancelDialog: ({ open }: { open?: boolean }) =>
     open ? <div>cancel dialog</div> : null,

@@ -20,6 +20,8 @@ import { EditorialCheckout } from "@/components/storefront/checkout/layouts/edit
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 import { PreviewCartNotice } from "@/components/storefront/preview-cart-notice";
+import { useBuyNowLine, useOnBuyNowUrl } from "@/services/storefront/use-buy-now";
+import { BuyNowCartNote } from "@/components/storefront/checkout/buy-now-cart-note";
 
 /**
  * A screen tall in every branch, so the store footer starts below the fold and
@@ -82,7 +84,9 @@ export function CheckoutPageView({
 }) {
   const { slug, base } = useStoreContext();
   const { data: store } = useStore(slug);
-  const api = useCheckout();
+  // Buy now orders its one line, not the cart (`?buy=1` + the session line).
+  const buyNow = useBuyNowLine();
+  const api = useCheckout({ buyNow, visit: useOnBuyNowUrl() ? "buy" : "cart" });
   const { t, hydrated, shopper, placed, items } = api;
 
   const paused = useOrdersPaused();
@@ -166,6 +170,7 @@ export function CheckoutPageView({
       data-preview-interactive={api.sampleCart ? "" : undefined}
     >
       {api.sampleCart ? <PreviewCartNotice text={t.previewSampleCart} /> : null}
+      {buyNow ? <BuyNowCartNote line={buyNow} t={t} lang={api.lang} /> : null}
       <Layout api={api} />
     </div>
   );

@@ -35,6 +35,11 @@ Two traps carried from the backend:
 
 ⚠️ `vatRegistrationOf` has a **temporary bridge**: feature ON + no declared history ⇒
 `standard_15`. The backend has the identical branch. **Delete both together**, never one.
+Since 2026-10-28 the setup wizard always leaves a declared registration: the VAT question
+writes one, and a plan without `tax` skips the question and declares `unregistered` at
+completion (`completionPayload`, `components/onboarding/steps.ts`), so an upgrade that grants VAT
+cannot land in the bridge. Workspaces set up before then can still have an empty history,
+which is the only reason the bridge has to stay.
 
 ⚠️ **The history it reads lives in the auth store, and only two things write it there.** Both
 `useUpdateVatSettings` (Settings → VAT, via the page's `updateTaxConfig` call) and

@@ -25,8 +25,11 @@ export function SectionHeading({
 }) {
   const link =
     linkLabel && linkHref ? (
-      <SectionLink base={base} href={linkHref} style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>
-        {linkLabel} →
+      <SectionLink base={base} href={linkHref} className="sfb-heading-link" style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>
+        {linkLabel}
+        {/* Its own element so a theme sheet can draw the arrow its own way
+            (`storefront-showroom.css`); decoration either way. */}
+        <span className="sfb-heading-arrow" aria-hidden="true"> →</span>
       </SectionLink>
     ) : null;
   if (heading)

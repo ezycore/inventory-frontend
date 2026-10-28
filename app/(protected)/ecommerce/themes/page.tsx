@@ -41,11 +41,10 @@ export default function ThemesPage() {
      that fires after the settings query resolves, and that effect would fight a
      merchant who clicked a row while the request was still in flight. */
   const [picked, setPicked] = useState<string | null>(null);
-  /* A shop with no theme applied opens on the one drawn for its trade, not on
-     Classic. Classic is first in the catalogue because it is the reset, and
-     previewing the reset to a merchant who came here to change their look shows
-     them the shop they already have — the least persuasive frame available for
-     a page whose whole job is to move them off the default. */
+  /* A shop with no theme applied opens on the one drawn for its trade, and
+     only then on the Default, which is first in the catalogue because it is the
+     look new stores start on and the reset. A store still wearing the retired
+     Classic (`appliedThemeId: "classic"`) names no entry, so it lands here too. */
   const selected =
     READY_MADE_THEMES.find(
       (t) => t.id === (picked ?? activeId ?? recommended?.id),
@@ -61,7 +60,8 @@ export default function ThemesPage() {
         <h1 className="text-2xl font-bold tracking-tight">Themes</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Your shop, in every look. Applying one changes colours, type and layout
-          — never your products, pages or the words you wrote.
+          — never your products, pages or the words you wrote, unless you choose
+          to start your home page from the theme.
         </p>
       </div>
 

@@ -502,6 +502,26 @@ const SKETCHES: Record<string, ReactNode> = {
       </span>
     </Frame>
   ),
+  /* Classic's row, told apart by what Showroom changes: the search box CENTRED
+     at a set width rather than stretched, a filled cart button, and the menu on
+     a row of its own. */
+  "header:showroom": (
+    <Frame className="justify-center">
+      <span className="flex flex-col gap-1 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex items-center gap-1">
+          <span className={cn(BAR, "h-1.5 w-4 bg-muted-foreground/60")} />
+          <span className={cn(BOX, "mx-auto h-2 w-6")} />
+          <span className={cn(BAR, "h-1.5 w-1.5 rounded-full")} />
+          <span className={cn(CTA, "h-2 w-3 rounded-[2px]")} />
+        </span>
+        <span className="flex gap-1">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className={cn(BAR, "h-1 w-2.5")} />
+          ))}
+        </span>
+      </span>
+    </Frame>
+  ),
   "header:minimal": (
     <Frame className="justify-center">
       <span className="flex items-center gap-1.5 rounded-[2px] border border-border bg-background p-1.5">

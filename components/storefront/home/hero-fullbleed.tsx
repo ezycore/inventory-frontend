@@ -5,7 +5,11 @@ import type { StoreHeroSlide, StorefrontImage } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroMedia } from "@/components/storefront/hero-media";
-import { heroFrameAttrs, type HeroFrame } from "@/components/storefront/home/hero-static";
+import {
+  heroFrameAttrs,
+  type HeroBadgeTone,
+  type HeroFrame,
+} from "@/components/storefront/home/hero-static";
 import { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
 import { wrap } from "@/components/storefront/home/wrap";
 import { HeroNav } from "@/components/storefront/hero-nav";
@@ -61,6 +65,7 @@ export function HeroFullBleedView({
   frame,
   nav,
   interval,
+  badgeTone,
 }: {
   base: string;
   slides: StoreHeroSlide[];
@@ -99,6 +104,12 @@ export function HeroFullBleedView({
   nav?: "dots" | "arrows" | "both";
   /** How long each slide holds, in SECONDS. Unset is the shared 5s beat. */
   interval?: number;
+  /**
+   * The badge as the shared hero chip (`.sf-hero-badge`) in this tone. Unset
+   * keeps this hero's own badge — plain spaced capitals on the photograph — so
+   * a full-width hero saved before the setting reached it draws as it did.
+   */
+  badgeTone?: HeroBadgeTone;
 }) {
   const centred = align === "center";
   const hasSlides = slides.length > 0;
@@ -118,7 +129,10 @@ export function HeroFullBleedView({
   const subtitle = hasSlides ? slide?.subtitle?.trim() : fallback?.subtitle;
   const ctaLabel = hasSlides ? slide?.buttonLabel?.trim() : fallback?.ctaLabel;
   const link = hasSlides ? slide?.link : fallback?.link;
-  const hasCopy = !!(badge || title || subtitle || ctaLabel);
+  // A label is the whole condition, as on the card and open heroes: an empty
+  // link is the catalogue, not an absent button.
+  const secondaryLabel = slide?.secondaryLabel?.trim();
+  const hasCopy = !!(badge || title || subtitle || ctaLabel || secondaryLabel);
   const slideHasImage = Boolean(slide?.image?.url || slide?.image?.mediumUrl);
   const slideHasMobileImage = Boolean(
     slide?.mobileImage?.url || slide?.mobileImage?.mediumUrl,
@@ -167,7 +181,13 @@ export function HeroFullBleedView({
           without one, and the merchant's photo is genuinely unknown. */}
       {hasCopy ? <div className="sf-hero-fullbleed-scrim" /> : null}
       {hasCopy ? <div className="sf-hero-fullbleed-copy" style={centred ? { ...wrap, textAlign: "center" } : wrap}>
-        {badge ? <span className="sf-hero-fullbleed-badge" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+        {/* `sf-hero-fullbleed-badge` stays on the chip too: it is what the
+            phone's "headline only" rule hides. */}
+        {badge && badgeTone ? (
+          <span className="sf-hero-fullbleed-badge sf-hero-badge" data-tone={badgeTone}>
+            {badge}
+          </span>
+        ) : badge ? <span className="sf-hero-fullbleed-badge" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
           {badge}
         </span> : null}
         {title ? <h1
@@ -194,6 +214,7 @@ export function HeroFullBleedView({
         {ctaLabel ? <HeroCtaLink
           base={base}
           link={link}
+          className="sf-hero-fullbleed-cta"
           style={{
             display: "inline-block",
             background: "#fff",
@@ -206,6 +227,26 @@ export function HeroFullBleedView({
         >
           {ctaLabel}
         </HeroCtaLink> : null}
+        {/* A sibling link, not a wrapped pair: the phone's button sizing is
+            `.sf-hero-fullbleed-copy > a`, and a wrapper would quietly change it
+            on every full-width hero already live. */}
+        {secondaryLabel ? <HeroCtaLink
+          base={base}
+          link={slide?.secondaryLink}
+          className="sf-hero-fullbleed-cta sf-hero-fullbleed-cta-2"
+          style={{
+            display: "inline-block",
+            marginLeft: ctaLabel ? 12 : 0,
+            border: "1.5px solid rgba(255,255,255,0.85)",
+            color: "#fff",
+            padding: "12.5px 32px",
+            borderRadius: "var(--radius-sm)",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          {secondaryLabel}
+        </HeroCtaLink> : null}
         {/* Dots, and they are not decoration: without them a shopper cannot tell
             the photograph is going to change, and cannot go back to the one they
             were reading. No arrows — this hero has no frame to hang them on, and
@@ -214,7 +255,7 @@ export function HeroFullBleedView({
       {/* Same fallback as the carousel: a destination with no button becomes the
           slide itself. Placed after the copy so it covers the photograph, and
           before the dots, which carry `zIndex: 3` and stay clickable. */}
-      {!ctaLabel ? (
+      {!ctaLabel && !secondaryLabel ? (
         <HeroSlideLink
           base={base}
           link={link}

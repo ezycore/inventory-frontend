@@ -28,6 +28,17 @@ describe("promise icons", () => {
     expect(none.match(/sf-trust-row--bare/g)?.length).toBe(3);
   });
 
+  it("puts a promise's own detail on a smaller line under it, and only then", () => {
+    const html = renderToString(
+      <PromiseRows promises={[{ text: "Fast delivery", detail: "All over Bangladesh" }, { text: "Easy returns" }]} />,
+    );
+    expect(html).toContain("sf-trust-title");
+    expect(html.match(/sf-trust-detail/g)?.length).toBe(1);
+    expect(html).toContain("All over Bangladesh");
+    // The row without one keeps the single span every band drew before.
+    expect(html.match(/sf-trust-copy/g)?.length).toBe(1);
+  });
+
   it("gives an unset promise the same fallback in the band and the footer", () => {
     // Position 2 cycles to `tag` everywhere — the footer used to cycle its own list.
     expect(promiseIcon(undefined, 2, "disc")).toBe("tag");

@@ -74,4 +74,20 @@ describe("useAlertChime", () => {
     act(() => rerender({ alerts: [alert("a2", "2026-10-25T04:05:00.000Z"), old] }));
     expect(shown).toEqual([]);
   });
+
+  it("a browser whose constructor throws (Android Chrome) loses the switch, not the screen", () => {
+    vi.stubGlobal(
+      "Notification",
+      class extends FakeNotification {
+        constructor() {
+          super("never");
+          throw new TypeError("Illegal constructor");
+        }
+      },
+    );
+    const old = alert("a1", "2026-10-25T04:00:00.000Z");
+    const { result, rerender } = mount([old]);
+    act(() => rerender({ alerts: [alert("a2", "2026-10-25T04:05:00.000Z"), old] }));
+    expect(result.current.permission).toBe("unsupported");
+  });
 });

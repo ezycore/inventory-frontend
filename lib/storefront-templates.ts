@@ -52,6 +52,7 @@ const FOOTER = {
 } as const;
 const HEADER = {
   classic: "classic",
+  showroom: "showroom",
   minimal: "minimal",
   centered: "centered",
   "search-first": "search-first",
