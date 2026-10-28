@@ -9,6 +9,12 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Fixed
+- **The inbox chat no longer runs off a phone's screen.** A long "With staff — …" banner or a row of product cards widened the single column past the screen, and the right side of the thread (replies, the reply box) was cut off.
+
+### Changed
+- **Help (Inbox):** product cards now show the price range and sizes in stock and open on a tap; the merchant's AI instructions come before the built-in handover rules — a return number or bank details written there are given to the customer (English and Bangla).
+
 ## [1.17.1] - 2026-10-27
 
 ### Added
