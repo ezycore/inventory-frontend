@@ -47,31 +47,44 @@ export function SitePublishBar({
      while its draft is still exactly the theme's: an edit by hand clears
      `draftTheme`, and that draft is then published from the page editor like
      any other, never swept up from here. */
-  const { home } = useStoreHomePageRow();
-  const themeHome = home?.hasDraft && home.draftTheme ? home : undefined;
+  const homeRow = useStoreHomePageRow();
+  const { themeHome } = homeRow;
   const themeLabel = getReadyMadeTheme(themeHome?.draftTheme)?.label;
   const themeName = themeLabel ? `the ${themeLabel} theme` : "a theme";
+  /* Publish and Discard act on the home row, so they wait until it is known and
+     current: on a reload, or while the list refetches after Apply, acting early
+     would make the look live and leave the theme's home behind. A failed
+     lookup holds them too, with a retry. */
+  const homeLookupFailed = !homeRow.isFetching && homeRow.isError;
+  const homeUnknown = homeRow.isFetching || homeLookupFailed;
   const busy =
     publish.isPending || discard.isPending || restore.isPending || publishHome.isPending || discardHome.isPending;
   const hasDraft = site.draft !== null || !!themeHome;
 
   /* The look first, then the home page: if the second fails, shoppers have the
      new look over their old home — a working shop — and the home is still
-     waiting here to publish. Each mutation reports its own error. */
+     waiting here to publish. Each mutation reports its own error.
+
+     The home goes by the `draftVersion` its row saw, and the server refuses a
+     draft saved since — the merchant editing Home in another tab — rather than
+     publishing or discarding it. The row is read again after any failure, so
+     the bar stops naming a theme the draft no longer is. */
   const publishAll = async () => {
     try {
       if (site.draft) await publish.mutateAsync();
-      if (themeHome) await publishHome.mutateAsync(themeHome._id);
+      if (themeHome) await publishHome.mutateAsync({ id: themeHome._id, draftVersion: themeHome.draftVersion });
     } catch {
       // Reported by the mutation that failed.
+      void homeRow.refetch();
     }
   };
   const discardAll = async () => {
     try {
       if (site.draft) await discard.mutateAsync();
-      if (themeHome) await discardHome.mutateAsync(themeHome._id);
+      if (themeHome) await discardHome.mutateAsync({ id: themeHome._id, draftVersion: themeHome.draftVersion });
     } catch {
       // Reported by the mutation that failed.
+      void homeRow.refetch();
     }
   };
 
@@ -99,7 +112,7 @@ export function SitePublishBar({
             type="button"
             variant="outline"
             size="sm"
-            disabled={busy || unsavedEdits}
+            disabled={busy || unsavedEdits || homeUnknown}
             onClick={() => setConfirmingDiscard(true)}
           >
             Discard changes
@@ -108,7 +121,7 @@ export function SitePublishBar({
         <Button
           type="button"
           size="sm"
-          disabled={busy || unsavedEdits || !hasDraft}
+          disabled={busy || unsavedEdits || homeUnknown || !hasDraft}
           onClick={() => void publishAll()}
         >
           {publish.isPending || publishHome.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
@@ -118,6 +131,14 @@ export function SitePublishBar({
       {unsavedEdits ? (
         <span className="basis-full text-xs text-muted-foreground">
           Save your changes to publish them.
+        </span>
+      ) : null}
+      {homeLookupFailed ? (
+        <span role="alert" className="flex basis-full flex-wrap items-center gap-x-2 text-xs text-destructive">
+          Couldn&apos;t check your home page, so publishing waits.
+          <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => void homeRow.refetch()}>
+            Try again
+          </Button>
         </span>
       ) : null}
 

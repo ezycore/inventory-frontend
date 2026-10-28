@@ -6,7 +6,9 @@ const publish = vi.fn();
 const discard = vi.fn();
 const publishHome = vi.fn();
 const discardHome = vi.fn();
+const refetchHome = vi.fn();
 let home: Partial<StorefrontPageListItem> | undefined;
+let homeLookup: { isFetching: boolean; isError: boolean };
 
 vi.mock("@/services/api", () => ({
   usePublishStorefrontSite: () => ({ mutateAsync: publish, isPending: false }),
@@ -15,7 +17,13 @@ vi.mock("@/services/api", () => ({
   useStorefrontSiteRevisions: () => ({ data: [], isLoading: false }),
   usePublishStorefrontPage: () => ({ mutateAsync: publishHome, isPending: false }),
   useDiscardStorefrontPageDraft: () => ({ mutateAsync: discardHome, isPending: false }),
-  useStoreHomePageRow: () => ({ home, isLoading: false }),
+  useStoreHomePageRow: () => ({
+    home,
+    themeHome: home?.hasDraft && home.draftTheme ? home : undefined,
+    isLoading: false,
+    ...homeLookup,
+    refetch: refetchHome,
+  }),
 }));
 
 import { SitePublishBar } from "./site-publish-bar";
@@ -32,8 +40,9 @@ const site = (withDraft: boolean) =>
   }) as unknown as StorefrontSite;
 
 beforeEach(() => {
-  for (const fn of [publish, discard, publishHome, discardHome]) fn.mockReset().mockResolvedValue({});
-  home = { _id: "home", systemKey: "home", hasDraft: false, draftTheme: null };
+  for (const fn of [publish, discard, publishHome, discardHome, refetchHome]) fn.mockReset().mockResolvedValue({});
+  home = { _id: "home", systemKey: "home", hasDraft: false, draftTheme: null, draftVersion: 2 };
+  homeLookup = { isFetching: false, isError: false };
 });
 
 describe("SitePublishBar", () => {
@@ -60,11 +69,31 @@ describe("SitePublishBar", () => {
     expect(screen.getByText("Save your changes to publish them.")).toBeInTheDocument();
   });
 
+  /* Both buttons act on the home row too, so they wait for it: acting before it
+     is known would publish the look and leave a theme's home behind. */
+  it("waits for the home page to be checked before publishing or discarding", () => {
+    homeLookup = { isFetching: true, isError: false };
+    render(<SitePublishBar site={site(true)} unsavedEdits={false} />);
+
+    expect(screen.getByRole("button", { name: "Publish changes" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Discard changes" })).toBeDisabled();
+  });
+
+  it("holds publishing when the home page could not be checked, and tries again", () => {
+    homeLookup = { isFetching: false, isError: true };
+    render(<SitePublishBar site={site(true)} unsavedEdits={false} />);
+
+    expect(screen.getByRole("button", { name: "Publish changes" })).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't check your home page");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(refetchHome).toHaveBeenCalledTimes(1);
+  });
+
   /* Themes → Apply → "start the home page from this theme": the home page the
      theme wrote goes live, or goes away, with the look. */
   describe("with a home page a theme started", () => {
     beforeEach(() => {
-      home = { _id: "home", systemKey: "home", hasDraft: true, draftTheme: "showroom" };
+      home = { _id: "home", systemKey: "home", hasDraft: true, draftTheme: "showroom", draftVersion: 3 };
     });
 
     it("says so, and publishes the look and then the home page", async () => {
@@ -72,7 +101,8 @@ describe("SitePublishBar", () => {
 
       expect(screen.getByRole("status")).toHaveTextContent("including your home page started from the Default theme");
       fireEvent.click(screen.getByRole("button", { name: "Publish changes" }));
-      await waitFor(() => expect(publishHome).toHaveBeenCalledWith("home"));
+      // With the version its row saw, so a draft edited since is refused.
+      await waitFor(() => expect(publishHome).toHaveBeenCalledWith({ id: "home", draftVersion: 3 }));
       expect(publish).toHaveBeenCalledTimes(1);
       expect(publish.mock.invocationCallOrder[0]).toBeLessThan(publishHome.mock.invocationCallOrder[0]);
     });
@@ -81,8 +111,18 @@ describe("SitePublishBar", () => {
       render(<SitePublishBar site={site(false)} unsavedEdits={false} />);
 
       fireEvent.click(screen.getByRole("button", { name: "Publish changes" }));
-      await waitFor(() => expect(publishHome).toHaveBeenCalledWith("home"));
+      await waitFor(() => expect(publishHome).toHaveBeenCalledWith({ id: "home", draftVersion: 3 }));
       expect(publish).not.toHaveBeenCalled();
+    });
+
+    // The server refused it — Home was edited in another tab — so the row is
+    // read again, and the bar stops naming a theme the draft no longer is.
+    it("checks the home page again when its draft is refused", async () => {
+      publishHome.mockRejectedValue(new Error("changed somewhere else"));
+      render(<SitePublishBar site={site(true)} unsavedEdits={false} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Publish changes" }));
+      await waitFor(() => expect(refetchHome).toHaveBeenCalledTimes(1));
     });
 
     it("leaves the home page alone when publishing the look fails", async () => {
@@ -99,7 +139,7 @@ describe("SitePublishBar", () => {
 
       fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
       fireEvent.click(await screen.findByRole("button", { name: "Discard" }));
-      await waitFor(() => expect(discardHome).toHaveBeenCalledWith("home"));
+      await waitFor(() => expect(discardHome).toHaveBeenCalledWith({ id: "home", draftVersion: 3 }));
       expect(discard).toHaveBeenCalledTimes(1);
     });
 

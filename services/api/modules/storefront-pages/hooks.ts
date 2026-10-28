@@ -3,13 +3,14 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 import { handleMutationSuccess } from "../query-helpers";
 import {
   storefrontPagesApi,
   type CreateStorefrontPageInput,
   type SaveStorefrontPageDraftInput,
   type StorefrontPage,
+  type StorefrontPageListItem,
   type StorefrontPageListParams,
   type UpdateStorefrontPageInput,
 } from "./api";
@@ -34,10 +35,22 @@ export const useStorefrontPages = (params: StorefrontPageListParams = {}) =>
  * The store's own home page (the Customize home) as its list row — whether it
  * has unpublished changes, and whether a theme wrote them (`draftTheme`). The
  * same query the Pages screen's home card runs, so the two share one cache.
+ *
+ * `themeHome` is that row while its draft is still exactly a theme's — the one
+ * Customize publishes and discards with the look. `isFetching` and `isError` are
+ * there for whoever acts on it: a row being fetched may be about to change.
  */
 export const useStoreHomePageRow = () => {
-  const { data, isLoading } = useStorefrontPages({ kind: "system", limit: 10 });
-  return { home: data?.items.find((page) => page.systemKey === "home"), isLoading };
+  const { data, isLoading, isFetching, isError, refetch } = useStorefrontPages({ kind: "system", limit: 10 });
+  const home = data?.items.find((page) => page.systemKey === "home");
+  return {
+    home,
+    themeHome: home?.hasDraft && home.draftTheme ? home : undefined,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  };
 };
 
 export const useStorefrontPage = (id: string | undefined) =>
@@ -113,10 +126,17 @@ export const useSaveStorefrontPageDraft = () => {
   });
 };
 
+/**
+ * The page to publish or discard. `draftVersion` when acting from a list row
+ * rather than an open editor: the row may be minutes old, and a draft saved
+ * since must be refused rather than published or thrown away.
+ */
+type PageDraftTarget = { id: string; draftVersion?: number };
+
 export const useDiscardStorefrontPageDraft = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => storefrontPagesApi.discardDraft(id),
+    mutationFn: ({ id, draftVersion }: PageDraftTarget) => storefrontPagesApi.discardDraft(id, draftVersion),
     onSuccess: (res) => {
       storePage(qc, res);
       handleMutationSuccess(res.message || "Changes discarded");
@@ -129,7 +149,7 @@ export const useDiscardStorefrontPageDraft = () => {
 export const usePublishStorefrontPage = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => storefrontPagesApi.publish(id),
+    mutationFn: ({ id, draftVersion }: PageDraftTarget) => storefrontPagesApi.publish(id, draftVersion),
     onSuccess: (res) => {
       storePage(qc, res);
       handleMutationSuccess(res.message || "Page published");
@@ -186,6 +206,11 @@ export const useSetStorefrontHomePage = () => {
  * Themes → Apply → "start the home page from this theme" — into the DRAFT. No
  * toasts: the dialog says what happened, and shows a refusal
  * (`STOREFRONT_HOME_HAS_DRAFT`) in place rather than as a popup.
+ *
+ * The home's list row is written from the answer too, before the refetch: it is
+ * what Customize, opened next, previews and publishes by
+ * (`useStoreHomePageRow`), and the row cached from before would show and
+ * publish the old home until the refetch landed.
  */
 export const useStartHomeFromTheme = () => {
   const qc = useQueryClient();
@@ -193,6 +218,24 @@ export const useStartHomeFromTheme = () => {
     mutationFn: (theme: string) => storefrontPagesApi.startHomeFromTheme(theme),
     onSuccess: (res) => {
       storePage(qc, res);
+      const page = res.data;
+      if (page) {
+        qc.setQueriesData<ApiResponse<PaginatedResponse<StorefrontPageListItem>>>(
+          { queryKey: queryKeys.storefrontPages.lists() },
+          (list) =>
+            list?.data && {
+              ...list,
+              data: {
+                ...list.data,
+                items: list.data.items.map((row) =>
+                  row._id === page._id
+                    ? { ...row, hasDraft: true, draftTheme: page.draftTheme ?? null, draftVersion: page.draftVersion }
+                    : row,
+                ),
+              },
+            },
+        );
+      }
       invalidate(qc, "storefront.page.drafted");
     },
   });

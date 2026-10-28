@@ -8333,13 +8333,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages
-         * @description Defined in `src/routes/storefront-pages.routes.ts:34`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:36`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages"];
         put?: never;
         /**
          * POST /api/ecommerce/pages
-         * @description Defined in `src/routes/storefront-pages.routes.ts:40`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:42`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages"];
         delete?: never;
@@ -8359,7 +8359,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/images
-         * @description Defined in `src/routes/storefront-pages.routes.ts:56`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:58`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_images"];
         delete?: never;
@@ -8378,7 +8378,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/home
-         * @description Defined in `src/routes/storefront-pages.routes.ts:66`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:68`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_home"];
         post?: never;
@@ -8399,7 +8399,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/home/theme
-         * @description Defined in `src/routes/storefront-pages.routes.ts:77`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:79`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_home_theme"];
         delete?: never;
@@ -8417,21 +8417,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:83`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:85`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:95`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:97`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:89`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:91`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_pages_id"];
         trace?: never;
@@ -8446,13 +8446,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:102`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:104`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_id_draft"];
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:108`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:110`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id_draft"];
         options?: never;
@@ -8471,7 +8471,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/publish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:114`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:116`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_publish"];
         delete?: never;
@@ -8491,7 +8491,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/unpublish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:121`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:123`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_unpublish"];
         delete?: never;
@@ -8511,7 +8511,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/duplicate
-         * @description Defined in `src/routes/storefront-pages.routes.ts:127`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:129`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_duplicate"];
         delete?: never;
@@ -8529,7 +8529,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id/revisions
-         * @description Defined in `src/routes/storefront-pages.routes.ts:134`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:136`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id_revisions"];
         put?: never;
@@ -8551,7 +8551,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/revisions/:version/restore
-         * @description Defined in `src/routes/storefront-pages.routes.ts:140`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:142`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_revisions_version_restore"];
         delete?: never;
@@ -16274,6 +16274,7 @@ export interface components {
             };
             hasDraft: boolean;
             draftTheme: string | null;
+            draftVersion: number;
             publishedVersion: number | null;
             /** Format: date-time */
             publishedAt: string | null;
@@ -50259,7 +50260,9 @@ export interface operations {
     };
     delete_api_ecommerce_pages_id_draft: {
         parameters: {
-            query?: never;
+            query?: {
+                draftVersion?: number;
+            };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
                 "X-Active-Location"?: string;
@@ -50332,7 +50335,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": unknown | {
+                    draftVersion?: number;
+                };
+            };
+        };
         responses: {
             /** @description Success */
             200: {

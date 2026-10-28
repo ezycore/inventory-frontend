@@ -86,10 +86,18 @@ export const storefrontPagesApi = {
     id: string,
     body: SaveStorefrontPageDraftInput,
   ): Promise<ApiResponse<StorefrontPage>> => apiClient.put(`${base}/${id}/draft`, body),
-  discardDraft: (id: string): Promise<ApiResponse<StorefrontPage>> =>
-    apiClient.delete(`${base}/${id}/draft`),
-  publish: (id: string): Promise<ApiResponse<StorefrontPage>> =>
-    apiClient.post(`${base}/${id}/publish`, {}),
+  /**
+   * With `draftVersion`, only the draft that version names: one saved since is
+   * refused (409 `STOREFRONT_PAGE_DRAFT_CONFLICT`). In the query — a DELETE
+   * carries no body.
+   */
+  discardDraft: (id: string, draftVersion?: number): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.delete(
+      `${base}/${id}/draft${draftVersion === undefined ? "" : `?draftVersion=${draftVersion}`}`,
+    ),
+  /** With `draftVersion`, only the draft that version names — as `discardDraft`. */
+  publish: (id: string, draftVersion?: number): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/${id}/publish`, draftVersion === undefined ? {} : { draftVersion }),
   unpublish: (id: string): Promise<ApiResponse<StorefrontPage>> =>
     apiClient.post(`${base}/${id}/unpublish`, {}),
   duplicate: (id: string): Promise<ApiResponse<StorefrontPage>> =>
