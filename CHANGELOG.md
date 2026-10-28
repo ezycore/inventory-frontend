@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-10-28
+
 ### Added
 - **Reopen order** on a cancelled or rejected online order: asks why (saved to the order history) and puts it back at the first step, to be confirmed again. Hidden when the advance was refunded; the server's message explains a coupon whose limit filled meanwhile. The cancel and reject dialogs no longer say "This can't be undone" — they say the order can be reopened later. Help guide (Online orders) updated. English and Bangla. **Needs inventory-backend with `POST /api/ecommerce/orders/:id/reopen`** — deploy the backend first, or the button answers 404.
 - **Copy an order** — **Copy** on every order page (and **Copy order** in the order list's row menu), whatever its status, opens a new order with the same products at today's prices, for "the same as hers, sent to me". The customer is left empty and the previous one is shown beside the form with **Use these**, so a new buyer's parcel can't ship to the old address by default. Not copied: channel, coupon, discount, delivery charge, notes, advance. Products no longer for sale are left out and named. Frontend only. English and Bangla.
@@ -36,6 +38,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - **Help (Inbox):** product cards now show the price range and sizes in stock and open on a tap; the merchant's AI instructions come before the built-in handover rules — a return number or bank details written there are given to the customer (English and Bangla).
 
 ### Deploy notes
+- **Needs inventory-backend ≥ 1.19.0** (order reopen, the theme home page, the new section fields). Deploy the backend first.
 - Either order with inventory-backend: a store whose starter names `showroom` draws Classic until this release ships.
 - The promises band's `soft` icon style needs inventory-backend with the regenerated section manifest; ship the backend first or together, or a merchant choosing it in the editor is refused on save.
 - The same goes for the promise's second line (`detail`), the image-and-text points (its blocks), the banner's `badge` and the category tiles' `ctaLabel` / `ctaHref`: **ship inventory-backend first**. Until it is live, saving a page that uses any of them is refused; pages that do not are unaffected.
