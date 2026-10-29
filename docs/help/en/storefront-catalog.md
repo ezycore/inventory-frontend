@@ -175,6 +175,14 @@ see the same words standing still.
 which one you are editing, and the preview turns with it. Most of your shoppers are on a phone, so it
 opens on Phone.
 
+**Wishlist**, just under that switch, applies to both screens. Switched on, shoppers get a heart on
+each product card and product page. Tapping it saves the product. A heart in your computer header,
+beside the cart, opens their saved list at `/wishlist`. Nobody needs an account for this: a guest's
+list is kept on their own phone or computer, and a signed-in shopper's follows them to any device.
+What they saved is under Online Store → **Wishlists**. On a phone, **Wishlist** appears in the menu panel,
+and you can also place the heart in the bar or the bottom tabs. Shops using the Showroom header
+start with it on; every other header starts with it off.
+
 On **Phone** you pick a layout, then arrange it: the buttons left and right of your logo, where
 **Search** goes (none, an icon, a box in the bar, or a box under it), whether your **categories**
 scroll under the bar, the **bottom tabs**, and the **menu panel** that opens when a shopper taps

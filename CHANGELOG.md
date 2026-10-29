@@ -17,6 +17,12 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - **Help guide "Move your shop to EzyCore"** (`docs/help/{en,bn}/move-your-shop.md`): which way to move a shop in (WooCommerce connector, Woo export file, template, or our team moving it), what comes across and what does not, and what to do when the store check fails. The "?" on `/products/migrate` opens it (`help:verify` now lets a guide claim that screen although it has no sidebar row). "Add your products" points to it instead of repeating it.
 - **Earlier orders from WooCommerce** in the customer ledger sheet, for customers a migration brought in with order history. History only.
 - **Old WooCommerce links keep working on the storefront**: a path that matches nothing (e.g. `/product/plain-tee/`, `/product-category/clothing/t-shirts/`) is permanently redirected to the product or collection it became, when a migration recorded one.
+- **Wishlist switch** (Customize → Header, above Phone / Computer). One switch for every heart: a heart on product cards and product pages, plus a heart with a count before the cart in all seven computer headers. Phones get a **Wishlist** row in the menu panel, and merchants can place a `wishlist` heart in a bar slot or a bottom tab (greyed in the slot editor while the switch is off). Untouched shops follow their header: on for Showroom, off for every other header, so no existing shop's header changes. Saved only once the merchant flips it (`nav.wishlist`). Help guide (Choose what to sell online) updated in English and Bangla.
+- **`/wishlist` page** — the saved list for every shopper, no sign-in needed. Account → Wishlist shows the same list.
+- **Wishlists follow a signed-in shopper to any device.** The list is mirrored to the server; signing in merges this browser's list into the account's. Each visit refreshes saved items' prices and stock, and drops products the shop no longer sells. Signing out clears the list from that browser; it comes back at the next sign-in.
+- **Online Store → Wishlists** (new page, `storefront.view`): how many shoppers saved something (signed in and guest), products saved, saved and bought in 30 days, **Most wished**, and **Wished but sold out**. An online customer's detail page shows their saved items. Help guide "See what shoppers saved" in English and Bangla.
+- **Wishlist alerts** — a card on the Wishlists page to email shoppers when a saved product is back in stock or cheaper (off by default; each kind has its own switch). Settings → Notifications shows both emails read-only and links to it.
+- **`/unsubscribe` page** — where a marketing email's unsubscribe link lands. One click confirms it, so a mail scanner opening the link can't unsubscribe anyone.
 
 ### Removed
 - Import, Export CSV and Move from WooCommerce buttons on the Products list, and Import / Export on Current Stock — they live in the Import & Export center now (owner decision 2026-10-29).
@@ -24,6 +30,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ### Changed
 - The import dialog's notes box reads "Notes on this file" (it now also lists what auto-create will add and how many products a file of variant rows reads as), and "Total" is "Total rows". Split into `import-dialog.tsx`, `import-options.tsx` and `import-result.tsx`.
+- **Shopper account → Notifications:** "Price-drop alerts" is now **Wishlist alerts** ("When saved items get cheaper or come back in stock"), English and Bangla. Same setting, now covering both alerts.
+- **The product card heart is no longer Showroom-only.** Other themes get a plainer round heart in the photo's corner, and the tag chips move out of its way.
+- **Wishlists are kept per shop.** A shopper saving on a second shop used to wipe their list on the first. The saved data keeps its name (`easystock-wishlist`) and a one-time migration moves each existing list into the new shape, so nobody loses saved items.
 
 ### Fixed
 - **Help guides render their lists and paragraphs again.** Every guide is wrapped at 100 columns, and the renderer kept each line break: a list item that wrapped stopped being a list (its `- ` printed), paragraphs broke mid-sentence, and bold text across a wrap showed `**`. The help renderer now treats single line breaks as wraps (`parseStorefrontMarkdown(source, { softWrap: true })`); a numbered list continues its numbering after bullets under a step. Storefront page bodies are parsed exactly as before.
@@ -33,6 +42,13 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - **Customers page crashed** (`Cannot read properties of null (reading '_id')`) — the WooCommerce order history in the ledger sheet read the customer before one was opened. Found in browser QA.
 - **Move from WooCommerce:** Chrome filled the merchant's own EzyCore email and password into Consumer key / Consumer secret. The secret is now a `new-password` field, which Chrome and password managers leave alone.
 - Help guide "Move your shop to EzyCore": three bold or italic phrases that wrapped onto a second line showed their `**` / `*` markers.
+- **Abandoned-cart recovery had no on-switch.** The "Email shoppers who leave items behind" card was dropped from Store Settings → Checkout when the duplicate settings tabs were removed (2026-08-10), so no merchant could turn the reminders on, and the Settings → Notifications link pointed at a tab without it. It is back on the Checkout tab and saves with the tab's Save button.
+- **The product page heart showed on every shop, even ones with nowhere to see the saved list** (accounts off). It now follows the Wishlist switch.
+- **Showroom footer: blocks sat flush against the footer's top border** whenever the footer held a newsletter block anywhere but first and full width (the "Newsletter" layout puts it second), or one hidden on computers. The newsletter band styling — and its window-wide hairline, which ran through the middle of the columns — now applies only to a newsletter leading the footer; elsewhere it is a plain column with the normal 44px above.
+
+### Deploy notes
+- Needs inventory-backend with `nav.wishlist`, the `/wishlist` sync routes, `/api/ecommerce/wishlists/*`, `wishlistAlerts` and `POST /api/public/unsubscribe`. Deploy the backend first. Without it, saving the Wishlist switch is refused, sync calls 404 (silently: the list stays local), and the Wishlists page errors.
+- Run `pnpm gen:api-types` after the backend's `pnpm docs:all`: the Wishlists page reads `WishlistStats` / `ShopperWishlistItem` from the generated types.
 
 ## [1.18.0] - 2026-10-28
 

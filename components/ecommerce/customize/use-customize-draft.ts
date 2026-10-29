@@ -68,6 +68,7 @@ import {
   type ResolvedDesktopHeader,
   type ResolvedLanguageTheme,
 } from "@/lib/storefront-language-theme";
+import type { WishlistConfig } from "@/lib/storefront-wishlist";
 
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
@@ -226,6 +227,12 @@ export interface CustomizeDraft {
   languageTheme: ResolvedLanguageTheme;
   /** The computer header's behaviour (Customize → Header → Computer). */
   desktopHeader: ResolvedDesktopHeader;
+  /**
+   * The wishlist switch (Customize → Header). Kept in its STORED shape, not
+   * resolved: absent follows the header layout (`resolveWishlistEnabled`), and
+   * resolving it here would pin an untouched shop to the layout it had at load.
+   */
+  wishlist: WishlistConfig;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerPaymentMethods: FooterPaymentMethodsDraft;
@@ -311,6 +318,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
       d.mobile,
       d.utilityBar,
       d.desktopHeader,
+      d.wishlist,
       [mobile.layout, mobile.open, mobile.images, mobile.subImages, mobile.chips, mobile.title, mobile.drawerWidth],
       [desktop.row, desktop.dropdown, desktop.openOn, desktop.overflow],
     ];
@@ -512,6 +520,7 @@ export function seedDraft(settings: StorefrontWithLook): Omit<CustomizeDraft, "c
     utilityBar: resolveUtilityBar(settings.nav?.utilityBar, templates.header),
     languageTheme: resolveLanguageTheme(settings.nav?.languageTheme),
     desktopHeader: resolveDesktopHeader(settings.nav?.desktopHeader),
+    wishlist: settings.nav?.wishlist ?? {},
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
     footerPaymentMethods: {

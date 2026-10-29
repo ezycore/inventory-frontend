@@ -9,6 +9,7 @@ import type {
   DesktopHeaderConfig,
   LanguageThemeConfig,
 } from "@/lib/storefront-language-theme";
+import type { WishlistConfig } from "@/lib/storefront-wishlist";
 import type {
   CatalogCategory,
   StoreAnnouncement,
@@ -116,6 +117,8 @@ interface SfPreviewState {
    */
   languageTheme: LanguageThemeConfig | null;
   desktopHeader: DesktopHeaderConfig | null;
+  /** Draft wishlist switch (Customize → Header) — same `null` vs `{}` rule. */
+  wishlist: WishlistConfig | null;
   /** Draft campaign strip (Customize → Campaign strip). */
   campaignStrip: StoreCampaignStrip | null;
   /**
@@ -233,6 +236,7 @@ interface SfPreviewState {
     navFilters?: StoreFilterSettings;
     languageTheme?: LanguageThemeConfig;
     desktopHeader?: DesktopHeaderConfig;
+    wishlist?: WishlistConfig;
     campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
@@ -288,6 +292,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   navFilters: null,
   languageTheme: null,
   desktopHeader: null,
+  wishlist: null,
   campaignStrip: null,
   contactButton: undefined,
   collections: null,
@@ -353,6 +358,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.languageTheme !== undefined ? patch.languageTheme : s.languageTheme,
       desktopHeader:
         patch.desktopHeader !== undefined ? patch.desktopHeader : s.desktopHeader,
+      wishlist: patch.wishlist !== undefined ? patch.wishlist : s.wishlist,
       campaignStrip:
         patch.campaignStrip !== undefined ? patch.campaignStrip : s.campaignStrip,
       contactButton:

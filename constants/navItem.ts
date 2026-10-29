@@ -286,6 +286,13 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.view"],
           },
           {
+            title: "Wishlists",
+            url: "/ecommerce/wishlists",
+            icon: "heart",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
             title: "Meta Ad Reporting",
             url: "/ecommerce/meta",
             icon: "megaphone",

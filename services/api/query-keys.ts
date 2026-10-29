@@ -451,6 +451,16 @@ export const queryKeys = {
     stats: (days?: number) => ["ecommerce-carts", "stats", days ?? null] as const,
   },
 
+  /**
+   * Shoppers' wishlists — the merchant's read-only view. Written by shoppers on
+   * the storefront, so, like carts, nothing in the admin ever invalidates these.
+   */
+  storefrontWishlists: {
+    all: () => ["ecommerce-wishlists"] as const,
+    stats: (days?: number) => ["ecommerce-wishlists", "stats", days ?? null] as const,
+    shopper: (shopperId: string) => ["ecommerce-wishlists", "shopper", shopperId] as const,
+  },
+
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
   /** Storefront Builder pages. Revisions sit under the root, so a publish flushes them with the rest. */
