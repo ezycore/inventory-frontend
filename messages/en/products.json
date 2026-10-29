@@ -512,6 +512,62 @@
       "allCategories": "All categories",
       "allSubcategories": "All sub-categories",
       "allTags": "All tags"
+    },
+    "migrate": {
+      "title": "Move from WooCommerce",
+      "subtitle": "Bring your products, customers and past orders across from your WooCommerce store.",
+      "openButton": "Move from WooCommerce",
+      "noAccess": "You need permission to import both products and customers to move a store in.",
+      "form": {
+        "storeUrl": "Store address",
+        "storeUrlPlaceholder": "https://yourshop.com",
+        "consumerKey": "Consumer key",
+        "consumerSecret": "Consumer secret",
+        "keyHelpTitle": "Where to find the key",
+        "keyHelp": "In your WordPress admin open WooCommerce → Settings → Advanced → REST API, click Add key, choose Read permission and Generate API key. Copy both values here. Read is enough — nothing on your WooCommerce store is changed.",
+        "autoCreate": "Create missing categories, brands and tags",
+        "autoCreateHint": "Otherwise a product whose category doesn't exist here yet is not imported.",
+        "mirrorImages": "Copy product images into EzyCore",
+        "mirrorImagesHint": "Keeps your images working after the old site is closed. Uses your storage.",
+        "importOrders": "Keep my past orders as history",
+        "importOrdersHint": "Each customer shows their WooCommerce orders. History only — no stock, money or reports change.",
+        "submit": "Check my store",
+        "submitting": "Checking your store…"
+      },
+      "run": {
+        "queued": "Waiting to start…",
+        "reading": "Reading your store… you can leave this page, it keeps going.",
+        "importing": "Importing… you can leave this page, it keeps going.",
+        "previewTitle": "Here's what will be imported",
+        "previewHint": "Nothing has been saved yet. Read the notes, then start the import.",
+        "done": "Import finished",
+        "failed": "The migration stopped",
+        "canceled": "Migration stopped",
+        "keyDropped": "Your WooCommerce key has been deleted from EzyCore.",
+        "entities": {
+          "products": "Products",
+          "customers": "Customers",
+          "orders": "Orders kept as history",
+          "categories": "Old category links"
+        },
+        "columns": {
+          "what": "What",
+          "found": "Found",
+          "willImport": "Will import",
+          "imported": "Imported",
+          "skipped": "Already here",
+          "failed": "Not imported"
+        },
+        "notes": "Notes",
+        "noNotes": "Nothing to note.",
+        "start": "Start import",
+        "stop": "Stop",
+        "startAnother": "Start another migration",
+        "viewProducts": "View products",
+        "viewCustomers": "View customers",
+        "history": "Earlier migrations",
+        "from": "From {store}"
+      }
     }
   },
   "brands": {

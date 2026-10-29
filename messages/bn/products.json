@@ -512,6 +512,62 @@
       "allCategories": "সব ক্যাটাগরি",
       "allSubcategories": "সব সাব-ক্যাটাগরি",
       "allTags": "সব ট্যাগ"
+    },
+    "migrate": {
+      "title": "WooCommerce থেকে চলে আসুন",
+      "subtitle": "আপনার WooCommerce স্টোর থেকে পণ্য, গ্রাহক আর পুরনো অর্ডার এখানে নিয়ে আসুন।",
+      "openButton": "WooCommerce থেকে আনুন",
+      "noAccess": "স্টোর আনতে পণ্য আর গ্রাহক দুটোই ইমপোর্টের পারমিশন লাগবে।",
+      "form": {
+        "storeUrl": "স্টোরের ঠিকানা",
+        "storeUrlPlaceholder": "https://yourshop.com",
+        "consumerKey": "Consumer key",
+        "consumerSecret": "Consumer secret",
+        "keyHelpTitle": "কী কোথায় পাবেন",
+        "keyHelp": "WordPress অ্যাডমিনে WooCommerce → Settings → Advanced → REST API খুলুন, Add key চাপুন, Read পারমিশন বেছে Generate API key দিন। দুটো মানই এখানে কপি করুন। Read-ই যথেষ্ট — আপনার WooCommerce স্টোরে কিছুই বদলায় না।",
+        "autoCreate": "যেসব ক্যাটাগরি, ব্র্যান্ড আর ট্যাগ নেই সেগুলো তৈরি করুন",
+        "autoCreateHint": "না হলে যে পণ্যের ক্যাটাগরি এখানে এখনো নেই সেটা ইমপোর্ট হবে না।",
+        "mirrorImages": "পণ্যের ছবি EzyCore-এ কপি করুন",
+        "mirrorImagesHint": "পুরনো সাইট বন্ধ করলেও ছবিগুলো থাকবে। আপনার স্টোরেজ ব্যবহার করে।",
+        "importOrders": "পুরনো অর্ডারগুলো ইতিহাস হিসেবে রাখুন",
+        "importOrdersHint": "প্রতিটা গ্রাহকের পাশে তাঁর WooCommerce অর্ডার দেখাবে। শুধু ইতিহাস — স্টক, টাকা বা রিপোর্ট কিছুই বদলায় না।",
+        "submit": "স্টোর যাচাই করুন",
+        "submitting": "স্টোর যাচাই হচ্ছে…"
+      },
+      "run": {
+        "queued": "শুরুর অপেক্ষায়…",
+        "reading": "স্টোর পড়া হচ্ছে… পেজ ছেড়ে গেলেও কাজ চলতে থাকবে।",
+        "importing": "ইমপোর্ট হচ্ছে… পেজ ছেড়ে গেলেও কাজ চলতে থাকবে।",
+        "previewTitle": "যা ইমপোর্ট হবে",
+        "previewHint": "এখনো কিছু সেভ হয়নি। নোটগুলো পড়ে ইমপোর্ট শুরু করুন।",
+        "done": "ইমপোর্ট শেষ",
+        "failed": "মাইগ্রেশন থেমে গেছে",
+        "canceled": "মাইগ্রেশন বন্ধ করা হয়েছে",
+        "keyDropped": "আপনার WooCommerce কী EzyCore থেকে মুছে ফেলা হয়েছে।",
+        "entities": {
+          "products": "পণ্য",
+          "customers": "গ্রাহক",
+          "orders": "ইতিহাস হিসেবে রাখা অর্ডার",
+          "categories": "পুরনো ক্যাটাগরি লিংক"
+        },
+        "columns": {
+          "what": "কী",
+          "found": "পাওয়া গেছে",
+          "willImport": "ইমপোর্ট হবে",
+          "imported": "ইমপোর্ট হয়েছে",
+          "skipped": "আগে থেকেই আছে",
+          "failed": "ইমপোর্ট হয়নি"
+        },
+        "notes": "নোট",
+        "noNotes": "কিছু জানানোর নেই।",
+        "start": "ইমপোর্ট শুরু করুন",
+        "stop": "থামান",
+        "startAnother": "আরেকটা মাইগ্রেশন শুরু করুন",
+        "viewProducts": "পণ্য দেখুন",
+        "viewCustomers": "গ্রাহক দেখুন",
+        "history": "আগের মাইগ্রেশন",
+        "from": "{store} থেকে"
+      }
     }
   },
   "brands": {

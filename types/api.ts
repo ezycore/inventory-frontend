@@ -355,3 +355,10 @@ export type TwoFactorStatus = Schemas["TwoFactorStatus"];
 export type TwoFactorSetup = Schemas["TwoFactorSetup"];
 export type TwoFactorVerify = Schemas["TwoFactorVerify"];
 export type ApiSubscription = Schemas["Subscription"];
+// Data migration (backend docs/plan/data-migration.md): a run's progress and notes — never
+// its store key — an order kept from the old store, and an old storefront URL's new path.
+export type MigrationRun = Schemas["MigrationRun"];
+export type LegacyOrder = Schemas["LegacyOrder"];
+export type StorefrontRedirect = Schemas["StorefrontRedirect"];
+// One committed CSV import in the history (backend docs/plan/import-export-center.md).
+export type ImportBatch = Schemas["ImportBatch"];

@@ -9,6 +9,31 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Import & Export center** (`/import-export`, Admin group in the sidebar): every import and export in one place. **Import** — cards for products, opening stock, customers and suppliers (customers and suppliers had no import screen before), each with its template and the usual preview → commit dialog. **Export** — products and stock in the import format with the list pages' own filters, plus Export Data (moved from Reports). **Move your shop** — the WooCommerce connector. **History** — every import with why rows failed, and every WooCommerce move. Each card shows only for a role allowed to use it. English and Bangla; new help guide "Import and export your data".
+- **Products → Import: two switches for moving a store in.** "Create missing categories, brands and tags" (the preview lists what it will create, and re-checks when toggled) and "Copy product images into EzyCore" (on by default when the file is a WooCommerce export; copying runs in the background after the import). A WooCommerce product export now uploads unchanged, variable products included. **Needs inventory-backend with the data-migration Phase 1–2 import** — older backends ignore both switches.
+
+- **Move from WooCommerce** (`/products/migrate`, button on the product list for roles that may import products and customers). Paste the store address and a read-only key; the store is checked, a preview lists what will come across (products, customers, orders, old links) with its notes, then **Start import** runs in the background — the page polls, and can be left and come back to. English and Bangla. Help guide (Add your products) updated.
+- **Help guide "Move your shop to EzyCore"** (`docs/help/{en,bn}/move-your-shop.md`): which way to move a shop in (WooCommerce connector, Woo export file, template, or our team moving it), what comes across and what does not, and what to do when the store check fails. The "?" on `/products/migrate` opens it (`help:verify` now lets a guide claim that screen although it has no sidebar row). "Add your products" points to it instead of repeating it.
+- **Earlier orders from WooCommerce** in the customer ledger sheet, for customers a migration brought in with order history. History only.
+- **Old WooCommerce links keep working on the storefront**: a path that matches nothing (e.g. `/product/plain-tee/`, `/product-category/clothing/t-shirts/`) is permanently redirected to the product or collection it became, when a migration recorded one.
+
+### Removed
+- Import, Export CSV and Move from WooCommerce buttons on the Products list, and Import / Export on Current Stock — they live in the Import & Export center now (owner decision 2026-10-29).
+- Reports → **Export Data** sidebar row; `/reports/export` redirects to `/import-export?tab=export` (bookmarks keep working), `/products/migrate` to `/import-export?tab=move` (keeps `?run=`).
+
+### Changed
+- The import dialog's notes box reads "Notes on this file" (it now also lists what auto-create will add and how many products a file of variant rows reads as), and "Total" is "Total rows". Split into `import-dialog.tsx`, `import-options.tsx` and `import-result.tsx`.
+
+### Fixed
+- **Help guides render their lists and paragraphs again.** Every guide is wrapped at 100 columns, and the renderer kept each line break: a list item that wrapped stopped being a list (its `- ` printed), paragraphs broke mid-sentence, and bold text across a wrap showed `**`. The help renderer now treats single line breaks as wraps (`parseStorefrontMarkdown(source, { softWrap: true })`); a numbered list continues its numbering after bullets under a step. Storefront page bodies are parsed exactly as before.
+- **Move from WooCommerce:** while the import runs the table keeps what the preview found and counts up, instead of going blank until the first batch reports.
+- WooCommerce order history amounts read `৳1,500.00` like the rest of the app (were `BDT 1,500`).
+- Help guides no longer say customers and suppliers can be imported from a file in the app — there is no screen for it yet (the Import & Export center plan adds one).
+- **Customers page crashed** (`Cannot read properties of null (reading '_id')`) — the WooCommerce order history in the ledger sheet read the customer before one was opened. Found in browser QA.
+- **Move from WooCommerce:** Chrome filled the merchant's own EzyCore email and password into Consumer key / Consumer secret. The secret is now a `new-password` field, which Chrome and password managers leave alone.
+- Help guide "Move your shop to EzyCore": three bold or italic phrases that wrapped onto a second line showed their `**` / `*` markers.
+
 ## [1.18.0] - 2026-10-28
 
 ### Added

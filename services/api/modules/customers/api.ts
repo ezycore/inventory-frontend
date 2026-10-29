@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type {
   ApiResponse,
@@ -10,6 +11,7 @@ import type {
   ReceiveCustomerPaymentDto,
 } from "@/types";
 import type { ApiCustomer, CustomerListItem } from "@/types/api";
+import { createImportApi } from "../import-api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface CustomerLedgerFilters {
@@ -20,6 +22,13 @@ export interface CustomerLedgerFilters {
 }
 
 export const customersApi = {
+  // CSV import (the Import & Export center): template + preview/commit.
+  downloadImportTemplate: (): Promise<void> =>
+    apiClient.download("/sales/customers/import/template", {
+      filename: "customers-import-template.csv",
+    }),
+  ...createImportApi("/sales/customers"),
+
   getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<CustomerListItem>>> =>
     apiClient.get(`/sales/customers${buildQueryParams(filters)}`),
 

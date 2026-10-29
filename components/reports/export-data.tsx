@@ -182,9 +182,10 @@ export function ExportData() {
 
   return (
     <div className="space-y-6">
+      {/* A section of the Import & Export center's Export tab, so a section heading. */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <h2 className="text-lg font-semibold">{t('title')}</h2>
           <p className="text-sm text-muted-foreground">
             {t('subtitle')}
           </p>

@@ -15,7 +15,6 @@ covers_routes:
   - /reports/position
   - /reports/tax
   - /reports/employees
-  - /reports/export
 features:
   - sales
   - accounts
@@ -24,6 +23,7 @@ features:
   - inventoryTracking
   - storefront
 ui_labels:
+  - layout:nav.items.import-export
   - reports:landing.subtitle
   - reports:orders.title
   - reports:sales.breakdown.title
@@ -209,7 +209,8 @@ ui_labels:
 ## এক্সপোর্ট
 
 **ডেটা এক্সপোর্ট** দিয়ে *আপনার ডেটা CSV ফাইল হিসেবে ডাউনলোড করুন* — বিক্রয়, ক্রয়, ইনভেন্টরি,
-পণ্য, গ্রাহক আর সরবরাহকারী, আপনার বাছা সময়ের জন্য। হিসাবরক্ষকের কাছে ডেটা পাঠাতে, বা রিপোর্টে
+পণ্য, গ্রাহক আর সরবরাহকারী, আপনার বাছা সময়ের জন্য। এটা সাইডবারের **ইমপোর্ট ও এক্সপোর্ট**-এর এক্সপোর্ট ট্যাবে
+([ডেটা ইমপোর্ট ও এক্সপোর্ট করুন](./import-and-export.md))। হিসাবরক্ষকের কাছে ডেটা পাঠাতে, বা রিপোর্টে
 নেই এমন কিছু স্প্রেডশিটে করতে এটাই উপায়।
 
 ## সংখ্যা ভুল লাগলে

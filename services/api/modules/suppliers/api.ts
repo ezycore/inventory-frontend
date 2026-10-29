@@ -1,6 +1,8 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, SupplierLedger, SupplierStatement } from "@/types";
 import type { ApiSupplier, SupplierListItem } from "@/types/api";
+import { createImportApi } from "../import-api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface SupplierLedgerFilters {
@@ -11,6 +13,13 @@ export interface SupplierLedgerFilters {
 }
 
 export const suppliersApi = {
+  // CSV import (the Import & Export center): template + preview/commit.
+  downloadImportTemplate: (): Promise<void> =>
+    apiClient.download("/suppliers/import/template", {
+      filename: "suppliers-import-template.csv",
+    }),
+  ...createImportApi("/suppliers"),
+
   getAll: (
     filters: BaseFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<SupplierListItem>>> =>

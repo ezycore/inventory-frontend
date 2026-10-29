@@ -23,26 +23,44 @@ Spread `createImportApi("/<resource>")`
 `api.ts`. It gives two calls to the same endpoint with a mode flag:
 
 ```ts
-importPreview(file, mapping?)  // POST /<resource>/import?mode=preview  → ImportResult (no writes)
-importCommit(file, mapping?)   // POST /<resource>/import?mode=commit   → ImportResult (writes)
+importPreview(file, mapping?, options?)  // POST /<resource>/import?mode=preview  → ImportResult (no writes)
+importCommit(file, mapping?, options?)   // POST /<resource>/import?mode=commit   → ImportResult (writes)
 ```
 
-Both send `multipart/form-data` (`file` + optional JSON `mapping`). **Preview never writes** — it
-returns the header-resolution report and would-be row outcomes so the user can confirm before commit.
+Both send `multipart/form-data` (`file` + optional JSON `mapping` + `autoCreate=true` /
+`mirrorImages=true` when those `ImportOptions` are on). **Preview never writes** — it returns the
+header-resolution report and would-be row outcomes so the user can confirm before commit. Send the
+same options to both: `autoCreate` changes what the preview counts as valid.
 
 ---
 
 ## 2. Import — the shared UI
 
 - [`components/shared/import/import-dialog.tsx`](../../../components/shared/import/import-dialog.tsx) —
-  the file-pick → preview → (map) → commit flow.
+  the file-pick → preview → (map) → commit flow. Its read-only result block (counts, notes, row
+  errors) is [`import-result.tsx`](../../../components/shared/import/import-result.tsx).
+- [`components/shared/import/import-options.tsx`](../../../components/shared/import/import-options.tsx) —
+  the opt-in switches, shown only for what `DataTableImportConfig.options` offers (products offer
+  both). Toggling "Create missing…" marks the preview stale until re-checked; "Copy product images"
+  only affects the commit, and defaults ON when the preview's `dialect` is `"woocommerce"` until
+  the merchant touches it.
 - [`components/shared/import/column-mapper.tsx`](../../../components/shared/import/column-mapper.tsx) —
   shown when the CSV headers don't match the template. It reads the preview's `ImportHeaderInfo`
   (`csvHeaders` + per-column `matched`) and lets the user map each expected column to a CSV header; the
   chosen `expected → csvHeader` overrides ride the commit as `ImportColumnMapping`
   (`Record<string, string>`).
 
-Wire it into a list via `DataTableImportConfig` (`importConfig` on the DataTable). **Render
+**Where imports and exports live (since 2026-10-29): the Import & Export center**,
+[`app/(protected)/import-export/page.tsx`](../../../app/(protected)/import-export/page.tsx) — not the list
+pages (owner decision, backend `docs/plan/import-export-center.md`). A new importable resource is one
+row in `IMPORTS` in [`components/import-export/use-import-export-access.ts`](../../../components/import-export/use-import-export-access.ts)
+(its permission, the feature its write route checks, the `DataTableImportConfig`, and a `*.imported`
+event in `services/api/invalidation.ts`); the card, the dialog and the gating follow. An exportable
+file is an `ExportCard` in `components/import-export/export-tab.tsx`, fed the list page's own
+`get*FilterConfig(t)` so an export means what the list's filter meant. The History tab reads
+`GET /api/import-batches` (`useImportBatches`).
+
+`DataTableImportConfig` / `importConfig` on a DataTable still works (the dialog is the same). **Render
 `ImportResult.warnings`** — they are *visible soft-skips* (a row imported minus one field, or was
 skipped for a stated reason). Swallowing them hides real data loss. `errors` is capped server-side;
 `invalid` is the true failed count.
@@ -92,6 +110,8 @@ from the import dialog.
 
 - Don't hide `ImportResult.warnings` — they signal real, visible skips.
 - Don't write on preview — the two modes are the whole safety contract.
-- Don't re-implement the import/export dialog per resource — spread `createImportApi` and pass
-  `importConfig` / `exportConfig`.
+- Don't re-implement the import/export dialog per resource — spread `createImportApi` and add the
+  resource to the Import & Export center.
+- Don't put Import / Export buttons back on a list page: they were removed on purpose, and the help
+  guides send merchants to the center.
 - Don't invent column semantics on the FE — the spec is the backend's.

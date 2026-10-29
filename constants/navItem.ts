@@ -619,12 +619,7 @@ export const navGroups: NavGroup[] = [
             icon: "user-check",
             anyFeatures: ["sales", "purchases"],
           },
-          {
-            title: "Export Data",
-            url: "/reports/export",
-            permissions: ["reports.view"],
-            icon: "download-cloud",
-          },
+          // "Export Data" moved to the Import & Export row (Admin); /reports/export redirects there.
         ],
       },
     ],
@@ -701,6 +696,24 @@ export const navGroups: NavGroup[] = [
             features: ["tax"],
             permissions: ["taxes.view"],
           },
+        ],
+      },
+      {
+        // Every import and export in one place (backend
+        // docs/plan/import-export-center.md). Any-of: each card on the page is
+        // gated by its own permission, so a role holding one of them has a use
+        // for the page; one holding none would see an empty screen.
+        title: "Import & Export",
+        url: "/import-export",
+        icon: "arrow-right-left",
+        permissions: [
+          "products.import",
+          "products.export",
+          "stock.import",
+          "stock.export",
+          "customers.import",
+          "suppliers.import",
+          "reports.view",
         ],
       },
       {
