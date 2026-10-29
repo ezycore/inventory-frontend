@@ -180,6 +180,16 @@ function fetchersFor(read: StorefrontRead) {
 
     getStoreTags: (slug: string) => read<StoreTag[]>(slug, "/tags", 300, CATALOG),
 
+    /**
+     * Where an old URL from the platform the store migrated off lives now
+     * (backend `docs/plan/data-migration.md` Phase 5) — a STORE-RELATIVE path,
+     * or `null`. Asked only by a page that found nothing else, so it costs
+     * nothing on the paths that exist. Cached with the catalogue: it follows a
+     * product's current slug, which only a catalogue change moves.
+     */
+    getStoreRedirect: (slug: string, path: string) =>
+      read<{ to: string }>(slug, `/redirect${query({ path })}`, 300, CATALOG),
+
     getStoreCampaigns: (slug: string) => read<StoreCampaign[]>(slug, "/campaigns", 60, CATALOG),
 
     /**
@@ -268,6 +278,7 @@ export const {
   getStoreProduct,
   getStoreCategories,
   getStoreCategoryByPath,
+  getStoreRedirect,
   getStoreTags,
   getStoreCampaigns,
   getStoreCampaign,

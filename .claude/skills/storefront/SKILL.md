@@ -785,6 +785,33 @@ reads as two filters at once.
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
   store on first render must gate on `useHydrated()`** or SSR mismatch / redirect races follow
   (checkout had exactly this bug: direct load bounced signed-in shoppers to /account).
+- **Wishlist** (docs/plan/wishlist.md in the backend repo; Phases 1–4 built 2026-10-28):
+  - **Store.** `use-wishlist-store` holds `lists: Record<storeSlug, WishItem[]>`, under the
+    persisted key `easystock-wishlist` (version 1). It used to hold ONE list that a second store
+    wiped; `migrate` lifts the old `{storeSlug, items}` into the map. **Never rename the key.**
+  - **Read through the helpers.** `useWishlistItems(slug)` and `useIsWished(slug, id)` are
+    hydration-masked already. `wishItemOf(product, hasVariants)` builds the saved row for the card
+    and the PDP alike.
+  - **One gate for every heart.** `useWishlistEnabled(store)`
+    (`components/storefront/use-wishlist-enabled.ts`) covers the header `WishlistLink`, the phone
+    `wishlist` action, the menu-panel row, the card `.sf-card-wish` and the PDP heart. It is
+    draft-aware.
+  - **The setting.** `nav.wishlist.enabled`, resolved by `resolveWishlistEnabled`
+    (`lib/storefront-wishlist.ts`). Absent ⇒ on for the Showroom header only. Customize stores it
+    only once the merchant flips the switch, which sits above the Phone/Computer switch in Header.
+  - **Not tied to accounts.** The list opens at the public `/wishlist`
+    (`app/(storefront)/shop/wishlist`), which needs no sign-in and is not 404'd when the switch is
+    off. Account → Wishlist renders the same `WishlistSection`.
+  - **Server copy: `WishlistSync`** (`components/storefront/wishlist-sync.tsx`, mounted beside
+    `CartSync` in both shop frames). The browser stays the editor, and every change is a debounced
+    full-replace `PUT /:slug/wishlist`. A guest's first sync per page load `refresh`es prices and
+    stock from the answer; signing in (or loading with a session) CLAIMS and `adopt`s the merged
+    list; signing out `clearStore`s it. Never add a `GET` that overwrites the local list — a guest's
+    pre-server list would be wiped by an empty answer.
+  - **Merchant side:** `/ecommerce/wishlists` (stats, most wished, wished but sold out, alerts card
+    `wishlist-alerts-card.tsx`) and `customer-wishlist-card.tsx` on `/customers/online/[id]`.
+  - **`/unsubscribe`** is the marketing-email opt-out page. It needs a click, never acts on load,
+    because mail scanners open links.
 - **Cart mirror** — the cart is *also* copied to the server so the merchant can see abandoned carts.
   **`components/storefront/cart-sync.tsx` is the only place that does this**, mounted once in
   `StoreShell`; the handle lives in `services/storefront/cart-identity.ts` under its **own**
@@ -1679,7 +1706,8 @@ whole shop down on **every page** — the merchant trades their fold for a sente
     selector. `.sf-search-soft` (below) is the third; it lives in `storefront-showroom.css`.
   - `showroom` is the **seventh**, added 2026-10-26 from the default starter design: Classic's
     anatomy with the search box centred at 560px (`.sf-search-soft`), a wishlist heart
-    (`WishlistLink` → `/account?tab=wishlist`, gated on accounts), a soft cart button carrying its
+    (`WishlistLink strong` → `/wishlist`; every anatomy now draws one before its cart while the
+    wishlist is on — see "Wishlist" above), a soft cart button carrying its
     count (`CartPill`), the account link at body size (`AccountLink strong`) and a 14px darker menu
     row (`.sf-hdr-showroom`). **A separate anatomy, not a restyle of Classic**, because Classic is
     what every live shop wears and is the reset — new stores' starters pick `showroom`, any
@@ -1768,8 +1796,11 @@ Loaded last in `app/(storefront)/layout.tsx`. Its rules:
   `sf-tag-chip`, `sf-banner-cta`, `sf-newsletter`, `sf-pay-badge(s)`, `sf-footer-blurb`.
   Two carry markup the base sheet HIDES and Showroom shows: `.sf-banner-eyebrow` (the collection
   over a promo card's own title) and `.sf-pay-label` ("We accept").
-- **One component branches on the skin:** `ProductCard` draws the wishlist heart
-  (`.sf-card-wish`) when `useHeaderVariant(store) === "showroom"` and the shop has accounts.
+- **The card heart is not skin-gated any more** (2026-10-28): `ProductCard` draws `.sf-card-wish`
+  whenever `useWishlistEnabled(store)`, on every card style (editorial too: it sits on the photo,
+  not the frame). Showroom only restyles it
+  (a white disc); `storefront.css` gives every other shop a plainer one, and pulls the badge row
+  out of that corner with `.sf-qb-card:has(.sf-card-wish) .sf-card-badges`.
 - **Strip arrows render DISABLED rather than not at all** at an edge (`CategoryStrip`); the base
   sheet hides `:disabled`, Showroom keeps a greyed one in the carousel's heading row.
 - ⚠ **A track list with no free space ignores alignment.** The design's category grid
@@ -1839,9 +1870,12 @@ template id anywhere**. So:
 > not a line of this renderer. `storefront-mobile.test.ts` asserts the derivation and the sketch
 > coverage, so a template added without its wireframe fails rather than shipping a blank tile.
 
-Adding a bar ACTION (a wishlist button, say) is the one thing that costs two files — an entry in
-`MOBILE_ACTIONS` and a branch in `mobile-actions.tsx` — because an action is *behaviour*, not
-arrangement. The Customize slot editor picks it up from the registry with no edit.
+Adding a bar ACTION is the one thing that costs two files — an entry in `MOBILE_ACTIONS` and a
+branch in `mobile-actions.tsx` — because an action is *behaviour*, not arrangement. The Customize
+slot editor picks it up from the registry with no edit. `wishlist` (2026-10-28) is the worked
+example. It is in no template's default slots. `chromeWithPageControls` drops it while the
+wishlist is off, the slot editor greys it with a reason, and the menu panel adds a Wishlist row
+whenever the bar has no heart.
 
 The five shipped templates: `tabs` (the chrome the storefront always had, and the default),
 `drawer` (hamburger / centred logo / search + cart), `search` (a search box in the bar itself),

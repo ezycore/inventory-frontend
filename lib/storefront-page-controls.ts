@@ -52,11 +52,19 @@ export function storePages(store?: StorefrontStore | null): StorePageControls {
  */
 export function chromeWithPageControls<T extends MobileChrome>(
   chrome: T,
-  { search, accounts }: Pick<StorePageControls, "search" | "accounts">,
+  {
+    search,
+    accounts,
+    wishlist,
+  }: Pick<StorePageControls, "search" | "accounts"> & {
+    /** The wishlist switch (`useWishlistEnabled`) — a look setting, not a page control. */
+    wishlist: boolean;
+  },
 ): T {
   const gone = new Set<MobileActionId>();
   if (!search) gone.add("search");
   if (!accounts) gone.add("account");
+  if (!wishlist) gone.add("wishlist");
   if (gone.size === 0) return chrome;
   return {
     ...chrome,

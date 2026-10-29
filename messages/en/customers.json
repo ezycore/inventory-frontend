@@ -156,5 +156,11 @@
     "emptyHint": "Leave empty to use the customer's email on file.",
     "send": "Send statement",
     "sending": "Sending…"
+  },
+  "legacyOrders": {
+    "title": "Earlier orders from WooCommerce",
+    "hint": "History kept from your old store — no stock or money moved.",
+    "order": "Order #{number}",
+    "more": "and {count} more"
   }
 }

@@ -335,6 +335,10 @@ export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];
 export type AbandonedCartListItem = Schemas["AbandonedCartListItem"];
 export type AbandonedCartStats = Schemas["AbandonedCartStats"];
+/** The merchant's Wishlists page (backend `docs/plan/wishlist.md`, Phase 3). */
+export type WishlistStats = Schemas["WishlistStats"];
+export type WishedProduct = Schemas["WishedProduct"];
+export type ShopperWishlistItem = Schemas["ShopperWishlistItem"];
 export type StorefrontSubscriberListItem =
   Schemas["StorefrontSubscriberListItem"];
 
@@ -355,3 +359,10 @@ export type TwoFactorStatus = Schemas["TwoFactorStatus"];
 export type TwoFactorSetup = Schemas["TwoFactorSetup"];
 export type TwoFactorVerify = Schemas["TwoFactorVerify"];
 export type ApiSubscription = Schemas["Subscription"];
+// Data migration (backend docs/plan/data-migration.md): a run's progress and notes — never
+// its store key — an order kept from the old store, and an old storefront URL's new path.
+export type MigrationRun = Schemas["MigrationRun"];
+export type LegacyOrder = Schemas["LegacyOrder"];
+export type StorefrontRedirect = Schemas["StorefrontRedirect"];
+// One committed CSV import in the history (backend docs/plan/import-export-center.md).
+export type ImportBatch = Schemas["ImportBatch"];

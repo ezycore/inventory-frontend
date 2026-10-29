@@ -60,8 +60,11 @@ const SCOPE_EXEMPT = [
  * the sidebar footer rather than in a nav group (see `AppSidebar`). Dropping it from `covers_routes`
  * to satisfy the gate would cost the screen its contextual help — the opposite of what this file is
  * for. Add a route here only when it is genuinely reachable and genuinely not a nav item.
+ * `/products/migrate` is the other: it now redirects to the Import & Export center's "Move your
+ * shop" tab, whose `/import-export` belongs to the Import and export guide. Listing it gives the
+ * Move your shop guide a route of its own, since every guide must claim one.
  */
-const NON_NAV_ROUTES = ["/settings/features"];
+const NON_NAV_ROUTES = ["/settings/features", "/products/migrate"];
 
 const errors = [];
 const warnings = [];

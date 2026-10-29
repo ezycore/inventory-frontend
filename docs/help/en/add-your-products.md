@@ -11,6 +11,7 @@ covers_routes:
   - /units
   - /variants
 ui_labels:
+  - layout:nav.items.import-export
   - products:products.page.title
   - products:products.page.subtitle
   - products:products.filters.statusActive
@@ -172,11 +173,18 @@ feature turned on.
 ## Importing many products at once
 
 You can import products from a CSV file instead of typing them one by one, which is the sensible way
-to load an existing catalogue.
+to load an existing catalogue. Imports and exports are in **Import & Export** in the sidebar, not on
+the product list — see [Import and export your data](./import-and-export.md).
+
+A product with sizes or colours takes one row for the product and one row per variant, with the
+product's name in each variant's **Parent** column.
+
+**Moving from WooCommerce or another system?** Read [Move your shop to EzyCore](./move-your-shop.md)
+for every way to bring an existing shop across — products, customers and past orders.
 
 One limitation to know: *Only single products are exported — variant & combo products aren't
-supported in CSV export; manage them in the product form.* Variant and combo products have to be
-created in the app.
+supported in CSV export; manage them in the product form.* Variant products can be imported but not
+exported; combo products are created in the app.
 
 ## Changing many products at once
 

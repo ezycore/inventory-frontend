@@ -7,7 +7,8 @@ import { toast } from "@/lib/storefront-toast";
 import { storeHref } from "@/lib/storefront-links";
 import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { useWishlistStore } from "@/services/stores/use-wishlist-store";
+import { useWishlistItems, useWishlistStore } from "@/services/stores/use-wishlist-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -19,8 +20,11 @@ import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { brandButton } from "@/lib/storefront-button";
 
 /**
- * Wishlist section — products saved via the PDP heart. "Move to cart" adds and
+ * Wishlist section — products saved with a heart. "Move to cart" adds and
  * removes in one tap (variable products go to the PDP to pick a variant first).
+ *
+ * Drawn by the public `/wishlist` page and by Account → Wishlist; the list is
+ * this browser's, so neither needs a sign-in to show it.
  */
 export function WishlistSection() {
   const { slug, base } = useStoreContext();
@@ -31,12 +35,15 @@ export function WishlistSection() {
   const imageFit = useStoreImageFit();
   const imageRatio = useStoreImageRatio();
 
-  const storeSlug = useWishlistStore((s) => s.storeSlug);
-  const allItems = useWishlistStore((s) => s.items);
-  const removeWish = useWishlistStore((s) => s.remove);
+  const items = useWishlistItems(slug);
+  const removeFromStore = useWishlistStore((s) => s.remove);
+  const removeWish = (productId: string) => removeFromStore(slug, productId);
   const addToCart = useCartStore((s) => s.addItem);
-  const items = storeSlug === slug ? allItems : [];
+  // The list is in localStorage, which the server never sees. Drawing nothing
+  // until it loads beats flashing "Your wishlist is empty" at a shopper who has one.
+  const hydrated = useHydrated();
 
+  if (!hydrated) return null;
   if (items.length === 0) {
     return (
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "56px 30px", textAlign: "center" }}>

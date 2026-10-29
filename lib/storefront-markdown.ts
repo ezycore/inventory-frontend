@@ -20,7 +20,7 @@ export interface SfFaqItem {
 export type SfBlock =
   | { kind: "heading"; level: 1 | 2 | 3; inline: SfInline[] }
   | { kind: "paragraph"; lines: SfInline[][] }
-  | { kind: "list"; ordered: boolean; items: SfInline[][] }
+  | { kind: "list"; ordered: boolean; items: SfInline[][]; /** An ordered list's first number, when not 1. */ start?: number }
   | { kind: "quote"; inline: SfInline[] }
   | { kind: "divider" }
   | { kind: "table"; headers: SfInline[][]; rows: SfInline[][][] }
@@ -102,12 +102,54 @@ const parseFaqGroup = (lines: string[]): SfFaqItem[] => {
   return items;
 };
 
-export function parseStorefrontMarkdown(source: string): SfBlock[] {
+const startsBlockLine = (line: string): boolean =>
+  HEADING_RE.test(line) || BULLET_RE.test(line) || ORDERED_RE.test(line) || QUOTE_RE.test(line);
+
+/**
+ * Source line breaks as soft wraps: a line that does not open a list item, heading or quote
+ * continues the one before it. Help pages are wrapped at 100 columns, so every hard line break
+ * there is the editor's, not the writer's — without this a wrapped list item stops being a list
+ * and its `- ` prints. Storefront bodies keep their line breaks: an owner pressing Enter means it.
+ */
+const joinSoftWraps = (lines: string[]): string[] => {
+  if (lines.length >= 2 && lines[0].includes("|") && isTableDelimiter(lines[1])) return lines;
+  const out: string[] = [];
+  for (const line of lines) {
+    if (out.length === 0 || startsBlockLine(line)) out.push(line);
+    else out[out.length - 1] += ` ${line}`;
+  }
+  return out;
+};
+
+/**
+ * A list group mixing numbered steps and bullets (options under a step) → one group per run, so
+ * each renders as its own list. The block model has no nesting; the numbered runs carry their
+ * first number so step 5 still reads 5 after the bullets.
+ */
+const splitListRuns = (lines: string[]): string[][] => {
+  const kindOf = (l: string) => (ORDERED_RE.test(l) ? "ordered" : BULLET_RE.test(l) ? "bullet" : null);
+  if (!lines.every(kindOf) || new Set(lines.map(kindOf)).size < 2) return [lines];
+  const runs: string[][] = [];
+  for (const line of lines) {
+    const run = runs[runs.length - 1];
+    if (run && kindOf(run[0]) === kindOf(line)) run.push(line);
+    else runs.push([line]);
+  }
+  return runs;
+};
+
+export interface MarkdownParseOptions {
+  /** Treat single line breaks as wraps (help docs), not as breaks (storefront bodies). */
+  softWrap?: boolean;
+}
+
+export function parseStorefrontMarkdown(source: string, options: MarkdownParseOptions = {}): SfBlock[] {
   const groups = source
     .replace(/\r\n/g, "\n")
     .split(/\n\s*\n/)
     .map((g) => g.split("\n").map((l) => l.trim()).filter(Boolean))
-    .filter((g) => g.length > 0);
+    .filter((g) => g.length > 0)
+    .flatMap((g) => (options.softWrap ? splitListRuns(joinSoftWraps(g)) : [g]));
 
   const blocks: SfBlock[] = [];
   const last = () => blocks[blocks.length - 1];
@@ -141,10 +183,12 @@ export function parseStorefrontMarkdown(source: string): SfBlock[] {
         items: lines.map((l) => parseInline(l.replace(BULLET_RE, ""))),
       });
     } else if (lines.every((l) => ORDERED_RE.test(l))) {
+      const start = parseInt(lines[0], 10);
       blocks.push({
         kind: "list",
         ordered: true,
         items: lines.map((l) => parseInline(l.replace(ORDERED_RE, ""))),
+        ...(options.softWrap && start > 1 ? { start } : {}),
       });
     } else if (lines.every((l) => QUOTE_RE.test(l))) {
       blocks.push({

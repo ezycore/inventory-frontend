@@ -51,7 +51,8 @@ export type MobileActionId =
   | "lang"
   | "theme"
   | "call"
-  | "track";
+  | "track"
+  | "wishlist";
 
 export interface MobileActionSpec {
   id: MobileActionId;
@@ -94,6 +95,9 @@ export const MOBILE_ACTIONS: readonly MobileActionSpec[] = [
   { id: "theme", label: "Light / dark", icon: "moon", icons: ["moon"] },
   { id: "call", label: "Call", icon: "phone", icons: ["phone"], needs: "phone" },
   { id: "track", label: "Track order", icon: "box", icons: ["box", "truck"] },
+  // In no template's default slots — 390px is already full. Renders nothing
+  // while the shop's wishlist is off (`chromeWithPageControls`).
+  { id: "wishlist", label: "Wishlist", icon: "heart", icons: ["heart"] },
 ];
 
 const ACTION_BY_ID = new Map(MOBILE_ACTIONS.map((a) => [a.id, a]));
@@ -110,7 +114,7 @@ export const mobileAction = (id: MobileActionId): MobileActionSpec | undefined =
  */
 export type MobileTabId = Extract<
   MobileActionId,
-  "home" | "menu" | "search" | "cart" | "account" | "call" | "track"
+  "home" | "menu" | "search" | "cart" | "account" | "call" | "track" | "wishlist"
 >;
 
 export const MOBILE_TAB_IDS: readonly MobileTabId[] = [
@@ -121,6 +125,7 @@ export const MOBILE_TAB_IDS: readonly MobileTabId[] = [
   "account",
   "call",
   "track",
+  "wishlist",
 ];
 
 /**
