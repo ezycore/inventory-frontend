@@ -9,9 +9,13 @@ import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
 import { ga4LineItem, ga4Money, trackGa4Event } from "@/lib/storefront-ga4";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { useWishlistStore } from "@/services/stores/use-wishlist-store";
+import {
+  useIsWished,
+  useWishlistStore,
+  wishItemOf,
+} from "@/services/stores/use-wishlist-store";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
 import { useStartBuyNow } from "@/services/storefront/use-buy-now";
-import { cardImageUrl } from "@/lib/storefront-image";
 import { choiceLine, resolveProductChoice } from "@/components/storefront/product-choice";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
@@ -37,9 +41,10 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
   const addItem = useCartStore((s) => s.addItem);
   const startBuyNow = useStartBuyNow();
   const toggleWish = useWishlistStore((s) => s.toggle);
-  const wished = useWishlistStore(
-    (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product?._id),
-  );
+  const wished = useIsWished(slug, product?._id);
+  // The shop's one wishlist switch. This heart used to draw on every shop,
+  // including ones with no screen that showed the list it saved into.
+  const wishlistOn = useWishlistEnabled(store);
 
   const [qty, setQty] = useState(1);
   // Gallery image the shopper tapped (clamped later — variant switches can swap
@@ -124,18 +129,7 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
 
   const onWish = () => {
     if (!product) return;
-    toggleWish(slug, {
-      productId: product._id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
-      // The wishlist renders this at card size, not as a row thumb.
-      image: cardImageUrl(product.images?.[0]),
-      hasVariants: variable,
-      availableQuantity: product.availableQuantity,
-      outOfStockBehavior: product.outOfStockBehavior,
-    });
+    toggleWish(slug, wishItemOf(product, variable));
   };
 
   return {
@@ -167,6 +161,7 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
     setImgIdx,
     setPicked,
     wished,
+    wishlistOn,
     add,
     buyNow,
     onWish,

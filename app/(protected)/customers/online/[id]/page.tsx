@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useState } from "react";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { orderDetailHref } from "@/components/ecommerce/orders/helpers";
 import { fmtDate } from "@/components/ecommerce/customers/accounts-table";
 import { useOrgCalendar } from "@/hooks/use-org-calendar";
+import { CustomerWishlistCard } from "@/components/ecommerce/wishlists/customer-wishlist-card";
 
 export default function CustomerDetailPage() {
   const { timezone } = useOrgCalendar();
@@ -99,6 +101,8 @@ export default function CustomerDetailPage() {
             />
             <Stat label="Last order" value={fmtDate(stats.lastOrderAt, timezone)} />
           </Card>
+
+          <CustomerWishlistCard shopperId={id} currency={currency} />
         </div>
 
         {/* Order history */}

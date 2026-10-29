@@ -15,6 +15,7 @@ import { Brand } from "@/components/storefront/logo-mark";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
+import { WishlistSync } from "@/components/storefront/wishlist-sync";
 import { VisitSourceCapture } from "@/components/storefront/visit-source-capture";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
@@ -94,6 +95,8 @@ export function BareStoreFrame({
         <CartDrawer />
         <OwnerAdminBar />
         <CartSync slug={slug} />
+        {/* Renders nothing — the wishlist's server copy, built like CartSync. */}
+        <WishlistSync slug={slug} />
         <VisitSourceCapture />
       </div>
     </StoreContextProvider>

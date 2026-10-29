@@ -119,20 +119,23 @@ export function ProductBuyButtons({ d }: { d: ProductBuy }) {
         price={d.price}
         currency={d.currency}
       />
-      {/* Wishlist heart — saved items appear in Account → Wishlist. */}
-      <button
-        type="button"
-        onClick={d.onWish}
-        aria-label={t.tabWishlist}
-        aria-pressed={d.wished}
-        style={{
-          ...wishBtn,
-          background: d.wished ? "var(--primary-soft)" : "transparent",
-          color: d.wished ? "var(--primary)" : "var(--muted)",
-        }}
-      >
-        <Icon name={d.wished ? "heartFill" : "heart"} size={20} />
-      </button>
+      {/* Wishlist heart — saved items appear at /wishlist. Only while the
+          shop's wishlist is on (Customize → Header). */}
+      {d.wishlistOn ? (
+        <button
+          type="button"
+          onClick={d.onWish}
+          aria-label={t.tabWishlist}
+          aria-pressed={d.wished}
+          style={{
+            ...wishBtn,
+            background: d.wished ? "var(--primary-soft)" : "transparent",
+            color: d.wished ? "var(--primary)" : "var(--muted)",
+          }}
+        >
+          <Icon name={d.wished ? "heartFill" : "heart"} size={20} />
+        </button>
+      ) : null}
     </div>
   );
 }

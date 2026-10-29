@@ -60,6 +60,7 @@ export function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
           {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
           {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} withLabel />
+          <WishlistLink ctx={ctx} />
           <CartButton ctx={ctx} withLabel />
         </div>
       </div>
@@ -113,7 +114,7 @@ export function ShowroomDesktop({ ctx }: { ctx: HeaderCtx }) {
             {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           </span>
           <AccountLink ctx={ctx} withLabel strong />
-          <WishlistLink ctx={ctx} />
+          <WishlistLink ctx={ctx} strong />
           <CartPill ctx={ctx} />
         </div>
       </div>
@@ -145,6 +146,7 @@ export function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
         <HeaderSearchIcon categories={ctx.cats} />
         {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
         <AccountLink ctx={ctx} />
+        <WishlistLink ctx={ctx} />
         <CartButton ctx={ctx} />
       </div>
     </div>
@@ -170,6 +172,7 @@ export function CenteredDesktop({ ctx }: { ctx: HeaderCtx }) {
         <div style={{ display: "flex", alignItems: "center", gap: 18, justifySelf: "end" }}>
           <HeaderSearchIcon categories={ctx.cats} />
           <AccountLink ctx={ctx} />
+          <WishlistLink ctx={ctx} />
           <CartButton ctx={ctx} />
         </div>
       </div>
@@ -248,6 +251,7 @@ export function SearchFirstDesktop({ ctx }: { ctx: HeaderCtx }) {
         <div style={{ display: "flex", alignItems: "center", gap: 14, flex: "none" }}>
           {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} />
+          <WishlistLink ctx={ctx} />
           <button
             type="button"
             onClick={ctx.goCart}
@@ -318,6 +322,7 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
         <div style={{ display: "flex", alignItems: "center", gap: 17, flex: "none" }}>
           {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} />
+          <WishlistLink ctx={ctx} />
           <CartButton ctx={ctx} />
         </div>
       </div>
@@ -370,6 +375,7 @@ export function ClinicalDesktop({ ctx }: { ctx: HeaderCtx }) {
           {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
           {ctx.needsTheme ? <ThemeBtn ctx={ctx} /> : null}
           <AccountLink ctx={ctx} />
+          <WishlistLink ctx={ctx} />
           <CartButton ctx={ctx} />
         </div>
       </div>

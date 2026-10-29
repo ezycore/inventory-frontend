@@ -627,8 +627,8 @@ const en: Dict = {
   promoEmailS: "Deals, offers and seasonal sales",
   prefsOrderNote:
     "Order updates are sent by the store and can't be turned off here.",
-  priceDropT: "Price-drop alerts",
-  priceDropS: "When wishlist items get cheaper",
+  priceDropT: "Wishlist alerts",
+  priceDropS: "When saved items get cheaper or come back in stock",
   newsletterT: "Weekly newsletter",
   newsletterS: "New arrivals and curated picks",
   addNewAddress: "Add address",
@@ -1069,8 +1069,8 @@ const bn: Dict = {
   promoEmailS: "ডিল, অফার ও সিজনাল সেল",
   prefsOrderNote:
     "অর্ডার আপডেট স্টোর থেকে পাঠানো হয়, এখান থেকে বন্ধ করা যাবে না।",
-  priceDropT: "দাম কমার অ্যালার্ট",
-  priceDropS: "উইশলিস্টের পণ্যের দাম কমলে",
+  priceDropT: "উইশলিস্ট অ্যালার্ট",
+  priceDropS: "সংরক্ষিত পণ্যের দাম কমলে বা আবার স্টকে এলে",
   newsletterT: "সাপ্তাহিক নিউজলেটার",
   newsletterS: "নতুন পণ্য ও বাছাই",
   addNewAddress: "ঠিকানা যোগ করুন",

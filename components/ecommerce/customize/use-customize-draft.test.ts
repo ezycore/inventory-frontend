@@ -61,6 +61,10 @@ describe("Language & theme and the computer header", () => {
       "header",
     ]);
   });
+
+  it("counts the wishlist switch as Header", () => {
+    expect(changedParts({ ...base, wishlist: { enabled: true } }, base)).toEqual(["header"]);
+  });
 });
 
 describe("the header rows that folded into Header", () => {

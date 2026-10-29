@@ -4,7 +4,8 @@
 import { Monitor, Smartphone } from "lucide-react";
 import type { StorefrontSettings } from "@/types";
 import { SegmentedField } from "@/ui/components/segmented-field";
-import { PartHint } from "@/components/ecommerce/customize/part-group";
+import { PartHint, PartSwitch } from "@/components/ecommerce/customize/part-group";
+import { resolveWishlistEnabled } from "@/lib/storefront-wishlist";
 import { ComputerHeaderFields } from "@/components/ecommerce/customize/parts/header-computer";
 import { PhoneHeaderFields } from "@/components/ecommerce/customize/parts/header-phone";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
@@ -54,6 +55,15 @@ export function HeaderPart({
           The preview switches with it. The menu&apos;s links are under Menu.
         </PartHint>
       </div>
+
+      {/* Above the device switch: one setting for both screens, and for the
+          hearts on product cards and the product page too. */}
+      <PartSwitch
+        label="Wishlist"
+        detail="A heart on products and in the header"
+        checked={resolveWishlistEnabled(api.draft.wishlist, api.draft.templates.header)}
+        onCheckedChange={(enabled) => api.patch({ wishlist: { enabled } })}
+      />
 
       {device === "mobile" ? (
         <PhoneHeaderFields

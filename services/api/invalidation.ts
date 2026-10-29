@@ -357,6 +357,41 @@ export const EFFECTS = {
    *   re-login. Miss this and the nav keeps offering pages that now 403.
    */
   "role.changed": [k.roles.all(), k.users.all(), k.profile.all()],
+
+  /** A migration was started, approved or stopped. Nothing is imported yet. */
+  "migration.changed": [k.migrations.all()],
+
+  /**
+   * A migration FINISHED importing — seen by the progress poll, not by a
+   * mutation, since the work happens in the backend's worker. It writes
+   * products with their variants and opening stock, the categories, brands,
+   * tags and attributes they name, and customers.
+   */
+  "migration.imported": union(
+    [
+      k.migrations.all(),
+      k.categories.all(),
+      k.brands.all(),
+      k.tags.all(),
+      k.variantAttributes.all(),
+      k.customers.all(),
+    ],
+    STOCK,
+  ),
+
+  /**
+   * A CSV import was committed from the Import & Export center (backend
+   * `docs/plan/import-export-center.md`). Every commit adds a row to the import
+   * history. Products also creates the categories, brands, tags and attributes it
+   * names, and its opening stock; opening stock is stock.
+   */
+  "products.imported": union(
+    [k.importBatches.all(), k.categories.all(), k.brands.all(), k.tags.all(), k.variantAttributes.all()],
+    STOCK,
+  ),
+  "stock.imported": union([k.importBatches.all()], STOCK),
+  "customers.imported": [k.importBatches.all(), k.customers.all()],
+  "suppliers.imported": [k.importBatches.all(), k.suppliers.all()],
 } satisfies Record<string, QueryKey[]>;
 
 export type DomainEvent = keyof typeof EFFECTS;

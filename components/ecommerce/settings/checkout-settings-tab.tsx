@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useStorefrontPages } from "@/services/api";
 import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 import type { StorefrontSettings } from "@/types";
+import { CartRecoveryCard } from "@/components/ecommerce/carts/cart-recovery-card";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Checkbox } from "@/ui/components/checkbox";
@@ -76,6 +77,13 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
       .filter((page) => page.status === "published" && page.slug)
       .map((page) => ({ label: page.title, value: page.slug as string })),
   ];
+  // Abandoned-cart recovery (backend docs/plan/abandoned-cart.md). Off unless opted in;
+  // saved with this tab, and the notification matrix links here for it.
+  const recovery = settings.cartRecovery ?? {};
+  const [recoveryOn, setRecoveryOn] = useState(recovery.enabled ?? false);
+  const [recoveryDelays, setRecoveryDelays] = useState<number[]>(
+    recovery.delaysMinutes?.length ? recovery.delaysMinutes : [60],
+  );
   const toggleField = (id: string, on: boolean) => setFields((current) => on ? Array.from(new Set([...current, id])) : current.filter((field) => field !== id));
 
   return (
@@ -188,6 +196,12 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           <Field label="Order number prefix"><Input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="e.g. RM-" maxLength={12} /></Field>
         </div>
       </Card>
+      <CartRecoveryCard
+        enabled={recoveryOn}
+        onEnabledChange={setRecoveryOn}
+        delaysMinutes={recoveryDelays}
+        onDelaysChange={setRecoveryDelays}
+      />
       <SaveBar pending={pending} onSave={() => !missingPauseMessage && save({ checkout: {
         ordersPaused,
         pausedMessage: pausedMessage.trim() || undefined,
@@ -208,7 +222,7 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           customFields.filter((field) => field.label.trim()),
           (field) => !isMethodOwnedField(field),
         ),
-      } })} />
+      }, cartRecovery: { enabled: recoveryOn, delaysMinutes: recoveryDelays } })} />
     </div>
   );
 }

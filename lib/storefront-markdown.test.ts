@@ -97,3 +97,53 @@ describe("inline code", () => {
     expect(parseInline("`a **b** c`")).toEqual([{ kind: "code", text: "a **b** c" }]);
   });
 });
+
+/**
+ * Help guides are wrapped at 100 columns. Found in browser QA (2026-10-29): with every line break
+ * kept, a wrapped list item stopped being a list (its `- ` printed), paragraphs broke mid-sentence,
+ * and bold text that wrapped showed its `**`.
+ */
+describe("parseStorefrontMarkdown — softWrap (help docs)", () => {
+  const help = (source: string) => parseStorefrontMarkdown(source, { softWrap: true });
+
+  it("joins a wrapped paragraph into one line, so emphasis across the wrap renders", () => {
+    expect(help("See **From a WooCommerce export\nfile** below.")).toEqual([
+      {
+        kind: "paragraph",
+        lines: [
+          [
+            { kind: "text", text: "See " },
+            { kind: "bold", text: "From a WooCommerce export file" },
+            { kind: "text", text: " below." },
+          ],
+        ],
+      },
+    ]);
+  });
+
+  it("keeps a list a list when an item wraps", () => {
+    const [block] = help("- **Units** — how you measure\n  and sell each item.\n- **Brands** — the label.");
+    expect(block).toMatchObject({ kind: "list", ordered: false });
+    expect(block.kind === "list" && block.items).toHaveLength(2);
+  });
+
+  it("splits numbered steps around nested bullets and keeps the numbering", () => {
+    const blocks = help("1. Open it.\n2. Choose:\n   - one\n   - two\n3. Press it.");
+    expect(blocks.map((b) => b.kind === "list" && [b.ordered, b.items.length, b.start])).toEqual([
+      [true, 2, undefined],
+      [false, 2, undefined],
+      [true, 1, 3],
+    ]);
+  });
+
+  it("leaves tables line by line", () => {
+    const [block] = help("| a | b |\n|---|---|\n| 1 | 2 |");
+    expect(block.kind).toBe("table");
+  });
+
+  it("does not change storefront parsing: line breaks stay breaks", () => {
+    const [block] = parseStorefrontMarkdown("line one\nline two");
+    expect(block.kind === "paragraph" && block.lines).toHaveLength(2);
+    expect(parseStorefrontMarkdown("3. step")[0]).not.toHaveProperty("start");
+  });
+});
