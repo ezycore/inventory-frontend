@@ -23,7 +23,7 @@ export function HistoryTab({ showMigrations }: { showMigrations: boolean }) {
   const { formatDateTime } = useFormatters();
   const list = useListUrlState({ defaults: { limit: 20, filters: {} }, limitOptions: LIST_PAGE_SIZES, prefix: "h_" });
   const { data, isLoading, isFetching } = useImportBatches({ page: list.page, limit: list.limit });
-  const migrations = useMigrations();
+  const migrations = useMigrations({ enabled: showMigrations });
   const moves = (migrations.data ?? []).filter((run) => run.source === "woocommerce_rest");
 
   const columns: SimpleColumn<ImportBatch>[] = [

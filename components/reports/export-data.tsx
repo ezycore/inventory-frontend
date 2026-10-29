@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { useOrgCalendar } from '@/hooks/use-org-calendar'
 import { orgDateKey } from '@/lib/org-calendar'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { useExportData, type ExportDataType } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Button } from '@ui/components/button'
@@ -94,8 +95,9 @@ const EXPORT_OPTIONS: {
   },
 ]
 
-function downloadCSV(data: any[], filename: string, timezone: string) {
-  if (!data || data.length === 0) return
+/** Returns false when there is nothing to put in the file, so the caller can say so. */
+function downloadCSV(data: any[], filename: string, timezone: string): boolean {
+  if (!data || data.length === 0) return false
 
   // Flatten nested objects for CSV
   const flattenObject = (obj: any, prefix = ''): Record<string, any> => {
@@ -145,6 +147,7 @@ function downloadCSV(data: any[], filename: string, timezone: string) {
   link.download = `${filename}_${orgDateKey(timezone)}.csv`
   link.click()
   URL.revokeObjectURL(url)
+  return true
 }
 
 export function ExportData() {
@@ -174,9 +177,10 @@ export function ExportData() {
     setTriggerExport(true)
   }
 
-  // When data arrives, download it
+  // When data arrives, download it. An empty period used to do nothing at all,
+  // which reads as a broken button (browser QA 2026-10-29).
   if (data && triggerExport && selectedType) {
-    downloadCSV(data, selectedType, timezone)
+    if (!downloadCSV(data, selectedType, timezone)) toast.info(t('nothingToExport'))
     setTriggerExport(false)
   }
 

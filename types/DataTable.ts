@@ -333,6 +333,8 @@ export interface ImportHeaderColumn {
 export interface ImportHeaderInfo {
   csvHeaders: string[];
   columns: ImportHeaderColumn[];
+  /** Headers the file's platform writes that the import drops on purpose — never asked about. */
+  ignored?: string[];
 }
 
 /** Explicit `expected header → CSV header` overrides from the mapping step. */

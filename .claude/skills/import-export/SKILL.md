@@ -46,7 +46,8 @@ same options to both: `autoCreate` changes what the preview counts as valid.
   the merchant touches it.
 - [`components/shared/import/column-mapper.tsx`](../../../components/shared/import/column-mapper.tsx) —
   shown when the CSV headers don't match the template. It reads the preview's `ImportHeaderInfo`
-  (`csvHeaders` + per-column `matched`) and lets the user map each expected column to a CSV header; the
+  (`csvHeaders` + per-column `matched`, and `ignored` — headers the file's platform writes that the
+  backend drops on purpose, never shown) and lets the user map each expected column to a CSV header; the
   chosen `expected → csvHeader` overrides ride the commit as `ImportColumnMapping`
   (`Record<string, string>`).
 

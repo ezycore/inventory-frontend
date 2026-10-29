@@ -12,11 +12,13 @@ export const isMigrationActive = (run: Pick<MigrationRun, "status"> | undefined)
   run?.status === "queued" || run?.status === "processing";
 
 /** The workspace's migrations, newest first. */
-export function useMigrations() {
+/** `enabled: false` for a user who may not move a shop — the list is `products.import`-gated and would 403. */
+export function useMigrations({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.migrations.list(),
     queryFn: () => migrationsApi.list(),
     select: (data) => data.data ?? [],
+    enabled,
   });
 }
 

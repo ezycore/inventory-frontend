@@ -9268,6 +9268,7 @@ export interface components {
                     required?: boolean;
                     matched: string | null;
                 }[];
+                ignored?: string[];
             };
             errors: {
                 row: number;

@@ -38,6 +38,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - **Help guides render their lists and paragraphs again.** Every guide is wrapped at 100 columns, and the renderer kept each line break: a list item that wrapped stopped being a list (its `- ` printed), paragraphs broke mid-sentence, and bold text across a wrap showed `**`. The help renderer now treats single line breaks as wraps (`parseStorefrontMarkdown(source, { softWrap: true })`); a numbered list continues its numbering after bullets under a step. Storefront page bodies are parsed exactly as before.
 - **Move from WooCommerce:** while the import runs the table keeps what the preview found and counts up, instead of going blank until the first batch reports.
 - WooCommerce order history amounts read `৳1,500.00` like the rest of the app (were `BDT 1,500`).
+- **Import & Export, found in browser QA (2026-10-29):** an Export CSV press with nothing in the period did nothing at all; it now says "Nothing to export for this period." (English and Bangla). The History tab asked for the migration list for every user and got a 403 for anyone who may not move a shop; it now asks only when the Move your shop tab is theirs. A WooCommerce product export no longer lists thirty of Woo's own columns in the column-matching step — the backend names the ones the import ignores on purpose (`headerInfo.ignored`).
 - Help guides no longer say customers and suppliers can be imported from a file in the app — there is no screen for it yet (the Import & Export center plan adds one).
 - **Customers page crashed** (`Cannot read properties of null (reading '_id')`) — the WooCommerce order history in the ledger sheet read the customer before one was opened. Found in browser QA.
 - **Move from WooCommerce:** Chrome filled the merchant's own EzyCore email and password into Consumer key / Consumer secret. The secret is now a `new-password` field, which Chrome and password managers leave alone.
@@ -48,6 +49,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ### Deploy notes
 - Needs inventory-backend with `nav.wishlist`, the `/wishlist` sync routes, `/api/ecommerce/wishlists/*`, `wishlistAlerts` and `POST /api/public/unsubscribe`. Deploy the backend first. Without it, saving the Wishlist switch is refused, sync calls 404 (silently: the list stays local), and the Wishlists page errors.
+- The column-matching step reads `headerInfo.ignored`; against an older backend it is absent and the step simply lists every unmatched column, as before.
 - Run `pnpm gen:api-types` after the backend's `pnpm docs:all`: the Wishlists page reads `WishlistStats` / `ShopperWishlistItem` from the generated types.
 
 ## [1.18.0] - 2026-10-28
