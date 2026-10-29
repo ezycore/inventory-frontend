@@ -14,6 +14,7 @@ covers_routes:
 features:
   - purchases
 ui_labels:
+  - layout:nav.items.import-export
   - customers:page.title
   - customers:page.subtitle
   - customers:filters.owesMoney
@@ -87,8 +88,11 @@ applied to a future sale. It shows up automatically at the point of sale.
 
 ## Importing contacts
 
-Both lists accept CSV import, which is worth using if you are moving from a spreadsheet or another
-system.
+Moving from a spreadsheet or another system? Import your customers and suppliers from a CSV file in
+**Import & Export** — see [Import and export your data](./import-and-export.md). A customer is
+recognised by phone number and a supplier by name, so importing the same file twice adds nothing.
+Moving from WooCommerce? [Move your shop to EzyCore](./move-your-shop.md) brings your customers across
+with their past orders.
 
 ## Next
 

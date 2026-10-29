@@ -17,6 +17,7 @@ import {
 } from "@/components/storefront/mobile/mobile-menu-tree";
 import { SideDrawer } from "@/components/storefront/side-drawer";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
 
 /**
  * The mobile navigation panel — **one list, two containers**.
@@ -201,6 +202,10 @@ function MenuBody({
   const { data: accountStore } = useStore(slug);
   const needsAccount =
     storePages(accountStore).accounts && !chromeHas(chrome, "account");
+  // Same inverse question, same reason to ask the store: no template puts the
+  // heart on the bar by default, so this row is how a phone reaches the list.
+  const needsWishlist =
+    useWishlistEnabled(accountStore) && !chromeHas(chrome, "wishlist");
   /* Two owners to rule out for these, not one: the bar's own slots AND the
      utility bar above it, which carries the same pair and is the reason a
      drawer row could otherwise be the shopper's THIRD language switch. */
@@ -232,12 +237,18 @@ function MenuBody({
         }
       />
 
-      {needsAccount || needsLang || needsTheme ? (
+      {needsAccount || needsWishlist || needsLang || needsTheme ? (
         <>
           <Rule />
           {needsAccount ? (
             <SheetLink
               node={{ href: storeHref(base, "/account"), external: false, label: t.myAccount }}
+              onClose={onClose}
+            />
+          ) : null}
+          {needsWishlist ? (
+            <SheetLink
+              node={{ href: storeHref(base, "/wishlist"), external: false, label: t.tabWishlist }}
               onClose={onClose}
             />
           ) : null}

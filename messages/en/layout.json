@@ -56,6 +56,7 @@
       "customize": "Customize",
       "pages": "Pages",
       "abandoned-carts": "Abandoned Carts",
+      "wishlists": "Wishlists",
       "store-settings": "Store Settings",
       "products": "Products",
       "all-products": "All products",
@@ -89,7 +90,8 @@
       "tags": "Tags",
       "notifications": "Notifications",
       "support-access": "Support Access",
-      "meta-ad-reporting": "Meta Ad Reporting"
+      "meta-ad-reporting": "Meta Ad Reporting",
+      "import-export": "Import & Export"
     }
   },
   "brand": {

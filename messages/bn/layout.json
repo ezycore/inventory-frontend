@@ -56,6 +56,7 @@
       "customize": "কাস্টমাইজ",
       "pages": "পেজ",
       "abandoned-carts": "পরিত্যক্ত কার্ট",
+      "wishlists": "উইশলিস্ট",
       "store-settings": "স্টোর সেটিংস",
       "products": "পণ্য",
       "all-products": "সব পণ্য",
@@ -89,7 +90,8 @@
       "tags": "ট্যাগ",
       "notifications": "নোটিফিকেশন",
       "support-access": "সাপোর্ট অ্যাক্সেস",
-      "meta-ad-reporting": "মেটা বিজ্ঞাপন রিপোর্ট"
+      "meta-ad-reporting": "মেটা বিজ্ঞাপন রিপোর্ট",
+      "import-export": "ইমপোর্ট ও এক্সপোর্ট"
     }
   },
   "brand": {

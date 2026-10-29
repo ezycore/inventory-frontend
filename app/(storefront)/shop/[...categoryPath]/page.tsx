@@ -1,9 +1,11 @@
-import { notFound } from "next/navigation";
+// coding-standard: maintained
+import { notFound, permanentRedirect } from "next/navigation";
 import { getStoreContext } from "@/lib/storefront-host";
 import {
   getStore,
   getStoreCategoryByPath,
   getStoreProducts,
+  getStoreRedirect,
 } from "@/lib/storefront-server";
 import { canonicalTarget } from "@/lib/storefront-canonical";
 import { defaultSortOf } from "@/lib/storefront-filters";
@@ -89,16 +91,31 @@ export default async function Page({
   searchParams: SearchParams;
 }) {
   const { categoryPath } = await params;
-  if (!categoryPath?.length || categoryPath.length > MAX_DEPTH) notFound();
+  if (!categoryPath?.length) notFound();
 
   const { slug, base, origin } = await getStoreContext();
   if (!slug) notFound();
+
+  /**
+   * Before a 404: is this an old URL from the store this shop migrated off?
+   * WooCommerce's `/product/<slug>/` and `/product-category/a/b/c/` land here,
+   * because nothing else claims them — and the second is deeper than any real
+   * collection, so this must run before the depth check too. A permanent
+   * redirect keeps the old page's search ranking and every link shared to it.
+   */
+  const redirectOrNotFound = async (): Promise<never> => {
+    const redirect = await getStoreRedirect(slug, `/${joinPath(categoryPath)}`);
+    if (redirect?.to) permanentRedirect(storeHref(base, redirect.to));
+    notFound();
+  };
+
+  if (categoryPath.length > MAX_DEPTH) await redirectOrNotFound();
 
   const path = joinPath(categoryPath);
   const collection = await getStoreCategoryByPath(slug, path);
   // Unknown path, or one whose parent is hidden. A 404 rather than an empty
   // grid: a mistyped collection URL must not look like a store with no stock.
-  if (!collection) notFound();
+  if (!collection) return redirectOrNotFound();
 
   const raw = await searchParams;
   const sp = catalogSearchParams(raw);

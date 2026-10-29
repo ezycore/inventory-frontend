@@ -1384,6 +1384,10 @@
       "cart": {
         "recovery": "Abandoned cart reminder"
       },
+      "wishlist": {
+        "back_in_stock": "Wishlist item back in stock",
+        "price_drop": "Wishlist price drop"
+      },
       "sale": {
         "completed": "Sale receipt",
         "due_reminder": "Payment due reminder"
@@ -1564,6 +1568,7 @@
       }
     },
     "managedInInbox": "Manage in Inbox → Page settings",
+    "managedInWishlists": "Manage on the Wishlists page",
     "inAppHint": "Shows in the bell at the top of ezycore, with a sound and pop-up if you switch them on there."
   }
 }

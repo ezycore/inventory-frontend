@@ -151,6 +151,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   },
   languageTheme: DEFAULT_LANGUAGE_THEME,
   desktopHeader: { sticky: true },
+  wishlist: {},
   announcement: {
     enabled: false,
     useShippingRule: false,
@@ -573,6 +574,18 @@ describe("the Menu part", () => {
         ?.desktopHeader,
     ).toEqual({ sticky: false });
     expect(toLookPatch(draft({}), ["header"]).nav?.desktopHeader).toBeUndefined();
+  });
+
+  // Absent follows the header layout, so an untouched shop must keep storing
+  // nothing — and an explicit OFF is a choice, not a default to drop.
+  it("saves the wishlist switch only once the merchant has set it", () => {
+    expect(toLookPatch(draft({}), ["header"]).nav?.wishlist).toBeUndefined();
+    expect(
+      toLookPatch(draft({ wishlist: { enabled: false } }), ["header"]).nav?.wishlist,
+    ).toEqual({ enabled: false });
+    expect(
+      toLookPatch(draft({ wishlist: { enabled: true } }), ["header"]).nav?.wishlist,
+    ).toEqual({ enabled: true });
   });
 
   // The category sidebar's opening moved under Page layout with the sidebar.
