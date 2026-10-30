@@ -1,0 +1,91 @@
+{
+  "page": {
+    "title": "Import & Export",
+    "subtitle": "Bring your data in, take it out, and see what was imported.",
+    "noAccess": "Your role cannot import or export anything. Ask the owner to give you import or export permission.",
+    "tabs": {
+      "import": "Import",
+      "export": "Export",
+      "move": "Move your shop",
+      "history": "History"
+    }
+  },
+  "import": {
+    "intro": "Fill in the template, then upload it. You see what will be imported, row by row, before anything is saved.",
+    "button": "Import",
+    "template": "Download template",
+    "dialogTitle": "Import {resource}",
+    "nothing": "Your role cannot import any of these.",
+    "resources": {
+      "products": {
+        "title": "Products",
+        "description": "Your catalogue: names, prices, variants, categories and images. A WooCommerce product export works as it is."
+      },
+      "inventory": {
+        "title": "Opening stock",
+        "description": "Stock counts for products you already have. They go to the location you are working in: {location}."
+      },
+      "customers": {
+        "title": "Customers",
+        "description": "Names, phones, emails and addresses. A phone number already here is skipped, never added twice."
+      },
+      "suppliers": {
+        "title": "Suppliers",
+        "description": "The businesses you buy from: names, phones, emails and addresses. A name already here is skipped."
+      }
+    },
+    "templateFailed": "The template did not download. Please try again."
+  },
+  "export": {
+    "filesTitle": "Files you can import back",
+    "filesHint": "In the import template's format: edit them in Excel or Google Sheets and import them again.",
+    "button": "Download CSV",
+    "preparing": "Preparing…",
+    "failed": "The export failed. Please try again.",
+    "matching": "Exports everything that matches these filters.",
+    "nothing": "Your role cannot export any of these.",
+    "products": {
+      "title": "Products",
+      "description": "Single products with their prices, categories and images.",
+      "allColumns": "All columns",
+      "allColumnsDesc": "Everything: VAT, units, expiry, images.",
+      "essentialColumns": "Essential columns",
+      "essentialColumnsDesc": "Name, barcode, category, brand, unit, price, status."
+    },
+    "stock": {
+      "title": "Stock",
+      "description": "Stock at the location you are working in: {location}."
+    }
+  },
+  "move": {
+    "csvTitle": "Have a WooCommerce export file?",
+    "csvDescription": "Upload WooCommerce's own product export with Products on the Import tab. No editing is needed.",
+    "csvButton": "Go to Import",
+    "offerTitle": "We can move it for you",
+    "offerDescription": "Your own website, a custom app, another POS or a spreadsheet: send our support team a copy of your data and we bring it across. You see the same preview before anything is saved, and we never need the password to your old site."
+  },
+  "history": {
+    "importsTitle": "Imports",
+    "migrationsTitle": "Moves from WooCommerce",
+    "empty": "Nothing has been imported yet.",
+    "columns": {
+      "when": "When",
+      "what": "What",
+      "file": "File",
+      "by": "By",
+      "created": "Added",
+      "skipped": "Already here",
+      "failed": "Not imported"
+    },
+    "showFailed": "Why rows failed ({count})",
+    "row": "Row {row}",
+    "open": "Open",
+    "resources": {
+      "products": "Products",
+      "inventory": "Opening stock",
+      "customers": "Customers",
+      "suppliers": "Suppliers",
+      "product-taxonomy": "Tags & categories sheet"
+    }
+  }
+}

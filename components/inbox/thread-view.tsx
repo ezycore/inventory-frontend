@@ -51,7 +51,7 @@ export function ThreadView({ conversationId, onBack, className }: ThreadViewProp
   const name = conversation.customerName || t("list.customer");
 
   return (
-    <div className={cn("flex min-h-0 flex-col", className)}>
+    <div className={cn("flex min-h-0 min-w-0 flex-col", className)}>
       <header className="flex items-center gap-3 border-b px-3 py-2.5">
         {onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("thread.back")}>

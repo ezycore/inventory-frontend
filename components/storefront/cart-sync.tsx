@@ -7,6 +7,7 @@ import { toast } from "@/lib/storefront-toast";
 import { cartAnonymousId, isSfPreview } from "@/services/storefront/cart-identity";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
+import { isBuyNowSearch } from "@/services/storefront/use-buy-now";
 import { useCartStore, type CartItem } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 
@@ -214,6 +215,9 @@ export function CartSync({ slug }: { slug: string }) {
   useEffect(() => {
     if (typeof window === "undefined" || !slug || isSfPreview()) return;
     if (!pathname?.includes("/checkout")) return;
+    // A Buy now checkout orders one line and leaves the cart alone, so reaching
+    // it says nothing about the cart.
+    if (isBuyNowSearch(window.location.search)) return;
     if (useCartStore.getState().items.length === 0) return;
 
     const anonymousId = cartAnonymousId(slug);

@@ -37,6 +37,8 @@ import {
   useResolvedUtilityBar,
 } from "@/components/storefront/use-utility-bar";
 import { useDesktopHeader } from "@/components/storefront/use-language-theme";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
+import { useWishlistItems } from "@/services/stores/use-wishlist-store";
 
 const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.ReactNode> = {
   classic: ClassicDesktop,
@@ -102,7 +104,9 @@ export function StoreHeader({
   const desktopBarShows = showsOn(utilityBar, "desktop");
   const { needsTheme, needsLang } = useHeaderNeeds(store, "desktop");
   // Absent ⇒ it follows the page, as every header always has.
-  const { sticky, wishlist } = useDesktopHeader(store);
+  const { sticky } = useDesktopHeader(store);
+  const showWishlist = useWishlistEnabled(store);
+  const wishCount = useWishlistItems(slug).length;
 
   const ctx: HeaderCtx = {
     base,
@@ -126,8 +130,8 @@ export function StoreHeader({
     hideCategoryRow,
     showSearch: pages.search,
     showAccount: pages.accounts,
-    // The wishlist lives in the account, so accounts off takes the heart too.
-    showWishlist: pages.accounts && wishlist,
+    showWishlist,
+    wishCount,
     needsTheme,
     needsLang,
     // "Delivery inside Dhaka in 24h" and the like. There is no dedicated

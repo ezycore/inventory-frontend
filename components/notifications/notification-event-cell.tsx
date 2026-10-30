@@ -22,8 +22,10 @@ const AUDIENCES: Audience[] = ["customer", "merchant"];
  * page would get silence, with the send counted as done and nothing to read.
  * So the box becomes a link to whoever actually owns the decision.
  */
-const MANAGED_BY: Record<string, { href: string; label: "managedElsewhere" | "managedInInbox" }> = {
+const MANAGED_BY: Record<string, { href: string; label: "managedElsewhere" | "managedInInbox" | "managedInWishlists" }> = {
   "storefront.cartRecovery": { href: "/ecommerce/settings?tab=checkout", label: "managedElsewhere" },
+  // Back-in-stock / price-drop emails — the Alerts card on the Wishlists page.
+  "storefront.wishlistAlerts": { href: "/ecommerce/wishlists", label: "managedInWishlists" },
   // "Text me when a customer waits" — its switch and wait live with the inbox's AI settings.
   "inbox.unansweredSms": { href: "/inbox/settings", label: "managedInInbox" },
 };

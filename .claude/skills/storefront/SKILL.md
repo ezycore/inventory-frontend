@@ -659,7 +659,7 @@ reads as two filters at once.
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
   (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
   `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always goes
-  straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
+  straight to `/checkout?buy=1` with only its own line (see **Buy now orders ONE line** above). Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
   - **A page that renders a per-page variant reads it through
@@ -785,6 +785,33 @@ reads as two filters at once.
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
   store on first render must gate on `useHydrated()`** or SSR mismatch / redirect races follow
   (checkout had exactly this bug: direct load bounced signed-in shoppers to /account).
+- **Wishlist** (docs/plan/wishlist.md in the backend repo; Phases 1–4 built 2026-10-28):
+  - **Store.** `use-wishlist-store` holds `lists: Record<storeSlug, WishItem[]>`, under the
+    persisted key `easystock-wishlist` (version 1). It used to hold ONE list that a second store
+    wiped; `migrate` lifts the old `{storeSlug, items}` into the map. **Never rename the key.**
+  - **Read through the helpers.** `useWishlistItems(slug)` and `useIsWished(slug, id)` are
+    hydration-masked already. `wishItemOf(product, hasVariants)` builds the saved row for the card
+    and the PDP alike.
+  - **One gate for every heart.** `useWishlistEnabled(store)`
+    (`components/storefront/use-wishlist-enabled.ts`) covers the header `WishlistLink`, the phone
+    `wishlist` action, the menu-panel row, the card `.sf-card-wish` and the PDP heart. It is
+    draft-aware.
+  - **The setting.** `nav.wishlist.enabled`, resolved by `resolveWishlistEnabled`
+    (`lib/storefront-wishlist.ts`). Absent ⇒ on for the Showroom header only. Customize stores it
+    only once the merchant flips the switch, which sits above the Phone/Computer switch in Header.
+  - **Not tied to accounts.** The list opens at the public `/wishlist`
+    (`app/(storefront)/shop/wishlist`), which needs no sign-in and is not 404'd when the switch is
+    off. Account → Wishlist renders the same `WishlistSection`.
+  - **Server copy: `WishlistSync`** (`components/storefront/wishlist-sync.tsx`, mounted beside
+    `CartSync` in both shop frames). The browser stays the editor, and every change is a debounced
+    full-replace `PUT /:slug/wishlist`. A guest's first sync per page load `refresh`es prices and
+    stock from the answer; signing in (or loading with a session) CLAIMS and `adopt`s the merged
+    list; signing out `clearStore`s it. Never add a `GET` that overwrites the local list — a guest's
+    pre-server list would be wiped by an empty answer.
+  - **Merchant side:** `/ecommerce/wishlists` (stats, most wished, wished but sold out, alerts card
+    `wishlist-alerts-card.tsx`) and `customer-wishlist-card.tsx` on `/customers/online/[id]`.
+  - **`/unsubscribe`** is the marketing-email opt-out page. It needs a click, never acts on load,
+    because mail scanners open links.
 - **Cart mirror** — the cart is *also* copied to the server so the merchant can see abandoned carts.
   **`components/storefront/cart-sync.tsx` is the only place that does this**, mounted once in
   `StoreShell`; the handle lives in `services/storefront/cart-identity.ts` under its **own**
@@ -803,6 +830,33 @@ reads as two filters at once.
   `mergedCount > 0`: signing in folds in the cart this shopper left on another device, server-side,
   and if the client kept its own items the next debounced sync would push them over the merge and
   undo it. Adoption is what makes cross-device carts actually work — it is not a nicety.
+- **Buy now orders ONE line and never touches the cart** (2026-10-28). Every Buy now — product
+  page, Single product section, card, quick-buy sheet — goes through `useStartBuyNow`
+  (`services/storefront/use-buy-now.ts`): the line goes into `useBuyNowStore`
+  (`services/stores/use-buy-now-store.ts`, **`sessionStorage`** key `ezy-sf-buy-now`) and the
+  shopper lands on **`/checkout?buy=1`**. Until then Buy now *added to the cart* and opened
+  checkout, so a shopper with saved items ordered all of them — on COD, a refused parcel. Rules:
+  - **Checkout orders the buy-now line only when BOTH say so** — the held line and `?buy=1`
+    (`useBuyNowLine`, read in `CheckoutPageView`, never in `useCheckout`: that hook also runs in
+    the order-form island on cached `/sites` pages, where `useSearchParams` does not belong).
+    Every cart "Checkout" link stays a plain `/checkout` and orders the cart, so no entry point has
+    to remember to end a buy-now. Reload keeps it (URL + session); a new tab does not.
+  - `useCheckout({ buyNow })`: the cart is not ordered, not emptied and sends no `anonymousId`
+    (closing the mirrored cart would mark an unordered cart converted); `InitiateCheckout` fires on
+    arrival; a placed order calls `useBuyNowStore.end()`. A coupon quote is dropped whenever the
+    ordered lines change.
+  - ⚠ **A placed card must give way when the shopper asks for the other checkout.** After a Buy
+    now order the cart still has items, and the drawer's Checkout is the same page at `/checkout` —
+    the component stays mounted, so it kept showing the order just placed. `useCheckout({ visit })`
+    (`"buy"`/`"cart"`, from `useOnBuyNowUrl`) clears `placed` when the visit changes. Not a `key`
+    on the page: that would also remount on **Add them to this order** and wipe the typed address.
+  - **`BuyNowCartNote`** (`components/storefront/checkout/buy-now-cart-note.tsx`) says "You also
+    have N other item(s) in your cart" with **Add them to this order**, which folds the line into
+    the cart (`useBuyNowCartMerge` — a line the cart already holds keeps the LARGER quantity, not
+    the sum) and `replace`s to `/checkout`.
+  - `CartSync` skips the "reached checkout" stamp on a `?buy=1` checkout, and the buy-now line is
+    **not mirrored** — a shopper who abandons a Buy now checkout leaves no abandoned cart, though
+    the guest contact capture still records who they are.
 - **API client**: `lib/storefront-client.ts` — `sfFetch` (no auth header unless `token` passed).
   Error payloads carry the message in `json.error`. On **401 with a token that is still the
   current session token, the shopper session is dropped** (self-healing stale sessions).
@@ -1652,7 +1706,8 @@ whole shop down on **every page** — the merchant trades their fold for a sente
     selector. `.sf-search-soft` (below) is the third; it lives in `storefront-showroom.css`.
   - `showroom` is the **seventh**, added 2026-10-26 from the default starter design: Classic's
     anatomy with the search box centred at 560px (`.sf-search-soft`), a wishlist heart
-    (`WishlistLink` → `/account?tab=wishlist`, gated on accounts), a soft cart button carrying its
+    (`WishlistLink strong` → `/wishlist`; every anatomy now draws one before its cart while the
+    wishlist is on — see "Wishlist" above), a soft cart button carrying its
     count (`CartPill`), the account link at body size (`AccountLink strong`) and a 14px darker menu
     row (`.sf-hdr-showroom`). **A separate anatomy, not a restyle of Classic**, because Classic is
     what every live shop wears and is the reset — new stores' starters pick `showroom`, any
@@ -1741,8 +1796,11 @@ Loaded last in `app/(storefront)/layout.tsx`. Its rules:
   `sf-tag-chip`, `sf-banner-cta`, `sf-newsletter`, `sf-pay-badge(s)`, `sf-footer-blurb`.
   Two carry markup the base sheet HIDES and Showroom shows: `.sf-banner-eyebrow` (the collection
   over a promo card's own title) and `.sf-pay-label` ("We accept").
-- **One component branches on the skin:** `ProductCard` draws the wishlist heart
-  (`.sf-card-wish`) when `useHeaderVariant(store) === "showroom"` and the shop has accounts.
+- **The card heart is not skin-gated any more** (2026-10-28): `ProductCard` draws `.sf-card-wish`
+  whenever `useWishlistEnabled(store)`, on every card style (editorial too: it sits on the photo,
+  not the frame). Showroom only restyles it
+  (a white disc); `storefront.css` gives every other shop a plainer one, and pulls the badge row
+  out of that corner with `.sf-qb-card:has(.sf-card-wish) .sf-card-badges`.
 - **Strip arrows render DISABLED rather than not at all** at an edge (`CategoryStrip`); the base
   sheet hides `:disabled`, Showroom keeps a greyed one in the carousel's heading row.
 - ⚠ **A track list with no free space ignores alignment.** The design's category grid
@@ -1812,9 +1870,12 @@ template id anywhere**. So:
 > not a line of this renderer. `storefront-mobile.test.ts` asserts the derivation and the sketch
 > coverage, so a template added without its wireframe fails rather than shipping a blank tile.
 
-Adding a bar ACTION (a wishlist button, say) is the one thing that costs two files — an entry in
-`MOBILE_ACTIONS` and a branch in `mobile-actions.tsx` — because an action is *behaviour*, not
-arrangement. The Customize slot editor picks it up from the registry with no edit.
+Adding a bar ACTION is the one thing that costs two files — an entry in `MOBILE_ACTIONS` and a
+branch in `mobile-actions.tsx` — because an action is *behaviour*, not arrangement. The Customize
+slot editor picks it up from the registry with no edit. `wishlist` (2026-10-28) is the worked
+example. It is in no template's default slots. `chromeWithPageControls` drops it while the
+wishlist is off, the slot editor greys it with a reason, and the menu panel adds a Wishlist row
+whenever the bar has no heart.
 
 The five shipped templates: `tabs` (the chrome the storefront always had, and the default),
 `drawer` (hamburger / centred logo / search + cart), `search` (a search box in the bar itself),

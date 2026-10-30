@@ -13,6 +13,7 @@ import {
   storePages,
 } from "@/lib/storefront-page-controls";
 import { useSfPreview, useSfPreviewImage } from "@/services/stores/use-sf-preview-store";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
 
 /**
  * The phone chrome this render should draw — the saved store, with the Customize
@@ -34,6 +35,7 @@ export function useMobileChrome(store?: StorefrontStore): MobileChrome & { templ
   const savedTemplate = store?.templates?.mobile;
   const savedChrome = store?.theme?.mobile;
   const { search, accounts } = storePages(store);
+  const wishlist = useWishlistEnabled(store);
 
   return useMemo(
     () =>
@@ -42,9 +44,9 @@ export function useMobileChrome(store?: StorefrontStore): MobileChrome & { templ
           { mobile: draftTemplate ?? savedTemplate },
           draftChrome ?? savedChrome,
         ),
-        { search, accounts },
+        { search, accounts, wishlist },
       ),
-    [draftTemplate, savedTemplate, draftChrome, savedChrome, search, accounts],
+    [draftTemplate, savedTemplate, draftChrome, savedChrome, search, accounts, wishlist],
   );
 }
 

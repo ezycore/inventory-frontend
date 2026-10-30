@@ -73,7 +73,9 @@ export default function InboxPage() {
         </div>
       )}
 
-      <div className="grid h-[calc(100dvh-14rem)] min-h-[420px] overflow-hidden rounded-lg border md:grid-cols-[320px_1fr]">
+      {/* minmax(0,1fr), not auto/1fr: a column sized to its content grew past a phone's width on
+          a long banner or a row of product cards, and the overflow-hidden cut the thread off. */}
+      <div className="grid h-[calc(100dvh-14rem)] min-h-[420px] grid-cols-[minmax(0,1fr)] overflow-hidden rounded-lg border md:grid-cols-[320px_minmax(0,1fr)]">
         <ConversationList
           selectedId={chatId || undefined}
           onSelect={setChatId}

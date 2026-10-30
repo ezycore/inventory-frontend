@@ -104,6 +104,7 @@ function BlockNode({ block, onNavigate }: { block: SfBlock; onNavigate?: (slug: 
       const Tag = block.ordered ? "ol" : "ul";
       return (
         <Tag
+          start={block.start}
           className={cn(
             "my-2.5 flex flex-col gap-1.5 pl-6 text-sm leading-relaxed text-muted-foreground",
             block.ordered ? "list-decimal" : "list-disc",
@@ -179,7 +180,8 @@ function BlockNode({ block, onNavigate }: { block: SfBlock; onNavigate?: (slug: 
 export function HelpMarkdown({ source, onNavigate }: HelpMarkdownProps) {
   return (
     <div>
-      {parseStorefrontMarkdown(source).map((block, i) => (
+      {/* Guides are wrapped at 100 columns, so their line breaks are soft. */}
+      {parseStorefrontMarkdown(source, { softWrap: true }).map((block, i) => (
         <BlockNode key={i} block={block} onNavigate={onNavigate} />
       ))}
     </div>

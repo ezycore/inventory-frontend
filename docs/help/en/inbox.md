@@ -161,8 +161,14 @@ If the card says AI replies are switched off for your workspace, turn on **AI re
 ### What the AI already knows
 
 When a customer asks to see a product, the AI sends **product cards** in Messenger: the photo, name,
-price and stock, with a **View** button that opens the product on your website. You see the same
-cards in the chat.
+price and stock — for a product with sizes or colours, the price range and the options in stock.
+Tapping a card opens the product on your website. You see the same cards in the chat.
+
+Your **Instructions for the AI** come first. If they say how returns or exchanges work ("for an
+exchange call 01915…") or give your bKash or bank details, the AI answers with them instead of
+handing the chat to your team. Two things they cannot change: prices, stock and delivery charges
+always come from your catalogue, and an order the AI takes is cash on delivery — a customer who
+wants to pay in advance goes to your team, so the advance is recorded.
 
 It also reads your product descriptions, and what your online store already shows customers: your
 phone, address, WhatsApp and social links, delivery times and charges, store pickup and the offers

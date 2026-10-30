@@ -159,6 +159,12 @@ export interface Dict {
   previewSampleProduct: string;
   /** Why Place order did nothing inside a preview frame. */
   previewNoOrder: string;
+  /**
+   * Above a Buy now checkout when the cart holds other lines it is NOT
+   * ordering. A template — `{n}` = how many. The button folds them in.
+   */
+  buyNowCartNote: string;
+  buyNowAddCart: string;
   subtotal: string;
   shipping: string;
   discount: string;
@@ -621,8 +627,8 @@ const en: Dict = {
   promoEmailS: "Deals, offers and seasonal sales",
   prefsOrderNote:
     "Order updates are sent by the store and can't be turned off here.",
-  priceDropT: "Price-drop alerts",
-  priceDropS: "When wishlist items get cheaper",
+  priceDropT: "Wishlist alerts",
+  priceDropS: "When saved items get cheaper or come back in stock",
   newsletterT: "Weekly newsletter",
   newsletterS: "New arrivals and curated picks",
   addNewAddress: "Add address",
@@ -672,6 +678,8 @@ const en: Dict = {
   previewSampleCart: "Sample cart, so you can see this page — shoppers see their own items.",
   previewSampleProduct: "Sample product",
   previewNoOrder: "Preview only — no order was placed.",
+  buyNowCartNote: "You also have {n} other item(s) in your cart.",
+  buyNowAddCart: "Add them to this order",
   subtotal: "Subtotal",
   shipping: "Shipping",
   discount: "Discount",
@@ -1061,8 +1069,8 @@ const bn: Dict = {
   promoEmailS: "ডিল, অফার ও সিজনাল সেল",
   prefsOrderNote:
     "অর্ডার আপডেট স্টোর থেকে পাঠানো হয়, এখান থেকে বন্ধ করা যাবে না।",
-  priceDropT: "দাম কমার অ্যালার্ট",
-  priceDropS: "উইশলিস্টের পণ্যের দাম কমলে",
+  priceDropT: "উইশলিস্ট অ্যালার্ট",
+  priceDropS: "সংরক্ষিত পণ্যের দাম কমলে বা আবার স্টকে এলে",
   newsletterT: "সাপ্তাহিক নিউজলেটার",
   newsletterS: "নতুন পণ্য ও বাছাই",
   addNewAddress: "ঠিকানা যোগ করুন",
@@ -1112,6 +1120,8 @@ const bn: Dict = {
   previewSampleCart: "পেজটি দেখানোর জন্য নমুনা কার্ট — ক্রেতারা নিজেদের পণ্যই দেখবেন।",
   previewSampleProduct: "নমুনা পণ্য",
   previewNoOrder: "শুধু প্রিভিউ — কোনো অর্ডার দেওয়া হয়নি।",
+  buyNowCartNote: "আপনার কার্টে আরও {n}টি পণ্য আছে।",
+  buyNowAddCart: "এগুলোও এই অর্ডারে যোগ করুন",
   subtotal: "সাবটোটাল",
   shipping: "শিপিং",
   discount: "ছাড়",

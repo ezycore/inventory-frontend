@@ -2,9 +2,18 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { ArrowRight, Percent, Sliders, Sparkles, Store } from "lucide-react";
+import {
+  ArrowRight,
+  Percent,
+  Sliders,
+  Sparkles,
+  Store,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Button } from "@/ui/components/button";
+
+import type { QuestionKey } from "./steps";
 
 /**
  * The opening screen — *"Let's get your workspace ready"*, which the plan's own
@@ -18,19 +27,31 @@ import { Button } from "@/ui/components/button";
  *
  * It is a *local* screen — it writes nothing and does not consume an
  * `onboardingStep`, so a resumed wizard skips straight past it.
+ *
+ * `question` ties a topic to the question it previews. A topic whose question
+ * the plan skips is not shown: "How you sell" above a flow that never asks it
+ * is the same broken promise as a count of eight over a flow of two. "Tools"
+ * covers several questions and always has at least one left to ask.
  */
 const TOPICS = [
-  { icon: Store, key: "channel" },
-  { icon: Percent, key: "tax" },
-  { icon: Sliders, key: "tools" },
-] as const;
+  { icon: Store, key: "channel", question: "channel" },
+  { icon: Percent, key: "tax", question: "vat" },
+  { icon: Sliders, key: "tools", question: null },
+] as const satisfies readonly {
+  icon: LucideIcon;
+  key: string;
+  question: QuestionKey | null;
+}[];
 
 export function WelcomeStep({
   organizationName,
   questionCount,
+  askedKeys,
   onStart,
 }: {
   organizationName?: string;
+  /** The questions this workspace is asked — decides which topics are previewed. */
+  askedKeys: readonly QuestionKey[];
   /**
    * How many questions this workspace is actually asked. Passed in rather than
    * read from `QUESTION_COUNT`, because the plan can settle several of them
@@ -63,7 +84,9 @@ export function WelcomeStep({
       </div>
 
       <ul className="divide-y rounded-xl border bg-card">
-        {TOPICS.map((topic) => (
+        {TOPICS.filter(
+          (topic) => topic.question === null || askedKeys.includes(topic.question),
+        ).map((topic) => (
           <li key={topic.key} className="flex items-start gap-3.5 px-4 py-3.5">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <topic.icon className="h-4 w-4 text-primary" />

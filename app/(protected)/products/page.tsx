@@ -235,7 +235,8 @@ export default function ProductsPage() {
     : undefined;
 
   // Row actions plus the bulk header tools — ONE list, handed to both views for
-  // the same reason `rowActions` is hoisted above.
+  // the same reason `rowActions` is hoisted above. Import and export live in the
+  // Import & Export center (backend docs/plan/import-export-center.md), not here.
   const pageActions = [...(rowActions ?? []), ...bulk.headerActions]
 
   // Shared operations config
@@ -367,15 +368,6 @@ export default function ProductsPage() {
           enableSorting={true}
           sortingConfig={sortingConfig}
           enableRowHover={true}
-          exportConfig={{
-            download: (params) => productsApi.exportCsv(params),
-            note: t("page.exportNote"),
-          }}
-          importConfig={{
-            downloadTemplate: productsApi.downloadImportTemplate,
-            preview: productsApi.importPreview,
-            commit: productsApi.importCommit,
-          }}
           customActions={pageActions}
           bulkActions={bulk.bulkActions}
           onFiltersChange={bulk.onFiltersChange}
@@ -398,15 +390,6 @@ export default function ProductsPage() {
           variant="default"
           enableCardHover={true}
           filterConfig={productFilterConfig}
-          exportConfig={{
-            download: (params) => productsApi.exportCsv(params),
-            note: t("page.exportNote"),
-          }}
-          importConfig={{
-            downloadTemplate: productsApi.downloadImportTemplate,
-            preview: productsApi.importPreview,
-            commit: productsApi.importCommit,
-          }}
           // The card grid has no row selection, so it carries only the header
           // tools; ticking products to bulk-edit them is a table-view action.
           customActions={pageActions}

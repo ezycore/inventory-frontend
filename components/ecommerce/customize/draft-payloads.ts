@@ -262,6 +262,11 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
     // that follows the page stores nothing.
     languageTheme: languageThemeOverrides(draft.languageTheme),
     desktopHeader: desktopHeaderOverrides(draft.desktopHeader),
+    // Only a choice the merchant made; absent follows the header layout.
+    wishlist:
+      typeof draft.wishlist.enabled === "boolean"
+        ? { enabled: draft.wishlist.enabled }
+        : undefined,
   };
 }
 

@@ -6,6 +6,7 @@ import {
   QUESTION_KEYS,
   answersFromProgress,
   askedIndices,
+  completionPayload,
   nextAskedIndex,
   previousAskedIndex,
   isConfidentAbout,
@@ -156,12 +157,28 @@ describe("skipping questions nobody needs to answer", () => {
     expect(isQuestionSkipped(2, {}, plan)).toBe(true);
   });
 
-  it("never skips the channel question", () => {
-    // Where you sell is the one thing every merchant must answer — there is no
-    // plan or previous answer that can settle it for them.
+  it("no previous answer settles the channel question", () => {
+    // Only the plan can: with both channels granted, every merchant is asked.
     expect(isQuestionSkipped(0, { inventoryTracking: false }, allGranted)).toBe(
       false,
     );
+  });
+
+  it("skips the channel question when the plan has only one channel", () => {
+    // Start and Growth sell online only. "Shop" and "Both" wrote `sales: true`,
+    // which 403s on those plans and stranded the merchant on question one.
+    const noCounter = { ...DEFAULT_ORGANIZATION_FEATURES, sales: false };
+    expect(isQuestionSkipped(0, {}, noCounter)).toBe(true);
+
+    const noStorefront = { ...DEFAULT_ORGANIZATION_FEATURES, storefront: false };
+    expect(isQuestionSkipped(0, {}, noStorefront)).toBe(true);
+  });
+
+  it("skips the VAT question when the plan has no VAT", () => {
+    // Every registered answer writes `tax: true` — a 403 on a plan without it.
+    const noVat = { ...DEFAULT_ORGANIZATION_FEATURES, tax: false };
+    expect(isQuestionSkipped(5, {}, noVat)).toBe(true);
+    expect(isQuestionSkipped(5, {}, allGranted)).toBe(false);
   });
 
   it("asks about barcodes even with no counter and no stock", () => {
@@ -423,5 +440,97 @@ describe("restoring a resumed wizard's answers", () => {
       expiryTracking: false,
       barcodeSystem: false,
     });
+  });
+});
+
+/**
+ * The launch tiers, as Mission Control grants them
+ * (`mission-control/src/scripts/seed-launch-plans.ts` → `TIER_FEATURES`). Only
+ * the keys a wizard answer can write; everything else stays at the default.
+ */
+const LAUNCH_TIERS: Record<string, Partial<OrganizationFeatures>> = {
+  start: { sales: false, tax: false, inventoryTracking: false, purchases: false, multiLocation: false, expiryTracking: false },
+  growth: { sales: false, expiryTracking: false },
+  business: {},
+};
+
+/** Every answer a question's screen can send, as a patch on the answers. */
+const ANSWER_PATCHES: Record<string, OnboardingAnswers[]> = {
+  channel: [{ channel: "shop" }, { channel: "online" }, { channel: "both" }],
+  stock: [{ inventoryTracking: true }, { inventoryTracking: false }],
+  purchases: [{ purchases: true }, { purchases: false }],
+  accounts: [{ accounts: true }, { accounts: false }],
+  locations: [{ multiLocation: true }, { multiLocation: false }],
+  vat: [{ vat: "unregistered" }, { vat: "standard_15" }, { vat: "reduced" }, { vat: "turnover_4" }],
+  expiry: [{ expiryTracking: true }, { expiryTracking: false }],
+  barcode: [{ barcodeSystem: true }, { barcodeSystem: false }],
+};
+
+describe("every launch plan can finish the wizard", () => {
+  for (const [tier, grants] of Object.entries(LAUNCH_TIERS)) {
+    const plan = { ...DEFAULT_ORGANIZATION_FEATURES, ...grants };
+
+    it(`${tier}: no answer on screen asks for a feature the plan withholds`, () => {
+      // The backend 403s (`FEATURE_NOT_IN_PLAN`) on any `true` for a key the
+      // plan does not grant, and the workspace is pinned to the wizard until it
+      // completes — so one such answer is a merchant who cannot get in at all.
+      // Both stock answers, because the stock answer decides what is asked next.
+      for (const base of [{ inventoryTracking: true }, { inventoryTracking: false }]) {
+        for (const index of askedIndices(base, plan)) {
+          for (const patch of ANSWER_PATCHES[QUESTION_KEYS[index]]) {
+            const enabled = Object.entries(
+              payloadForStep(index, { ...base, ...patch }).features ?? {},
+            )
+              .filter(([, on]) => on === true)
+              .map(([key]) => key as keyof OrganizationFeatures);
+
+            for (const key of enabled) {
+              expect(plan[key], `${tier} · ${QUESTION_KEYS[index]} → ${key}`).toBe(true);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  it("asks Start only what it can answer", () => {
+    const plan = { ...DEFAULT_ORGANIZATION_FEATURES, ...LAUNCH_TIERS.start };
+    expect(askedIndices({}, plan).map((i) => QUESTION_KEYS[i])).toEqual([
+      "accounts",
+      "barcode",
+    ]);
+  });
+
+  it("asks Business the channel and VAT questions", () => {
+    const asked = askedIndices({}, DEFAULT_ORGANIZATION_FEATURES).map(
+      (i) => QUESTION_KEYS[i],
+    );
+    expect(asked).toContain("channel");
+    expect(asked).toContain("vat");
+  });
+});
+
+describe("finishing the wizard", () => {
+  const noVat = { ...DEFAULT_ORGANIZATION_FEATURES, tax: false };
+
+  it("declares 'unregistered' when the plan skipped VAT and nothing is on record", () => {
+    // Otherwise an upgrade that grants VAT lands an empty history in the
+    // standard-rated bridge, and invoices start carrying 15% unasked.
+    expect(completionPayload({}, noVat, false)).toEqual({
+      step: QUESTION_COUNT + 1,
+      complete: true,
+      vatRegistration: { type: "unregistered" },
+    });
+  });
+
+  it("leaves an existing registration alone", () => {
+    // A re-run must not restate what the merchant declared in Settings.
+    expect(completionPayload({}, noVat, true).vatRegistration).toBeUndefined();
+  });
+
+  it("sends only the completion when VAT was asked", () => {
+    expect(
+      completionPayload({}, DEFAULT_ORGANIZATION_FEATURES, false),
+    ).toEqual({ step: QUESTION_COUNT + 1, complete: true });
   });
 });

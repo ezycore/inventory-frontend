@@ -2,7 +2,6 @@
 // coding-standard: maintained
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
@@ -10,9 +9,13 @@ import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
 import { ga4LineItem, ga4Money, trackGa4Event } from "@/lib/storefront-ga4";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { useWishlistStore } from "@/services/stores/use-wishlist-store";
-import { storeHref } from "@/lib/storefront-links";
-import { cardImageUrl } from "@/lib/storefront-image";
+import {
+  useIsWished,
+  useWishlistStore,
+  wishItemOf,
+} from "@/services/stores/use-wishlist-store";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
+import { useStartBuyNow } from "@/services/storefront/use-buy-now";
 import { choiceLine, resolveProductChoice } from "@/components/storefront/product-choice";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
@@ -33,14 +36,15 @@ import type { CatalogProduct } from "@/lib/storefront-client";
 export function useProductBuy(product: CatalogProduct | undefined, resetKey: string) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
-  const router = useRouter();
   const { data: store } = useStore(slug);
 
   const addItem = useCartStore((s) => s.addItem);
+  const startBuyNow = useStartBuyNow();
   const toggleWish = useWishlistStore((s) => s.toggle);
-  const wished = useWishlistStore(
-    (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product?._id),
-  );
+  const wished = useIsWished(slug, product?._id);
+  // The shop's one wishlist switch. This heart used to draw on every shop,
+  // including ones with no screen that showed the list it saved into.
+  const wishlistOn = useWishlistEnabled(store);
 
   const [qty, setQty] = useState(1);
   // Gallery image the shopper tapped (clamped later — variant switches can swap
@@ -96,39 +100,36 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?._id, store]);
 
-  /** False when nothing was added: no product yet, or a variable product with no option matched. */
+  /** The line the shopper picked — null with no product yet, or a variable product with no option matched. */
+  const line = () => {
+    if (!product) return null;
+    if (variable && !selectedVariant) return null;
+    return choiceLine(product, choice, qty);
+  };
+
+  /** False when nothing was added. */
   const add = (notify = true): boolean => {
-    if (!product) return false;
-    if (variable && !selectedVariant) return false;
-    const { quantity, ...item } = choiceLine(product, choice, qty);
+    const picked = line();
+    if (!picked) return false;
+    const { quantity, ...item } = picked;
     addItem(slug, item, quantity);
     if (notify) toast.success(t.added);
     return true;
   };
 
   const buyNow = () => {
-    // Straight to checkout, matching the card's Buy now — "Buy now" has to mean
-    // the same thing on both surfaces or it means nothing. (It opened the cart
-    // drawer until 2026-08-01; /cart is still reachable from the cart icon.)
-    // No toast: the screen change is the confirmation.
-    add(false);
-    router.push(storeHref(base, "/checkout"));
+    // This line only, straight to checkout, cart untouched — the card's Buy now
+    // does the same (`useStartBuyNow`). No toast: the screen change is the
+    // confirmation.
+    const picked = line();
+    if (!picked) return;
+    const { quantity, ...item } = picked;
+    startBuyNow(item, quantity);
   };
 
   const onWish = () => {
     if (!product) return;
-    toggleWish(slug, {
-      productId: product._id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
-      // The wishlist renders this at card size, not as a row thumb.
-      image: cardImageUrl(product.images?.[0]),
-      hasVariants: variable,
-      availableQuantity: product.availableQuantity,
-      outOfStockBehavior: product.outOfStockBehavior,
-    });
+    toggleWish(slug, wishItemOf(product, variable));
   };
 
   return {
@@ -160,6 +161,7 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
     setImgIdx,
     setPicked,
     wished,
+    wishlistOn,
     add,
     buyNow,
     onWish,

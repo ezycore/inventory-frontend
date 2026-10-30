@@ -13,6 +13,7 @@ import {
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
+import { useWishlistItems } from "@/services/stores/use-wishlist-store";
 
 /**
  * The tappable atoms of the mobile bar and tab bar.
@@ -253,19 +254,6 @@ function AccountAtom({ ctx, mode }: AtomProps) {
   );
 }
 
-/** The account's wishlist tab. `chromeWithPageControls` drops it with accounts off. */
-function WishlistAtom({ ctx, mode }: AtomProps) {
-  const { t } = useStorefrontUI();
-  return (
-    <Atom
-      icon={iconOf(ctx, "wishlist")}
-      label={t.tabWishlist}
-      mode={mode}
-      href={storeHref(ctx.base, "/account?tab=wishlist")}
-    />
-  );
-}
-
 function HomeAtom({ ctx, mode }: AtomProps) {
   const { t } = useStorefrontUI();
   return (
@@ -298,6 +286,22 @@ function TrackAtom({ ctx, mode }: AtomProps) {
       mode={mode}
       active={ctx.isActive("track")}
       href={storeHref(ctx.base, "/orders/track")}
+    />
+  );
+}
+
+/** Only ever drawn while the wishlist is on — `chromeWithPageControls` drops it otherwise. */
+function WishlistAtom({ ctx, mode }: AtomProps) {
+  const { t } = useStorefrontUI();
+  const count = useWishlistItems(ctx.slug).length;
+  return (
+    <Atom
+      icon={iconOf(ctx, "wishlist")}
+      label={t.tabWishlist}
+      mode={mode}
+      active={ctx.isActive("wishlist")}
+      badge={count}
+      href={storeHref(ctx.base, "/wishlist")}
     />
   );
 }
@@ -380,12 +384,12 @@ const ATOMS: Record<MobileActionId, (p: AtomProps) => ReactNode> = {
   search: SearchAtom,
   cart: CartAtom,
   account: AccountAtom,
-  wishlist: WishlistAtom,
   home: HomeAtom,
   lang: LangAtom,
   theme: ThemeAtom,
   call: CallAtom,
   track: TrackAtom,
+  wishlist: WishlistAtom,
 };
 
 export function MobileAction({

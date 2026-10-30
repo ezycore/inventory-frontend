@@ -15,7 +15,6 @@ covers_routes:
   - /reports/position
   - /reports/tax
   - /reports/employees
-  - /reports/export
 features:
   - sales
   - accounts
@@ -24,6 +23,7 @@ features:
   - inventoryTracking
   - storefront
 ui_labels:
+  - layout:nav.items.import-export
   - reports:landing.subtitle
   - reports:orders.title
   - reports:sales.breakdown.title
@@ -210,8 +210,9 @@ not who is best at selling, and a slow shift is not the same as a slow employee.
 ## Export
 
 **Export Data** lets you *Download your data as CSV files* — sales, purchases, inventory, products,
-customers and suppliers, for the period you select. This is how you get data to your accountant, or
-into a spreadsheet for something the reports do not cover.
+customers and suppliers, for the period you select. It is on the Export tab of **Import & Export** in
+the sidebar ([Import and export your data](./import-and-export.md)). This is how you get data to your
+accountant, or into a spreadsheet for something the reports do not cover.
 
 ## If the numbers look wrong
 

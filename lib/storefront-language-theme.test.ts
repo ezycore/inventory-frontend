@@ -19,12 +19,12 @@ describe("an untouched shop is the shop it always was", () => {
       defaultLanguage: "en",
       darkMode: "switch",
     });
-    expect(resolveDesktopHeader(undefined)).toEqual({ sticky: true, wishlist: true });
+    expect(resolveDesktopHeader(undefined)).toEqual({ sticky: true });
   });
 
   it("stores nothing for the defaults", () => {
     expect(languageThemeOverrides(DEFAULT_LANGUAGE_THEME)).toBeUndefined();
-    expect(desktopHeaderOverrides({ sticky: true, wishlist: true })).toBeUndefined();
+    expect(desktopHeaderOverrides({ sticky: true })).toBeUndefined();
   });
 
   it("narrows a value it does not know to the default", () => {
@@ -39,10 +39,7 @@ describe("only the difference is stored", () => {
     expect(
       languageThemeOverrides({ ...DEFAULT_LANGUAGE_THEME, darkMode: "light" }),
     ).toEqual({ darkMode: "light" });
-    expect(desktopHeaderOverrides({ sticky: false, wishlist: true })).toEqual({ sticky: false });
-    // The wishlist heart switched off is the only thing a Showroom header stores.
-    expect(desktopHeaderOverrides({ sticky: true, wishlist: false })).toEqual({ wishlist: false });
-    expect(resolveDesktopHeader({ wishlist: false })).toEqual({ sticky: true, wishlist: false });
+    expect(desktopHeaderOverrides({ sticky: false })).toEqual({ sticky: false });
   });
 });
 

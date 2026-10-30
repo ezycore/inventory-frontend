@@ -228,6 +228,7 @@
     "subtitle": "Download your data as CSV files",
     "exporting": "Exporting...",
     "exportCsv": "Export CSV",
+    "nothingToExport": "Nothing to export for this period.",
     "salesData": "Sales Data",
     "salesDataDesc": "Export all sales records for the selected period",
     "purchaseData": "Purchase Data",

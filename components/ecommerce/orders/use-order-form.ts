@@ -50,17 +50,20 @@ export interface Line {
 }
 
 /**
- * The existing order an edit seeds from.
+ * What the form opens with — an existing order to edit, or a new order seeded
+ * from one (Copy, `useOrderCopyInitial`).
  *
- * Built by the detail page, which pairs the order's own lines with a picker fetch
- * for their products — `availableQuantity` is not stored on an order, and without
- * it the quantity stepper has no ceiling on exactly the lines most likely to be
+ * Built by the caller, which pairs the order's lines with a picker fetch for
+ * their products — `availableQuantity` is not stored on an order, and without it
+ * the quantity stepper has no ceiling on exactly the lines most likely to be
  * edited.
  */
 export interface OrderFormInitial {
-  orderId: string;
+  /** Present ⇒ the form edits this order. Absent ⇒ it creates a new one. */
+  orderId?: string;
   lines: Line[];
-  channel: AdminOrderChannel;
+  /** Empty on a copy: the new buyer's channel is a fact to record, not inherit. */
+  channel: AdminOrderChannel | "";
   paymentMethod: string;
   name: string;
   phone: string;
@@ -80,7 +83,7 @@ const lineKey = (l: { productId: string; variantId?: string | null }) =>
 export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
   const t = useTranslations("ecommerce.orderForm");
   const fieldLabel = (field: string) => t(`field${field[0].toUpperCase()}${field.slice(1)}`);
-  const isEdit = !!initial;
+  const isEdit = !!initial?.orderId;
   const createOrder = useCreateStorefrontOrder();
   const editOrder = useEditStorefrontOrder();
 
@@ -101,7 +104,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
   // Create defaults ON — a chat order is already agreed by the conversation that
   // produced it. An edit has no such step: confirming is its own action, and an
   // edit that also reserved stock would hide that inside a "save".
-  const [confirmImmediately, setConfirmImmediately] = useState(!initial);
+  const [confirmImmediately, setConfirmImmediately] = useState(!isEdit);
   /**
    * Keep this order out of Meta's ad reporting (backend docs/plan/meta-pixel-capi.md D19).
    *
@@ -122,8 +125,9 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
   const [reprice, setReprice] = useState(false);
 
   /**
-   * Back to the starting point — empty when creating, the ORDER when editing.
-   * A cancelled edit must restore what the order says, not blank the form.
+   * Back to the starting point — empty when creating, the ORDER when editing,
+   * the copied products on a copy. A cancelled edit must restore what the order
+   * says, not blank the form.
    */
   const reset = () => {
     setLines(initial?.lines ?? []);
@@ -136,7 +140,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
     setArea(initial?.area ?? "");
     setNotes(initial?.notes ?? "");
     setShippingCharged(initial?.shippingCharged ?? null);
-    setConfirmImmediately(!initial);
+    setConfirmImmediately(!isEdit);
     setPasted("");
     setCoupon(initial?.coupon ?? "");
     setDiscountType(initial?.discountType ?? "fixed");
@@ -197,6 +201,21 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
         ? t("filledMissing", { fields, missing: missing.map(fieldLabel).join(", ") })
         : t("filled", { fields }),
     );
+  };
+
+  /** A copy's "Use these": the previous buyer's details, over whatever is typed. */
+  const fillCustomer = (customer: {
+    name: string;
+    phone: string;
+    address: string;
+    district: string;
+    area: string;
+  }) => {
+    setName(customer.name);
+    setPhone(customer.phone);
+    setAddress(customer.address);
+    setDistrict(customer.district);
+    setArea(customer.area);
   };
 
   const addLine = (product: ExtractedProduct) => {
@@ -322,7 +341,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
       shippingCharged: shippingCharged ?? undefined,
     };
 
-    if (initial) {
+    if (initial?.orderId) {
       editOrder.mutate(
         { id: initial.orderId, body: { ...shared, reprice: reprice || undefined } },
         // No `reset()`: the dialog closes and the detail page re-renders from the
@@ -393,6 +412,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
     pasted,
     setPasted,
     applyPaste,
+    fillCustomer,
     coupon,
     setCoupon,
     discountType,

@@ -15,9 +15,12 @@ import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
-import { useWishlistStore } from "@/services/stores/use-wishlist-store";
-import { storePages } from "@/lib/storefront-page-controls";
-import { useHeaderVariant } from "@/components/storefront/use-utility-bar";
+import {
+  useIsWished,
+  useWishlistStore,
+  wishItemOf,
+} from "@/services/stores/use-wishlist-store";
+import { useWishlistEnabled } from "@/components/storefront/use-wishlist-enabled";
 import { Icon } from "@/components/storefront/sf-icons";
 import { cardBadgeTags, discountBadgeText } from "@/components/storefront/card-badges";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
@@ -105,16 +108,14 @@ export function ProductCard({
   const ctaOwnsImage = layoutOwnsImage(actions);
   const qb = useCardQuickBuy(product, ctaOwnsImage);
 
-  /* The Showroom card's wishlist heart, top right of the photo. Theme-specific
-     on purpose (2026-10-28): it is part of that design, not a card option. Only
-     where the shop has customer accounts — the saved list lives under Account,
-     and the header's own heart (`WishlistLink`) asks the same question. */
-  const headerVariant = useHeaderVariant(store);
-  const showWish = headerVariant === "showroom" && !editorial && storePages(store).accounts;
+  /* The wishlist heart, top right of the photo, on the shop's one wishlist
+     switch (`useWishlistEnabled`) — the header and the product page ask the same
+     question. Its LOOK is the theme's: Showroom draws it as a white disc
+     (storefront-showroom.css), every other shop a plainer one (storefront.css).
+     It sits on the photo, so the frameless editorial card carries it too. */
+  const showWish = useWishlistEnabled(store);
   const toggleWish = useWishlistStore((s) => s.toggle);
-  const wished = useWishlistStore(
-    (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product._id),
-  );
+  const wished = useIsWished(slug, product._id);
 
   const soldOut = qb.soldOut;
   const thumb = cardImageUrl(product.images?.[0]);
@@ -279,19 +280,7 @@ export function ProductCard({
           <button
             type="button"
             className="sf-card-wish"
-            onClick={() =>
-              toggleWish(slug, {
-                productId: product._id,
-                slug: product.slug,
-                name: product.name,
-                price: product.price,
-                compareAtPrice: product.compareAtPrice,
-                image: thumb ?? undefined,
-                hasVariants,
-                availableQuantity: product.availableQuantity,
-                outOfStockBehavior: product.outOfStockBehavior,
-              })
-            }
+            onClick={() => toggleWish(slug, wishItemOf(product, hasVariants))}
             aria-label={t.tabWishlist}
             aria-pressed={wished}
           >

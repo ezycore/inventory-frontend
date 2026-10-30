@@ -30,13 +30,16 @@ const IGNORE = "__ignore__";
  * settled and not shown — mapping only resolves genuine mismatches.
  */
 export function ColumnMapper({ headerInfo, mapping, onChange }: ColumnMapperProps) {
-  // CSV headers claimed by the auto-match; the rest are the mappable rows.
-  const autoMatched = new Set(
-    headerInfo.columns
+  // CSV headers claimed by the auto-match, or that the file's platform (a
+  // WooCommerce export) writes and the import drops on purpose; the rest are
+  // the mappable rows.
+  const settled = new Set([
+    ...headerInfo.columns
       .map((column) => column.matched)
       .filter((header): header is string => header !== null),
-  );
-  const rows = headerInfo.csvHeaders.filter((header) => !autoMatched.has(header));
+    ...(headerInfo.ignored ?? []),
+  ]);
+  const rows = headerInfo.csvHeaders.filter((header) => !settled.has(header));
   if (rows.length === 0) return null;
 
   // Reverse lookup: which expected column the user pointed at this CSV header.

@@ -31,6 +31,7 @@ import {
   PhoneMenuPanelFields,
 } from "@/components/ecommerce/customize/menu-behaviour-fields";
 import { MobileSlotField } from "@/components/ecommerce/customize/mobile-slot-field";
+import { resolveWishlistEnabled } from "@/lib/storefront-wishlist";
 import { PhoneBarExtras } from "@/components/ecommerce/customize/parts/header-phone-extras";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
@@ -74,15 +75,12 @@ export function PhoneHeaderFields({
   // so the row says that here instead of leaving the merchant to find out on
   // their phone. The number lives in Settings → General, not in this draft.
   const noPhone = !settings.contact?.phone?.trim();
-  // Likewise the wishlist, which lives in the customer account.
-  const accountsOff = settings.customersConfig?.allowAccounts === false;
-  const disabledIds =
-    noPhone || accountsOff
-      ? {
-          ...(noPhone ? { call: "— no phone number saved" } : {}),
-          ...(accountsOff ? { wishlist: "— customer accounts are off" } : {}),
-        }
-      : undefined;
+  // Same for a heart placed while the Wishlist switch above is off.
+  const wishlistOff = !resolveWishlistEnabled(draft.wishlist, draft.templates.header);
+  const disabledIds = {
+    ...(noPhone ? { call: "— no phone number saved" } : {}),
+    ...(wishlistOff ? { wishlist: "— Wishlist is switched off" } : {}),
+  };
   const barActions = MOBILE_ACTIONS.map((a) => a.id);
 
   const pickTemplate = (value: string) => {

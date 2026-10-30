@@ -67,6 +67,7 @@ function Harness() {
   return (
     <>
       <button type="button" onClick={() => qb.press("add")}>Add</button>
+      <button type="button" onClick={() => qb.press("buy")}>Buy</button>
       <button type="button" onClick={() => qb.pick({ Size: "M" })}>Pick medium</button>
       <output>{qb.chosen?._id ?? "none"}</output>
     </>
@@ -100,6 +101,22 @@ describe("useCardQuickBuy variant defaults", () => {
       }),
       1,
     );
+  });
+
+  it("buys the chosen option alone, without adding it to the cart", async () => {
+    const { useBuyNowStore } = await import("@/services/stores/use-buy-now-store");
+    render(<Harness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Buy" }));
+    fireEvent.click(screen.getByRole("button", { name: "Buy" }));
+
+    expect(mocks.addItem).not.toHaveBeenCalled();
+    expect(mocks.push).toHaveBeenCalledWith("/shop/checkout?buy=1");
+    expect(useBuyNowStore.getState().line).toMatchObject({
+      productId: "product-1",
+      variantId: "variant-small",
+      quantity: 1,
+    });
   });
 
   it("commits an explicitly selected replacement variant", () => {

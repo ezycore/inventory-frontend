@@ -59,12 +59,12 @@ describe("chromeWithPageControls", () => {
   const searchBar = resolveMobileChrome({ mobile: "search" }, undefined);
 
   it("returns the chrome untouched when every page is served", () => {
-    const all = { search: true, accounts: true };
+    const all = { search: true, accounts: true, wishlist: true };
     expect(chromeWithPageControls(tabs, all)).toBe(tabs);
   });
 
   it("drops the search and account controls the shop no longer has", () => {
-    const out = chromeWithPageControls(tabs, { search: false, accounts: false });
+    const out = chromeWithPageControls(tabs, { search: false, accounts: false, wishlist: true });
     expect(out.tabs).not.toContain("search");
     expect(out.tabs).not.toContain("account");
     expect([...out.left, ...out.right]).not.toContain("search");
@@ -75,17 +75,8 @@ describe("chromeWithPageControls", () => {
     expect(out.tabs).toContain("cart");
   });
 
-  // The wishlist is the account's tab, so it leaves with the account.
-  it("drops a placed wishlist when customer accounts are off", () => {
-    const placed = { ...tabs, right: ["wishlist", "cart"] as typeof tabs.right, tabs: [...tabs.tabs, "wishlist"] as typeof tabs.tabs };
-    const off = chromeWithPageControls(placed, { search: true, accounts: false });
-    expect(off.right).toEqual(["cart"]);
-    expect(off.tabs).not.toContain("wishlist");
-    expect(chromeWithPageControls(placed, { search: true, accounts: true }).right).toEqual(["wishlist", "cart"]);
-  });
-
   it("keeps the account controls when only search is off", () => {
-    const out = chromeWithPageControls(tabs, { search: false, accounts: true });
+    const out = chromeWithPageControls(tabs, { search: false, accounts: true, wishlist: true });
     expect(out.tabs).toContain("account");
     expect(out.tabs).not.toContain("search");
   });
@@ -95,16 +86,27 @@ describe("chromeWithPageControls", () => {
     // bar still sized for an inline field) leaves a gap where the box was,
     // which reads as a broken header rather than a shop without search.
     const rowTemplate = tabs.row === "search" ? tabs : { ...tabs, row: "search" as const };
-    expect(chromeWithPageControls(rowTemplate, { search: false, accounts: true }).row).toBe("none");
+    expect(chromeWithPageControls(rowTemplate, { search: false, accounts: true, wishlist: true }).row).toBe("none");
     expect(
-      chromeWithPageControls({ ...searchBar, searchInline: true }, { search: false, accounts: true })
+      chromeWithPageControls({ ...searchBar, searchInline: true }, { search: false, accounts: true, wishlist: true })
         .searchInline,
     ).toBe(false);
   });
 
+  // A merchant can place the heart in a slot or a tab, then switch the wishlist
+  // off: the slot must close up, and come back when it is switched on again.
+  it("drops a placed wishlist heart while the wishlist is off", () => {
+    const placed = { ...tabs, right: [...tabs.right, "wishlist" as const], tabs: [...tabs.tabs, "wishlist" as const] };
+    const off = chromeWithPageControls(placed, { search: true, accounts: true, wishlist: false });
+    expect([...off.left, ...off.right, ...off.tabs]).not.toContain("wishlist");
+    const on = chromeWithPageControls(placed, { search: true, accounts: true, wishlist: true });
+    expect(on.right).toContain("wishlist");
+    expect(on.tabs).toContain("wishlist");
+  });
+
   it("leaves a search row alone while search is served", () => {
     const rowTemplate = { ...tabs, row: "search" as const, searchInline: true };
-    const out = chromeWithPageControls(rowTemplate, { search: true, accounts: false });
+    const out = chromeWithPageControls(rowTemplate, { search: true, accounts: false, wishlist: true });
     expect(out.row).toBe("search");
     expect(out.searchInline).toBe(true);
   });

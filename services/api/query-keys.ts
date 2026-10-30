@@ -451,6 +451,16 @@ export const queryKeys = {
     stats: (days?: number) => ["ecommerce-carts", "stats", days ?? null] as const,
   },
 
+  /**
+   * Shoppers' wishlists — the merchant's read-only view. Written by shoppers on
+   * the storefront, so, like carts, nothing in the admin ever invalidates these.
+   */
+  storefrontWishlists: {
+    all: () => ["ecommerce-wishlists"] as const,
+    stats: (days?: number) => ["ecommerce-wishlists", "stats", days ?? null] as const,
+    shopper: (shopperId: string) => ["ecommerce-wishlists", "shopper", shopperId] as const,
+  },
+
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
   /** Storefront Builder pages. Revisions sit under the root, so a publish flushes them with the rest. */
@@ -470,4 +480,13 @@ export const queryKeys = {
   // Read-only Mission Control access to this workspace. No mutation of ours
   // creates one — only MC can — so nothing else invalidates this root.
   supportSessions: resourceKeys("supportSessions"),
+  // Moving a store in from WooCommerce (backend docs/plan/data-migration.md). A
+  // customer's orders from the old store live here too: only a migration writes them.
+  migrations: {
+    ...resourceKeys("migrations"),
+    legacyOrders: (customerId: string) => ["migrations", "legacy-orders", customerId] as const,
+  },
+  // The import history (backend docs/plan/import-export-center.md): written by every
+  // committed CSV import, so each `*.imported` event dirties it.
+  importBatches: resourceKeys("importBatches"),
 } as const;

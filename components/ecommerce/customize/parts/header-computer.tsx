@@ -32,7 +32,6 @@ export function ComputerHeaderFields({
   const menu = draft.navMenu;
   const header = draft.templates.header;
   const rowless = ROWLESS_HEADERS.has(header);
-  const accountsOff = settings.customersConfig?.allowAccounts === false;
 
   return (
     <>
@@ -69,23 +68,8 @@ export function ComputerHeaderFields({
         label="Header follows the page"
         detail="Stays on screen while shoppers scroll"
         checked={draft.desktopHeader.sticky}
-        onCheckedChange={(sticky) => patch({ desktopHeader: { ...draft.desktopHeader, sticky } })}
+        onCheckedChange={(sticky) => patch({ desktopHeader: { sticky } })}
       />
-
-      {/* Only the layouts that draw a heart. Without customer accounts there is
-          no wishlist to open, so the switch says so rather than doing nothing. */}
-      {WISHLIST_HEADERS.has(header) ? (
-        <PartSwitch
-          label="Wishlist"
-          detail={accountsOff ? "Off while customer accounts are off" : "The heart beside the account"}
-          checked={draft.desktopHeader.wishlist && !accountsOff}
-          disabled={accountsOff}
-          onCheckedChange={(wishlist) => patch({ desktopHeader: { ...draft.desktopHeader, wishlist } })}
-        />
-      ) : null}
     </>
   );
 }
-
-/** Header layouts that draw a wishlist heart (`WishlistLink`). */
-const WISHLIST_HEADERS = new Set(["showroom"]);

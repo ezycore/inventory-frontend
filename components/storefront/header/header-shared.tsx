@@ -63,11 +63,10 @@ export interface HeaderCtx {
    */
   showSearch: boolean;
   showAccount: boolean;
-  /**
-   * The wishlist heart, in an anatomy that draws one: Customize → Header →
-   * Computer's switch, and never without customer accounts.
-   */
+  /** The wishlist switch (`useWishlistEnabled`) — not tied to accounts. */
   showWishlist: boolean;
+  /** Saved items on this store; 0 until the persisted list hydrates. */
+  wishCount: number;
   /**
    * Does this anatomy still owe the shopper a theme / language control?
    *
@@ -250,19 +249,29 @@ export function AccountLink({
 }
 
 /**
- * The wishlist heart (Showroom). The list lives in the shopper's account
- * (`?tab=wishlist`, which the account page adopts on mount), so it is gated on
- * accounts exactly as `AccountLink` is: with accounts off there is no list to open.
+ * The wishlist heart, just before the cart in every anatomy. Opens `/wishlist`,
+ * which needs no sign-in — so it is gated on the wishlist switch alone, not on
+ * accounts. Gated here for `AccountLink`'s reason: no anatomy can forget it.
+ *
+ * `strong` is Showroom's 44px target; the others size it like their own icons.
  */
-export function WishlistLink({ ctx }: { ctx: HeaderCtx }) {
+export function WishlistLink({ ctx, strong }: { ctx: HeaderCtx; strong?: boolean }) {
   if (!ctx.showWishlist) return null;
   return (
     <Link
-      href={storeHref(ctx.base, "/account?tab=wishlist")}
+      href={storeHref(ctx.base, "/wishlist")}
       aria-label={ctx.t.tabWishlist}
-      style={{ display: "grid", placeItems: "center", width: 44, height: 44, color: "var(--text)" }}
+      style={{
+        position: "relative",
+        display: "grid",
+        placeItems: "center",
+        width: strong ? 44 : undefined,
+        height: strong ? 44 : undefined,
+        color: "var(--text)",
+      }}
     >
       <Icon name="heart" size={20} />
+      {ctx.wishCount > 0 ? <CountBadge count={ctx.wishCount} compact inset={strong} /> : null}
     </Link>
   );
 }
@@ -273,7 +282,7 @@ export function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boo
     <button type="button" onClick={goCart} aria-label={t.cart} style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: "var(--text)" }}>
       <Icon name="cart" size={22} />
       {withLabel ? <span style={{ fontSize: 13, fontWeight: 600 }}>{t.cart}</span> : null}
-      {cartCount > 0 ? <CartBadge count={cartCount} compact={!withLabel} /> : null}
+      {cartCount > 0 ? <CountBadge count={cartCount} compact={!withLabel} /> : null}
     </button>
   );
 }
@@ -359,14 +368,26 @@ export function CategoryRow({
   return <HeaderNav nodes={ctx.menuTree} menu={ctx.menuDesktop} center={center} rowStyle={rowStyle} />;
 }
 
-function CartBadge({ count, compact }: { count: number; compact?: boolean }) {
+/**
+ * The count bubble on the cart and the wishlist heart. `inset` pulls it inside a
+ * 44px target (Showroom's heart), where the corner sits 12px off the glyph.
+ */
+function CountBadge({
+  count,
+  compact,
+  inset,
+}: {
+  count: number;
+  compact?: boolean;
+  inset?: boolean;
+}) {
   return (
     <span
       className="sf-mono"
       style={{
         position: "absolute",
-        top: compact ? -7 : -8,
-        right: compact ? -9 : undefined,
+        top: inset ? 4 : compact ? -7 : -8,
+        right: inset ? 2 : compact ? -9 : undefined,
         left: compact ? undefined : 14,
         background: "var(--primary)",
         color: "var(--on-primary)",

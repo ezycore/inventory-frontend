@@ -1,7 +1,12 @@
 // coding-standard: maintained
 import { describe, expect, it } from "vitest";
 
-import { actorLabel, awaitsCourierReport, collectionLabels } from "./order-detail-helpers";
+import {
+  actorLabel,
+  awaitsCourierReport,
+  collectionLabels,
+  holdsReservedStock,
+} from "./order-detail-helpers";
 import { testTranslator } from "@/tests/test-utils";
 
 const t = testTranslator("ecommerce");
@@ -48,3 +53,16 @@ describe("awaitsCourierReport", () => {
   });
 });
 
+describe("holdsReservedStock", () => {
+  it("only a confirmed order on a stock-tracked workspace holds stock", () => {
+    expect(holdsReservedStock({ stockReserved: true }, true)).toBe(true);
+  });
+
+  it("a new order holds none — stock is reserved at confirm", () => {
+    expect(holdsReservedStock({ stockReserved: false }, true)).toBe(false);
+  });
+
+  it("a stock-free workspace holds none, though confirm marks it reserved (QA-N13)", () => {
+    expect(holdsReservedStock({ stockReserved: true }, false)).toBe(false);
+  });
+});

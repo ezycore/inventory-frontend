@@ -150,7 +150,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     trackOrderLabel: "",
   },
   languageTheme: DEFAULT_LANGUAGE_THEME,
-  desktopHeader: { sticky: true, wishlist: true },
+  desktopHeader: { sticky: true },
+  wishlist: {},
   announcement: {
     enabled: false,
     useShippingRule: false,
@@ -569,15 +570,22 @@ describe("the Menu part", () => {
 
   it("saves the computer header only once it stops following the page", () => {
     expect(
-      toLookPatch(draft({ desktopHeader: { sticky: false, wishlist: true } }), ["header"]).nav
+      toLookPatch(draft({ desktopHeader: { sticky: false } }), ["header"]).nav
         ?.desktopHeader,
     ).toEqual({ sticky: false });
-    // A Showroom header with its wishlist heart switched off.
-    expect(
-      toLookPatch(draft({ desktopHeader: { sticky: true, wishlist: false } }), ["header"]).nav
-        ?.desktopHeader,
-    ).toEqual({ wishlist: false });
     expect(toLookPatch(draft({}), ["header"]).nav?.desktopHeader).toBeUndefined();
+  });
+
+  // Absent follows the header layout, so an untouched shop must keep storing
+  // nothing — and an explicit OFF is a choice, not a default to drop.
+  it("saves the wishlist switch only once the merchant has set it", () => {
+    expect(toLookPatch(draft({}), ["header"]).nav?.wishlist).toBeUndefined();
+    expect(
+      toLookPatch(draft({ wishlist: { enabled: false } }), ["header"]).nav?.wishlist,
+    ).toEqual({ enabled: false });
+    expect(
+      toLookPatch(draft({ wishlist: { enabled: true } }), ["header"]).nav?.wishlist,
+    ).toEqual({ enabled: true });
   });
 
   // The category sidebar's opening moved under Page layout with the sidebar.

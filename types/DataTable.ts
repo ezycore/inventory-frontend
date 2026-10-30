@@ -333,6 +333,8 @@ export interface ImportHeaderColumn {
 export interface ImportHeaderInfo {
   csvHeaders: string[];
   columns: ImportHeaderColumn[];
+  /** Headers the file's platform writes that the import drops on purpose — never asked about. */
+  ignored?: string[];
 }
 
 /** Explicit `expected header → CSV header` overrides from the mapping step. */
@@ -350,7 +352,23 @@ export interface ImportResult {
   errors: ImportRowError[];
   /** Aggregated non-fatal skip notices ("message (N rows)"). */
   warnings?: string[];
+  /** The file's recognised source format (`"woocommerce"`), when the backend detects one. */
+  dialect?: string;
 }
+
+/**
+ * Opt-in switches for one import run, sent as multipart fields. A resource
+ * that cannot use one ignores it (backend `ImportContext`).
+ */
+export interface ImportOptions {
+  /** Create missing categories, brands and tags instead of failing the row. */
+  autoCreate?: boolean;
+  /** Copy remote product images into EzyCore storage after the import. */
+  mirrorImages?: boolean;
+}
+
+/** Which of the `ImportOptions` switches a resource's import dialog offers. */
+export type ImportOptionOffer = { [K in keyof ImportOptions]?: true };
 
 /**
  * Import configuration. When provided, the DataTable renders an "Import" button
@@ -361,11 +379,20 @@ export interface ImportResult {
  */
 export interface DataTableImportConfig {
   downloadTemplate: () => Promise<void>;
-  preview: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
-  commit: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
+  preview: ImportCall;
+  commit: ImportCall;
   /** Button label (default "Import"). */
   label?: string;
+  /** Opt-in switches the dialog shows (products: auto-create + copy images). */
+  options?: ImportOptionOffer;
 }
+
+/** A preview or commit call: the file, the column mapping, and the run's switches. */
+export type ImportCall = (
+  file: File,
+  mapping?: ImportColumnMapping,
+  options?: ImportOptions,
+) => Promise<ImportResult>;
 
 /**
  * Print configuration. When provided, the DataTable renders a "Print" button

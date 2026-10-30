@@ -200,15 +200,12 @@ export function PartSwitch({
   detail,
   ariaLabel,
   checked,
-  disabled,
   onCheckedChange,
 }: {
   label: string;
   detail?: string;
   ariaLabel?: string;
   checked: boolean;
-  /** Held by a setting elsewhere; `detail` should say which. */
-  disabled?: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
@@ -221,7 +218,6 @@ export function PartSwitch({
       </span>
       <Switch
         checked={checked}
-        disabled={disabled}
         onCheckedChange={onCheckedChange}
         aria-label={ariaLabel ?? label}
       />

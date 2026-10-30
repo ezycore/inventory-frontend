@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
 import { useUpdateOrderStatus, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Textarea } from "@/ui/components/textarea";
+import { holdsReservedStock } from "./order-detail-helpers";
 
 /**
  * Moving an order BACKWARD — the merchant correcting themselves after a
@@ -63,6 +65,7 @@ export function OrderReverseStatusDialog({ order }: { order: AdminStorefrontOrde
   const [note, setNote] = useState("");
   const updateStatus = useUpdateOrderStatus();
   const { labelFor } = useOrderStatusLabels();
+  const holdsStock = holdsReservedStock(order, useStockTracked());
 
   const targets = useMemo(() => reversibleTargets(order), [order]);
   const options = useMemo(
@@ -88,7 +91,7 @@ export function OrderReverseStatusDialog({ order }: { order: AdminStorefrontOrde
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("title")}</DialogTitle>
-            <DialogDescription>{t(order.stockReserved ? "bodyReserved" : "body")}</DialogDescription>
+            <DialogDescription>{t(holdsStock ? "bodyReserved" : "body")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

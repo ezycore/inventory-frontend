@@ -4653,6 +4653,33 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
+/* The wishlist heart on a product card (`product-card.tsx`), top right of the
+   photo, while the shop's wishlist is on. Showroom draws its own white disc over
+   this (storefront-showroom.css). The badge row gives up the corner, or a tag
+   chip would sit under the heart — `!important` because the row is inline. */
+.sf-card-wish {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.sf-card-wish[aria-pressed="true"] {
+  color: var(--discount);
+}
+.sf-qb-card:has(.sf-card-wish) .sf-card-badges {
+  right: 46px !important;
+}
+
 /* Sheet: bottom-anchored on phones (thumb-reachable, the platform idiom for a
    quick action), centred modal from 680px where a full-width sheet would be a
    1200px-wide strip of chips. One set of markup — only the scrim's alignment

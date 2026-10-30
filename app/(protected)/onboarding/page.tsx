@@ -34,10 +34,13 @@ import { WelcomeStep } from "@/components/onboarding/welcome-step";
 import { DoneStep } from "@/components/onboarding/done-step";
 import { WizardShell } from "@/components/onboarding/wizard-shell";
 import {
+  ANSWERED_FEATURES,
   QUESTION_COUNT,
   QUESTION_KEYS,
+  REVIEW_ONLY_FEATURES,
   answersFromProgress,
   askedIndices,
+  completionPayload,
   isConfidentAbout,
   nextAskedIndex,
   payloadForStep,
@@ -323,6 +326,7 @@ export default function OnboardingPage() {
         question={t("purchasing.question")}
         options={yesNo(t("purchasing.yes"), t("purchasing.no"), {
           yesHint: t("purchasing.yesHint"),
+          noHint: t("purchasing.noHint"),
           yesIcon: ShoppingCart,
         })}
         value={yesNoValue(answers.purchases)}
@@ -462,6 +466,7 @@ export default function OnboardingPage() {
           // The plan may already have settled some of these, so the promise is
           // what this workspace will actually be asked, not the eight that exist.
           questionCount={asked.length}
+          askedKeys={asked.map((i) => QUESTION_KEYS[i])}
           onStart={() =>
             setLocalIndex(nextAskedIndex(0, answers, planFeatures))
           }
@@ -469,6 +474,9 @@ export default function OnboardingPage() {
       ) : index === STAGE_DONE ? (
         <DoneStep
           organizationName={organization?.name}
+          enabledFeatures={[...ANSWERED_FEATURES, ...REVIEW_ONLY_FEATURES].filter(
+            (key) => features[key],
+          )}
           onEnter={() => router.replace("/dashboard")}
         />
       ) : index < QUESTION_COUNT ? (
@@ -490,7 +498,11 @@ export default function OnboardingPage() {
           onConfirm={() => {
             setCompletingHere(true);
             applyStep.mutate(
-              { step: QUESTION_COUNT + 1, complete: true },
+              completionPayload(
+                answers,
+                planFeatures,
+                !!organization?.vatRegistrationHistory?.length,
+              ),
               {
                 onSuccess: () => setLocalIndex(STAGE_DONE),
                 // Nothing was completed, so restore the redirect guard. It is

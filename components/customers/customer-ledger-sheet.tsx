@@ -37,6 +37,7 @@ import type {
   ReceiveCustomerPaymentDto,
 } from "@/types";
 import { CustomerLedgerEntries, type LedgerEntry } from "./customer-ledger-entries";
+import { LegacyOrdersSection } from "./legacy-orders-section";
 import { EmailStatementButton } from "./email-statement-button";
 import { CustomerBulkPaymentForm } from "./customer-bulk-payment-form";
 import { CustomerLedgerSummary } from "./customer-ledger-summary";
@@ -377,6 +378,9 @@ export function CustomerLedgerSheet({
                   </div>
                 </div>
               )}
+
+              {/* The sheet renders closed, with no customer, until a row is opened. */}
+              {customer && <LegacyOrdersSection customerId={customer._id} />}
             </>
           )}
         </div>

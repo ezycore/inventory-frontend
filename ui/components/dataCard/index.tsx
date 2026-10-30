@@ -436,6 +436,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
             downloadTemplate={importConfig.downloadTemplate}
             preview={importConfig.preview}
             commit={importConfig.commit}
+            options={importConfig.options}
             // A bulk import stales the whole module family (stats cards,
             // select-options, …), not just the visible list page — invalidate
             // by the module root key so every active query refetches.

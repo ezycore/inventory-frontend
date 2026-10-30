@@ -43,9 +43,6 @@ export default function InventoryPage() {
   const { format: formatCurrency } = useCurrency();
   const stats = dashboardData?.data;
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
-  const expiryEnabled = useAuthStore(
-    (s) => s.user?.organization?.features?.expiryTracking ?? false,
-  );
   const lookupBarcode = useBarcodeLookupAction();
   const baseColumns = useMemo(() => getInventoryColumns(t), [t]);
   const columns = useCostGatedColumns(baseColumns);
@@ -122,42 +119,8 @@ export default function InventoryPage() {
         selectable={true}
         enableSorting={true}
         enableRowHover={true}
-        exportConfig={{
-          download: (params) =>
-            params.dataset === "batch"
-              ? inventoryApi.exportBatchCsv(params)
-              : inventoryApi.exportCsv(params),
-          note: t("stock.exportNote"),
-          options: [
-            {
-              key: "stock-all",
-              label: t("stock.exportStockAll"),
-              description: t("stock.exportStockAllDesc"),
-            },
-            {
-              key: "stock-essential",
-              label: t("stock.exportStockEssential"),
-              description: t("stock.exportStockEssentialDesc"),
-              params: { columns: "essential" },
-            },
-            // Batch/expiry rows — only when the org tracks expiry.
-            ...(expiryEnabled
-              ? [
-                  {
-                    key: "batch",
-                    label: t("stock.exportBatch"),
-                    description: t("stock.exportBatchDesc"),
-                    params: { dataset: "batch" },
-                  },
-                ]
-              : []),
-          ],
-        }}
-        importConfig={{
-          downloadTemplate: inventoryApi.downloadImportTemplate,
-          preview: inventoryApi.importPreview,
-          commit: inventoryApi.importCommit,
-        }}
+        // Import and export live in the Import & Export center
+        // (backend docs/plan/import-export-center.md), not on the list.
         rowClassName={(row: Inventory) =>
           row.quantity === 0
             ? "bg-destructive/5 border-l-2 border-l-destructive"

@@ -9,15 +9,18 @@ import {
   DialogTitle,
 } from "@ui/components/dialog";
 import { Button } from "@ui/components/button";
-import { SimpleTable, type SimpleColumn } from "@ui/components/simple-table";
 import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type {
+  ImportCall,
   ImportColumnMapping,
+  ImportOptionOffer,
+  ImportOptions,
   ImportResult,
-  ImportRowError,
 } from "@/types/DataTable";
 import { ColumnMapper } from "./column-mapper";
+import { ImportOptionsPanel } from "./import-options";
+import { ImportResultSummary } from "./import-result";
 
 interface ImportDialogProps {
   open: boolean;
@@ -26,29 +29,17 @@ interface ImportDialogProps {
   /** Trigger a template CSV download. */
   downloadTemplate: () => Promise<void>;
   /** Dry-run: validate the file without writing, return per-row results. */
-  preview: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
+  preview: ImportCall;
   /** Commit valid rows; returns the final result. */
-  commit: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
+  commit: ImportCall;
+  /** Opt-in switches this resource offers (none by default). */
+  options?: ImportOptionOffer;
   /** Called after a successful commit (e.g. refetch the list). */
   onCommitted?: () => void;
 }
 
-const errorColumns: SimpleColumn<ImportRowError>[] = [
-  {
-    key: "row",
-    header: "Row",
-    cell: (r) => (r.row > 0 ? r.row : "—"),
-    headClassName: "w-16",
-  },
-  {
-    key: "errors",
-    header: "Errors",
-    cell: (r) => r.errors.join("; "),
-    // Table cells are `whitespace-nowrap` by default; long messages must wrap
-    // or they widen the dialog's grid track and push the footer out of the panel.
-    cellClassName: "whitespace-normal break-words",
-  },
-];
+/** A WooCommerce export means a store is moving here, so copying its images is the default. */
+const WOOCOMMERCE = "woocommerce";
 
 export function ImportDialog({
   open,
@@ -57,15 +48,20 @@ export function ImportDialog({
   downloadTemplate,
   preview,
   commit,
+  options: offer = {},
   onCommitted,
 }: ImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [busy, setBusy] = useState<false | "preview" | "commit">(false);
-  // Explicit column mapping (expected header → CSV header). Edits mark the
-  // preview stale (`mappingDirty`) until re-checked against the server.
+  // Explicit column mapping (expected header → CSV header) and the run's
+  // switches. Changing either marks the preview stale (`dirty`) until it is
+  // re-checked against the server — auto-create changes what is valid.
   const [mapping, setMapping] = useState<ImportColumnMapping>({});
-  const [mappingDirty, setMappingDirty] = useState(false);
+  const [choices, setChoices] = useState<ImportOptions>({});
+  // Once the merchant has touched the image switch, the file type no longer decides it.
+  const [mirrorTouched, setMirrorTouched] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
@@ -73,7 +69,9 @@ export function ImportDialog({
     setResult(null);
     setBusy(false);
     setMapping({});
-    setMappingDirty(false);
+    setChoices({});
+    setMirrorTouched(false);
+    setDirty(false);
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -82,15 +80,22 @@ export function ImportDialog({
     if (!next) reset();
   };
 
+  const showResult = (next: ImportResult) => {
+    setResult(next);
+    if (offer.mirrorImages && !mirrorTouched) {
+      setChoices((current) => ({ ...current, mirrorImages: next.dialect === WOOCOMMERCE }));
+    }
+  };
+
   const handleFile = async (picked: File | undefined) => {
     if (!picked) return;
     setFile(picked);
     setResult(null);
     setMapping({});
-    setMappingDirty(false);
+    setDirty(false);
     setBusy("preview");
     try {
-      setResult(await preview(picked));
+      showResult(await preview(picked, undefined, choices));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Preview failed");
       reset();
@@ -99,12 +104,12 @@ export function ImportDialog({
     }
   };
 
-  const handleApplyMapping = async () => {
+  const handleRecheck = async () => {
     if (!file) return;
     setBusy("preview");
     try {
-      setResult(await preview(file, mapping));
-      setMappingDirty(false);
+      showResult(await preview(file, mapping, choices));
+      setDirty(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Preview failed");
     } finally {
@@ -112,13 +117,23 @@ export function ImportDialog({
     }
   };
 
+  const handleChoice = (key: keyof ImportOptions, checked: boolean) => {
+    setChoices((current) => ({ ...current, [key]: checked }));
+    if (key === "mirrorImages") setMirrorTouched(true);
+    // Copying images happens after the commit and changes nothing in the preview.
+    if (key === "autoCreate" && result) setDirty(true);
+  };
+
   const handleCommit = async () => {
     if (!file) return;
     setBusy("commit");
     try {
-      const res = await commit(file, mapping);
+      const res = await commit(file, mapping, choices);
       toast.success(
         `Imported ${res.created} · skipped ${res.skipped} · failed ${res.invalid}`,
+        choices.mirrorImages && res.created > 0
+          ? { description: "Product images are being copied in the background." }
+          : undefined,
       );
       onCommitted?.();
       handleClose(false);
@@ -128,8 +143,6 @@ export function ImportDialog({
       setBusy(false);
     }
   };
-
-  const hiddenErrors = result ? result.invalid - result.errors.length : 0;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -179,6 +192,13 @@ export function ImportDialog({
             )}
           </div>
 
+          <ImportOptionsPanel
+            offer={offer}
+            value={choices}
+            onChange={handleChoice}
+            disabled={busy !== false}
+          />
+
           {busy === "preview" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -188,67 +208,30 @@ export function ImportDialog({
 
           {result && (
             <div className="space-y-3">
-              <div className="flex flex-wrap gap-4 text-sm">
-                <span>Total: <b>{result.total}</b></span>
-                <span className="text-green-600">Valid: <b>{result.valid}</b></span>
-                <span className="text-amber-600" title="Rows that already exist (matched an existing record) and were left unchanged — import creates, it never updates.">
-                  Skipped (already exist): <b>{result.skipped}</b>
-                </span>
-                <span className="text-red-600">Invalid: <b>{result.invalid}</b></span>
-              </div>
-
               {result.headerInfo && (
                 <ColumnMapper
                   headerInfo={result.headerInfo}
                   mapping={mapping}
                   onChange={(next) => {
                     setMapping(next);
-                    setMappingDirty(true);
+                    setDirty(true);
                   }}
                 />
               )}
-              {mappingDirty && (
+              {dirty && (
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
                   disabled={busy !== false}
-                  onClick={handleApplyMapping}
+                  onClick={handleRecheck}
                 >
-                  {busy === "preview" && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                  Apply mapping & re-check
+                  {busy === "preview" && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Apply changes & re-check
                 </Button>
               )}
 
-              {result.warnings && result.warnings.length > 0 && (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-                  <p className="mb-1 font-medium">
-                    Some values will be skipped:
-                  </p>
-                  <ul className="list-disc space-y-0.5 pl-5">
-                    {result.warnings.map((warning, index) => (
-                      <li key={index}>{warning}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {result.errors.length > 0 && (
-                <div className="max-h-64 overflow-auto rounded-md border">
-                  <SimpleTable
-                    columns={errorColumns}
-                    rows={result.errors}
-                    getRowKey={(_, index) => index}
-                  />
-                </div>
-              )}
-              {hiddenErrors > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Showing first {result.errors.length} of {result.invalid} errors.
-                </p>
-              )}
+              <ImportResultSummary result={result} />
             </div>
           )}
         </div>
@@ -259,9 +242,7 @@ export function ImportDialog({
           </Button>
           <Button
             onClick={handleCommit}
-            disabled={
-              !result || result.valid === 0 || busy !== false || mappingDirty
-            }
+            disabled={!result || result.valid === 0 || busy !== false || dirty}
           >
             {busy === "commit" && <Loader2 className="h-4 w-4 animate-spin" />}
             Import {result?.valid ? `${result.valid}` : ""}
