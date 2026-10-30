@@ -252,6 +252,37 @@
   font-size: 14px !important;
   line-height: 1.5 !important;
 }
+/* A category with no photo yet draws as the same circle, its initial in place
+   of the picture — not the fallback's small brand disc on a tinted card, which
+   turned a fresh shop's first row into a stack of coloured slabs. The fallback
+   sets its box inline, hence `!important`; the description stays on the
+   collection page, as it does under a photo circle. */
+.sf-shell[data-skin="showroom"] .sf-cat-circle--letter {
+  flex-direction: column !important;
+  text-align: center !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle--letter .sf-cat-circle-letter {
+  width: 100% !important;
+  max-width: 130px;
+  height: auto !important;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 9vw, 40px) !important;
+  font-weight: 600 !important;
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle--letter > span:last-child > span:first-child {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+.sf-shell[data-skin="showroom"] .sf-cat-circle--letter .sf-cat-circle-desc {
+  display: none !important;
+}
 
 /* ---- Product cards (`product-card.tsx`) ----
    White pills on the photo, top left: the sale in red, the tag in the card's
@@ -490,7 +521,17 @@
    the height. The words run 460px wide, 56px down and 48px in: small
    capitals, a 36px heading, a 16px line and the button, 12px apart. A dark
    Text colour (Style tab) reaches the words here, where the shared banner
-   always draws them white. */
+   always draws them white.
+
+   A phone does the same at 300px with smaller words, rather than a fixed crop:
+   a 4:3 box at 375px is 280px tall, and the heading, line and button did not
+   fit in it.
+
+   Unless the merchant set a shade of their own (`data-scrim`), the words sit
+   on the theme's: dark from the left on a computer, where the words take the
+   left half, and across the whole picture on a phone, where they take all of
+   it. The hero's ink, so the two pictures read as one theme. Without it the
+   white words were only as readable as the photograph was dark. */
 @media (min-width: 680px) {
   .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-box:not([data-frame]) {
     min-height: 340px;
@@ -506,6 +547,36 @@
   }
   .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy > * {
     max-width: 460px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy:not([data-scrim]):not([data-align="center"]) {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.5) 40%, rgba(15, 23, 42, 0) 75%);
+  }
+}
+@media (max-width: 679px) {
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-box:not([data-frame-m]) {
+    min-height: 300px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-box:not([data-frame-m]) .sfb-banner-media {
+    position: absolute;
+    inset: 0;
+    object-position: var(--sfb-banner-focal-m, var(--sfb-banner-focal, 50% 50%));
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy {
+    gap: 8px;
+    padding: 28px 20px;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-copy:not([data-scrim]) {
+    background: rgba(15, 23, 42, 0.5);
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-heading {
+    font-size: 26px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-text {
+    font-size: 14px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-button {
+    height: 42px !important;
+    margin-top: 6px !important;
   }
 }
 .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"] .sfb-banner-badge {
@@ -533,6 +604,15 @@
   padding: 0 22px;
   font-size: 15px;
   line-height: 1.5;
+}
+/* White words get the hero's white button: the brand's near-black on the
+   theme's dark shade all but disappeared. Dark words keep the brand's. */
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"]:not([data-tone="dark"]):not([data-tone="custom"]) .sfb-button {
+  background: #fff;
+  color: #0f172a;
+}
+.sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"]:not([data-tone="dark"]):not([data-tone="custom"]) .sfb-button:hover {
+  background: #f1f5f9;
 }
 .sf-shell[data-skin="showroom"] .sfb-sec[data-type="image-banner"][data-tone="dark"] .sfb-banner {
   color: #0f172a;
@@ -937,5 +1017,40 @@
   .sf-shell[data-skin="showroom"] .sf-hero-fullbleed-dots > button[aria-current="true"] {
     width: 28px !important;
     background: #fff !important;
+  }
+}
+
+/* ---- Phone (under 680px) ----
+   The rules above were measured on a computer; three of them did not survive a
+   375px screen.
+
+   Card buttons stack: two side by side in a ~165px card wrapped "Add to cart"
+   and "Buy now" onto two lines each. One per line keeps each label on one.
+
+   A heading with a subheading puts its link beside the heading, not beside the
+   pair: spanning both lines, the link took a third of the row and squeezed the
+   subheading into a column of three words.
+
+   The footer's payment badges go last, as on a computer, so the currency sits
+   beside the copyright line rather than alone under the badges. */
+@media (max-width: 679px) {
+  .sf-shell[data-skin="showroom"] .sf-card-ctas {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+  }
+  .sf-shell[data-skin="showroom"] .sf-card-ctas > button {
+    height: 36px;
+    min-height: 36px !important;
+    white-space: nowrap;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-title > .sfb-title-row > :not(h2) {
+    grid-row: 1;
+    align-self: center;
+  }
+  .sf-shell[data-skin="showroom"] .sfb-title > p {
+    grid-column: 1 / -1;
+  }
+  .sf-shell[data-skin="showroom"] .sf-footer-bottom > .sf-pay-badges {
+    order: 1;
   }
 }

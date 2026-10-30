@@ -374,6 +374,20 @@ describe("category-tiles", () => {
     expect(container.textContent).toContain("Audio");
   });
 
+  /* The Default theme draws an unphotographed collection in a round row as
+     the same circle with its initial (`storefront-showroom.css`). The classes
+     are its only hook; a row that did not ask for circles carries none, so
+     every other theme keeps its lettered disc. */
+  it("marks an unphotographed collection in a round row for the theme sheet", () => {
+    const round = renderPage([section("t1", "category-tiles", { mode: "circle" })]).container;
+    const letters = [...round.querySelectorAll(".sf-cat-tiles > a.sf-cat-circle--letter")];
+    expect(letters.map((tile) => tile.textContent)).toEqual(["PPhones", "AAudio"]);
+    expect(round.querySelectorAll(".sf-cat-circle-letter")).toHaveLength(2);
+
+    const square = renderPage([section("t1", "category-tiles", { mode: "tile" })]).container;
+    expect(square.querySelector(".sf-cat-circle, .sf-cat-circle-letter")).toBeNull();
+  });
+
   it("passes the arrow switch to the strip, and nothing when unset", () => {
     const off = renderPage(
       [section("t1", "category-tiles", { layout: "strip", arrows: false })],
