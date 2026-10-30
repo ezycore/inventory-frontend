@@ -253,6 +253,19 @@ function AccountAtom({ ctx, mode }: AtomProps) {
   );
 }
 
+/** The account's wishlist tab. `chromeWithPageControls` drops it with accounts off. */
+function WishlistAtom({ ctx, mode }: AtomProps) {
+  const { t } = useStorefrontUI();
+  return (
+    <Atom
+      icon={iconOf(ctx, "wishlist")}
+      label={t.tabWishlist}
+      mode={mode}
+      href={storeHref(ctx.base, "/account?tab=wishlist")}
+    />
+  );
+}
+
 function HomeAtom({ ctx, mode }: AtomProps) {
   const { t } = useStorefrontUI();
   return (
@@ -367,6 +380,7 @@ const ATOMS: Record<MobileActionId, (p: AtomProps) => ReactNode> = {
   search: SearchAtom,
   cart: CartAtom,
   account: AccountAtom,
+  wishlist: WishlistAtom,
   home: HomeAtom,
   lang: LangAtom,
   theme: ThemeAtom,

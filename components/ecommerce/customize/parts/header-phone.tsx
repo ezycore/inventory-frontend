@@ -74,7 +74,15 @@ export function PhoneHeaderFields({
   // so the row says that here instead of leaving the merchant to find out on
   // their phone. The number lives in Settings → General, not in this draft.
   const noPhone = !settings.contact?.phone?.trim();
-  const disabledIds = noPhone ? { call: "— no phone number saved" } : undefined;
+  // Likewise the wishlist, which lives in the customer account.
+  const accountsOff = settings.customersConfig?.allowAccounts === false;
+  const disabledIds =
+    noPhone || accountsOff
+      ? {
+          ...(noPhone ? { call: "— no phone number saved" } : {}),
+          ...(accountsOff ? { wishlist: "— customer accounts are off" } : {}),
+        }
+      : undefined;
   const barActions = MOBILE_ACTIONS.map((a) => a.id);
 
   const pickTemplate = (value: string) => {

@@ -52,7 +52,7 @@ describe("stored values are narrowed before they reach the DOM", () => {
   it("drops action ids it does not know", () => {
     const chrome = resolveMobileChrome(
       { mobile: "drawer" },
-      { left: ["menu", "wishlist", "definitely-not-real"] },
+      { left: ["menu", "compare", "definitely-not-real"] },
     );
     expect(chrome.left).toEqual(["menu"]);
   });

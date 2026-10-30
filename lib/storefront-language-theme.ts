@@ -92,18 +92,33 @@ export const effectiveTheme = (v: ResolvedLanguageTheme, chosen: ShopTheme): Sho
 
 export interface DesktopHeaderConfig {
   sticky?: boolean;
+  wishlist?: boolean;
 }
 
 export interface ResolvedDesktopHeader {
   /** Follows the page. Absent ⇒ true: the header always has. */
   sticky: boolean;
+  /**
+   * The wishlist heart, in a header that draws one (Showroom). Absent ⇒ true,
+   * which is what it drew before it had a switch. Customer accounts off hides
+   * it whatever this says — the wishlist lives in the account.
+   */
+  wishlist: boolean;
 }
 
 export const resolveDesktopHeader = (
   config: DesktopHeaderConfig | undefined,
-): ResolvedDesktopHeader => ({ sticky: config?.sticky !== false });
+): ResolvedDesktopHeader => ({
+  sticky: config?.sticky !== false,
+  wishlist: config?.wishlist !== false,
+});
 
-/** Only a header that stopped following the page stores anything. */
+/** Only a switch turned off is stored; a header left alone stores nothing. */
 export const desktopHeaderOverrides = (
   value: ResolvedDesktopHeader,
-): DesktopHeaderConfig | undefined => (value.sticky ? undefined : { sticky: false });
+): DesktopHeaderConfig | undefined => {
+  const out: DesktopHeaderConfig = {};
+  if (!value.sticky) out.sticky = false;
+  if (!value.wishlist) out.wishlist = false;
+  return Object.keys(out).length ? out : undefined;
+};

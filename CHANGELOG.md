@@ -10,6 +10,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Fixed
+- **The wishlist heart is switchable.** Customize → Header → Computer → **Wishlist** (Showroom layout) hides the header heart, and on a phone **Wishlist** is a new icon to place in the bar or the tab row, like cart and search. Defaults to on, so no store changes. With customer accounts off it is hidden everywhere and greyed out in Customize, since the wishlist lives in the account. The hearts on product cards are unchanged.
 - **Default theme on a phone (2026-10-30).** Product card buttons stack instead of wrapping "Add to cart" and "Buy now" onto two lines each. A heading's link sits beside the heading, not squeezed beside its subheading. The footer's currency stays beside the copyright line. The image banner covers a box at least 300px tall with smaller words, rather than a 4:3 crop the words spilled out of.
 - **Default theme image banner shade.** With no shade of the merchant's own, its words sit on the theme's ink: from the left on a computer, across the picture on a phone. White words had been only as readable as the photo was dark. Its button is the hero's white one, not the brand's near-black, which disappeared on the shade.
 - **Default theme category circles without photos.** A collection with no picture draws as the same circle with its initial, not as a small brand disc on a tinted card with its description. Other themes keep their lettered disc.

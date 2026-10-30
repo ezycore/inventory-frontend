@@ -16687,6 +16687,7 @@ export interface components {
                         };
                         desktopHeader?: {
                             sticky?: boolean;
+                            wishlist?: boolean;
                         };
                         menu?: {
                             subcategories?: string;
@@ -17049,6 +17050,7 @@ export interface components {
                         };
                         desktopHeader?: {
                             sticky?: boolean;
+                            wishlist?: boolean;
                         };
                         menu?: {
                             subcategories?: string;
@@ -17416,6 +17418,7 @@ export interface components {
                 };
                 desktopHeader?: {
                     sticky?: boolean;
+                    wishlist?: boolean;
                 };
                 menu?: {
                     subcategories?: string;
@@ -51005,6 +51008,7 @@ export interface operations {
                             };
                             desktopHeader?: {
                                 sticky?: boolean;
+                                wishlist?: boolean;
                             };
                             menu?: {
                                 subcategories?: string;

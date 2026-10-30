@@ -64,6 +64,11 @@ export interface HeaderCtx {
   showSearch: boolean;
   showAccount: boolean;
   /**
+   * The wishlist heart, in an anatomy that draws one: Customize → Header →
+   * Computer's switch, and never without customer accounts.
+   */
+  showWishlist: boolean;
+  /**
    * Does this anatomy still owe the shopper a theme / language control?
    *
    * False only while the utility bar is on THIS breakpoint and carrying that
@@ -250,7 +255,7 @@ export function AccountLink({
  * accounts exactly as `AccountLink` is: with accounts off there is no list to open.
  */
 export function WishlistLink({ ctx }: { ctx: HeaderCtx }) {
-  if (!ctx.showAccount) return null;
+  if (!ctx.showWishlist) return null;
   return (
     <Link
       href={storeHref(ctx.base, "/account?tab=wishlist")}

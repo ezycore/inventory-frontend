@@ -75,6 +75,15 @@ describe("chromeWithPageControls", () => {
     expect(out.tabs).toContain("cart");
   });
 
+  // The wishlist is the account's tab, so it leaves with the account.
+  it("drops a placed wishlist when customer accounts are off", () => {
+    const placed = { ...tabs, right: ["wishlist", "cart"] as typeof tabs.right, tabs: [...tabs.tabs, "wishlist"] as typeof tabs.tabs };
+    const off = chromeWithPageControls(placed, { search: true, accounts: false });
+    expect(off.right).toEqual(["cart"]);
+    expect(off.tabs).not.toContain("wishlist");
+    expect(chromeWithPageControls(placed, { search: true, accounts: true }).right).toEqual(["wishlist", "cart"]);
+  });
+
   it("keeps the account controls when only search is off", () => {
     const out = chromeWithPageControls(tabs, { search: false, accounts: true });
     expect(out.tabs).toContain("account");

@@ -56,7 +56,10 @@ export function chromeWithPageControls<T extends MobileChrome>(
 ): T {
   const gone = new Set<MobileActionId>();
   if (!search) gone.add("search");
-  if (!accounts) gone.add("account");
+  if (!accounts) {
+    gone.add("account");
+    gone.add("wishlist");
+  }
   if (gone.size === 0) return chrome;
   return {
     ...chrome,

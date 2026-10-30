@@ -47,6 +47,7 @@ export type MobileActionId =
   | "search"
   | "cart"
   | "account"
+  | "wishlist"
   | "home"
   | "lang"
   | "theme"
@@ -66,10 +67,12 @@ export interface MobileActionSpec {
   icons: IconName[];
   /**
    * Renders nothing unless the shop has something for it to do — `call` with no
-   * published number is a button that dials nowhere. Checked by the renderer;
-   * declared here so the Customize panel can grey the same rows out.
+   * published number is a button that dials nowhere, and `wishlist` with
+   * customer accounts off a link to a page that is not there. Enforced by the
+   * renderer and `chromeWithPageControls`; declared here so the Customize panel
+   * can grey the same rows out.
    */
-  needs?: "phone";
+  needs?: "phone" | "accounts";
 }
 
 /**
@@ -89,6 +92,9 @@ export const MOBILE_ACTIONS: readonly MobileActionSpec[] = [
   { id: "search", label: "Search", icon: "search", icons: ["search", "zoomIn"] },
   { id: "cart", label: "Cart", icon: "cart", icons: ["cart", "bag", "basket"] },
   { id: "account", label: "Account", icon: "user", icons: ["user"] },
+  // The account's wishlist tab. Dropped with the account when customer
+  // accounts are off (`chromeWithPageControls`): that is where it lives.
+  { id: "wishlist", label: "Wishlist", icon: "heart", icons: ["heart"], needs: "accounts" },
   { id: "home", label: "Home", icon: "home", icons: ["home"] },
   { id: "lang", label: "Language", icon: "dot", icons: ["dot"] },
   { id: "theme", label: "Light / dark", icon: "moon", icons: ["moon"] },
@@ -110,7 +116,7 @@ export const mobileAction = (id: MobileActionId): MobileActionSpec | undefined =
  */
 export type MobileTabId = Extract<
   MobileActionId,
-  "home" | "menu" | "search" | "cart" | "account" | "call" | "track"
+  "home" | "menu" | "search" | "cart" | "account" | "wishlist" | "call" | "track"
 >;
 
 export const MOBILE_TAB_IDS: readonly MobileTabId[] = [
@@ -119,6 +125,7 @@ export const MOBILE_TAB_IDS: readonly MobileTabId[] = [
   "search",
   "cart",
   "account",
+  "wishlist",
   "call",
   "track",
 ];

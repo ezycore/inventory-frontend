@@ -102,7 +102,7 @@ export function StoreHeader({
   const desktopBarShows = showsOn(utilityBar, "desktop");
   const { needsTheme, needsLang } = useHeaderNeeds(store, "desktop");
   // Absent ⇒ it follows the page, as every header always has.
-  const { sticky } = useDesktopHeader(store);
+  const { sticky, wishlist } = useDesktopHeader(store);
 
   const ctx: HeaderCtx = {
     base,
@@ -126,6 +126,8 @@ export function StoreHeader({
     hideCategoryRow,
     showSearch: pages.search,
     showAccount: pages.accounts,
+    // The wishlist lives in the account, so accounts off takes the heart too.
+    showWishlist: pages.accounts && wishlist,
     needsTheme,
     needsLang,
     // "Delivery inside Dhaka in 24h" and the like. There is no dedicated
