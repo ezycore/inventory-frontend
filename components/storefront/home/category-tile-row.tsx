@@ -147,6 +147,7 @@ export function CategoryTileRow({
       compact={compact}
       disc={disc}
       circle={circle}
+      round={mode === "circle"}
       strip={tileRow.strip}
       showLabel={labels}
     />
@@ -231,6 +232,7 @@ function CategoryTile({
   compact,
   disc,
   circle,
+  round,
   strip,
   showLabel,
 }: {
@@ -258,6 +260,14 @@ function CategoryTile({
    * the same circle at the same size, so the row stays one shape.
    */
   circle?: boolean;
+  /**
+   * The row ASKED for circles (`mode: "circle"`), photographed or not. Only a
+   * theme sheet reads it, through the classes below: the Default theme draws
+   * an unphotographed category as its own photo circle with the initial in it
+   * (`storefront-showroom.css`), so a shop with no category photos yet still
+   * looks like the design. Every other theme keeps the lettered disc.
+   */
+  round?: boolean;
   /** The row layout selected horizontal scrolling. */
   strip: boolean;
   /**
@@ -335,6 +345,7 @@ function CategoryTile({
     return (
       <Link
         href={href}
+        className={round ? "sf-cat-circle sf-cat-circle--letter" : undefined}
         style={{
           ...flowStyle,
           display: "flex",
@@ -350,6 +361,7 @@ function CategoryTile({
         }}
       >
         <span
+          className={round ? "sf-cat-circle-letter" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
@@ -384,7 +396,10 @@ function CategoryTile({
             {name}
           </span>
           {description ? (
-            <span style={{ display: "block", fontSize: 12, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.35, marginTop: 2 }}>
+            <span
+              className={round ? "sf-cat-circle-desc" : undefined}
+              style={{ display: "block", fontSize: 12, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.35, marginTop: 2 }}
+            >
               {description}
             </span>
           ) : null}

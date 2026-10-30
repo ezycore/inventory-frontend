@@ -9,6 +9,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Fixed
+- **Default theme on a phone (2026-10-30).** Product card buttons stack instead of wrapping "Add to cart" and "Buy now" onto two lines each. A heading's link sits beside the heading, not squeezed beside its subheading. The footer's currency stays beside the copyright line. The image banner covers a box at least 300px tall with smaller words, rather than a 4:3 crop the words spilled out of.
+- **Default theme image banner shade.** With no shade of the merchant's own, its words sit on the theme's ink: from the left on a computer, across the picture on a phone. White words had been only as readable as the photo was dark. Its button is the hero's white one, not the brand's near-black, which disappeared on the shade.
+- **Default theme category circles without photos.** A collection with no picture draws as the same circle with its initial, not as a small brand disc on a tinted card with its description. Other themes keep their lettered disc.
+
 ### Added
 - **Import & Export center** (`/import-export`, Admin group in the sidebar): every import and export in one place. **Import** — cards for products, opening stock, customers and suppliers (customers and suppliers had no import screen before), each with its template and the usual preview → commit dialog. **Export** — products and stock in the import format with the list pages' own filters, plus Export Data (moved from Reports). **Move your shop** — the WooCommerce connector. **History** — every import with why rows failed, and every WooCommerce move. Each card shows only for a role allowed to use it. English and Bangla; new help guide "Import and export your data".
 - **Products → Import: two switches for moving a store in.** "Create missing categories, brands and tags" (the preview lists what it will create, and re-checks when toggled) and "Copy product images into EzyCore" (on by default when the file is a WooCommerce export; copying runs in the background after the import). A WooCommerce product export now uploads unchanged, variable products included. **Needs inventory-backend with the data-migration Phase 1–2 import** — older backends ignore both switches.
